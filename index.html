@@ -216,16 +216,18 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
     <div class="ni active" onclick="go('dashboard')"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
     <div class="ns">People</div>
     <div class="ni" onclick="go('members')"><i class="ti ti-users"></i>Members</div>
+    <div class="ni" onclick="go('staff')"><i class="ti ti-id-badge-2"></i>Pastoral &amp; Staff</div>
     <div class="ni" onclick="go('cellgroups')"><i class="ti ti-sitemap"></i>Cell Groups</div>
+    <div class="ni" onclick="go('fellowship')"><i class="ti ti-friends"></i>Fellowships</div>
     <div class="ni" onclick="go('ministries')"><i class="ti ti-crown"></i>Ministries</div>
     <div class="ns">Worship</div>
     <div class="ni" onclick="go('services')"><i class="ti ti-microphone"></i>Services</div>
     <div class="ni" onclick="go('events')"><i class="ti ti-calendar-event"></i>Events</div>
     <div class="ns">Finance</div>
-    <div class="ni" onclick="go('donations')"><i class="ti ti-heart"></i>Donations</div>
+    <div class="ni" onclick="go('donations')"><i class="ti ti-heart"></i>Offerings</div>
     <div class="ni" onclick="go('accounting')"><i class="ti ti-report-money"></i>Accounting</div>
     <div class="ns">System</div>
-    <div class="ni" onclick="go('notices')"><i class="ti ti-speakerphone"></i>Announcements</div>
+    <div class="ni" onclick="go('notices')"><i class="ti ti-speakerphone"></i>Admin Notes</div>
     <div class="ni" onclick="go('settings')"><i class="ti ti-settings"></i>Settings</div>
   </nav>
   <div id="sb-foot">All data stored locally · No server</div>
@@ -260,7 +262,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
   </div>
   <div class="two">
     <div class="card"><div class="ch"><span class="ct"><i class="ti ti-calendar-event"></i>Upcoming Events</span><button class="btn btn-s xs" onclick="go('events')">View All</button></div><div id="dash-events"></div></div>
-    <div class="card"><div class="ch"><span class="ct"><i class="ti ti-heart"></i>Recent Donations</span><button class="btn btn-s xs" onclick="go('donations')">View All</button></div><div id="dash-dons"></div></div>
+    <div class="card"><div class="ch"><span class="ct"><i class="ti ti-heart"></i>Recent Offerings</span><button class="btn btn-s xs" onclick="go('donations')">View All</button></div><div id="dash-dons"></div></div>
   </div>
 </div>
 
@@ -282,7 +284,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
       <select id="mf-cg" onchange="renderMembers()"><option value="">All Cell Groups</option></select>
     </div>
     <div class="tw"><table class="dt">
-      <thead><tr><th>Photo</th><th>English Name</th><th>中文名</th><th>Phone / Email</th><th>DOB / Age</th><th>Status</th><th>Ministry</th><th>Cell Group</th><th>Joined</th><th>Actions</th></tr></thead>
+      <thead><tr><th>Photo</th><th>English Name</th><th>中文名</th><th>Phone</th><th>Faith</th><th>DOB</th><th>Status</th><th>Ministry</th><th>Cell Group</th><th>Joined</th><th>Actions</th></tr></thead>
       <tbody id="mem-tbody"></tbody>
     </table></div>
   </div>
@@ -300,7 +302,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
   </div>
   <div class="tc active" id="ev-tab-list">
     <div class="tb">
-      <select id="evf-ty" onchange="renderEvents()"><option value="">All Types</option><option>Worship Service</option><option>Conference</option><option>Camp</option><option>Outreach</option><option>Fundraiser</option><option>Training</option><option>Fellowship</option><option>Other</option></select>
+      <select id="evf-ty" onchange="renderEvents()"><option value="">All Types</option><option>Worship Service</option><option>Evangelistic Meeting</option><option>Conference</option><option>Camp</option><option>Outreach</option><option>Fundraiser</option><option>Training</option><option>Fellowship</option><option>Other</option></select>
       <input type="month" id="evf-mo" onchange="renderEvents()" class="tb-in">
     </div>
     <div class="card"><div class="tw"><table class="dt">
@@ -344,7 +346,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
     </div>
     <div class="card"><div class="ch"><span class="ct"><i class="ti ti-crown"></i>Ministry Financial Rollup</span></div>
       <div class="tw"><table class="dt">
-        <thead><tr><th>Ministry</th><th>Donations</th><th>Expenses</th><th>Net P&amp;L</th><th>Budget/mo</th><th>Budget Usage</th></tr></thead>
+        <thead><tr><th>Ministry</th><th>Offerings</th><th>Expenses</th><th>Net P&amp;L</th><th>Budget/mo</th><th>Budget Usage</th></tr></thead>
         <tbody id="min-fin-tbody"></tbody>
       </table></div>
     </div>
@@ -399,10 +401,10 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
 <!-- ===== DONATIONS ===== -->
 <div class="page" id="page-donations">
   <div class="ph">
-    <div><div class="pt">Donations</div><div class="ps">Tithe, offering &amp; fund management</div></div>
+    <div><div class="pt">Offerings</div><div class="ps">Tithe, offering &amp; fund management</div></div>
     <div class="bg">
       <button class="btn btn-s sm" onclick="exportDonPDF()"><i class="ti ti-file-download"></i>PDF</button>
-      <button class="btn btn-p sm" onclick="openDonModal()"><i class="ti ti-plus"></i>Record Donation</button>
+      <button class="btn btn-p sm" onclick="openDonModal()"><i class="ti ti-plus"></i>Record Offering</button>
     </div>
   </div>
   <div class="sg" id="don-stats"></div>
@@ -459,10 +461,39 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
   <div id="cg-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(305px,1fr));gap:16px"></div>
 </div>
 
+<!-- ===== PASTORAL & STAFF ===== -->
+<div class="page" id="page-staff">
+  <div class="ph">
+    <div><div class="pt">Pastoral &amp; Ministry Staff</div><div class="ps">Full-time, part-time and ministry team members</div></div>
+    <button class="btn btn-p sm" onclick="openStaffModal()"><i class="ti ti-plus"></i>Add Staff</button>
+  </div>
+  <div class="sg" id="staff-stats"></div>
+  <div class="card">
+    <div class="tb">
+      <input type="text" id="staff-srch" placeholder="Search name, role..." oninput="renderStaff()" style="min-width:180px">
+      <select id="stf-type" onchange="renderStaff()"><option value="">All Types</option><option>Pastoral</option><option>Ministry Staff</option><option>Administrative</option><option>Support</option></select>
+    </div>
+    <div class="tw"><table class="dt">
+      <thead><tr><th>Photo</th><th>Name</th><th>Type</th><th>Post / Title</th><th>Department</th><th>Phone</th><th>Email</th><th>Since</th><th>Compensation</th><th>Actions</th></tr></thead>
+      <tbody id="staff-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ===== FELLOWSHIP ===== -->
+<div class="page" id="page-fellowship">
+  <div class="ph">
+    <div><div class="pt">Fellowships</div><div class="ps">Sub-communities within the church — each with own accounts, events &amp; committee</div></div>
+    <button class="btn btn-p sm" onclick="openFLModal()"><i class="ti ti-plus"></i>Create Fellowship</button>
+  </div>
+  <div class="sg" id="fl-top-stats"></div>
+  <div id="fl-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px"></div>
+</div>
+
 <!-- ===== ANNOUNCEMENTS ===== -->
 <div class="page" id="page-notices">
   <div class="ph">
-    <div><div class="pt">Announcements</div><div class="ps">Notice board for the congregation</div></div>
+    <div><div class="pt">Admin Notes</div><div class="ps">Internal admin memos &amp; reminders (staff only)</div></div>
     <button class="btn btn-p sm" onclick="openNoticeModal()"><i class="ti ti-plus"></i>Post Announcement</button>
   </div>
   <div id="notice-list" style="display:grid;gap:12px"></div>
@@ -550,8 +581,12 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
         <div class="fg">
           <div class="frow"><label>English Name *</label><input id="m-nen" type="text" placeholder="Full legal name"></div>
           <div class="frow"><label>Chinese Name 中文名</label><input id="m-nzh" type="text" placeholder="中文名字"></div>
-          <div class="frow"><label>Status</label><select id="m-st"><option>Active</option><option>Inactive</option><option>Visitor</option><option>Transfer</option><option>Deceased</option></select></div>
-          <div class="frow"><label>Date Joined</label><input id="m-joined" type="date"></div>
+          <div class="frow"><label>Membership Status</label>
+            <select id="m-st"><option>Active</option><option>Newcomer</option><option>Transfer</option><option>Inactive</option><option>Deceased</option></select>
+          </div>
+          <div class="frow"><label>Faith Status</label>
+            <select id="m-faith"><option>Believer</option><option>Seeker</option><option>Guest / Visitor</option></select>
+          </div>
         </div>
       </div>
     </div>
@@ -569,15 +604,21 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
       <div class="fg">
         <div class="frow"><label>Mobile Phone</label><input id="m-ph" type="tel" placeholder="01X-XXXXXXX"></div>
         <div class="frow"><label>Email</label><input id="m-em" type="email" placeholder="email@example.com"></div>
-        <div class="frow"><label>WhatsApp</label><input id="m-wa" type="text" placeholder="60XX-XXXXXXX"></div>
         <div class="frow"><label>Emergency Contact</label><input id="m-ec" type="text" placeholder="Name / Phone"></div>
       </div>
       <div class="frow" style="margin-top:10px"><label>Home Address</label><textarea id="m-addr" placeholder="Full address"></textarea></div>
     </div>
-    <div class="fsec"><div class="fsec-t">Church Information</div>
+    <div class="fsec"><div class="fsec-t">Church Information (OPTIONAL)</div>
       <div class="fg">
-        <div class="frow"><label>Baptism Date</label><input id="m-bap" type="date"></div>
-        <div class="frow"><label>Confirmation Date</label><input id="m-conf" type="date"></div>
+        <div class="frow"><label>Baptised?</label>
+          <select id="m-baptised"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select>
+        </div>
+        <div class="frow"><label>Baptism Year (approx.)</label>
+          <input id="m-bap" type="text" placeholder="e.g. 2018 or leave blank"></div>
+        <div class="frow"><label>Year Joined Church (approx.)</label>
+          <input id="m-joined" type="text" placeholder="e.g. 2015 or 2015-03"></div>
+        <div class="frow"><label>Confirmation Year</label>
+          <input id="m-conf" type="text" placeholder="e.g. 2019 or leave blank"></div>
         <div class="frow"><label>Ministry</label><select id="m-min"><option value="">None</option></select></div>
         <div class="frow"><label>Cell Group</label><select id="m-cg"><option value="">None</option></select></div>
         <div class="frow"><label>Role in Church</label><input id="m-role" type="text" placeholder="Worship Leader, Deacon..."></div>
@@ -608,7 +649,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
       <div class="frow"><label>End Date</label><input id="e-edate" type="date"></div>
       <div class="frow"><label>End Time</label><input id="e-etime" type="time"></div>
       <div class="frow"><label>Event Type</label>
-        <select id="e-type"><option>Worship Service</option><option>Conference</option><option>Camp</option><option>Outreach</option><option>Fundraiser</option><option>Training</option><option>Fellowship</option><option>Other</option></select>
+        <select id="e-type"><option>Worship Service</option><option>Evangelistic Meeting</option><option>Conference</option><option>Camp</option><option>Outreach</option><option>Fundraiser</option><option>Training</option><option>Fellowship</option><option>Other</option></select>
       </div>
       <div class="frow"><label>Venue / Location</label><input id="e-loc" type="text" placeholder="Church Hall / External"></div>
       <div class="frow"><label>Capacity (0=unlimited)</label><input id="e-cap" type="number" min="0" placeholder="0"></div>
@@ -700,7 +741,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
 
 <!-- DONATION -->
 <div class="mo" id="mo-don"><div class="modal sm">
-  <div class="mh"><span class="mt"><i class="ti ti-heart"></i>Record Donation</span><button class="cx" onclick="closeMo('mo-don')"><i class="ti ti-x"></i></button></div>
+  <div class="mh"><span class="mt"><i class="ti ti-heart"></i>Record Offering</span><button class="cx" onclick="closeMo('mo-don')"><i class="ti ti-x"></i></button></div>
   <div class="mb">
     <div class="fg">
       <div class="frow"><label>Date *</label><input id="don-date" type="date"></div>
@@ -742,6 +783,15 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
     <div class="fsec"><div class="fsec-t">Order of Service / Song List</div>
       <div class="frow"><textarea id="svc-order" placeholder="1. Opening Prayer&#10;2. Praise &amp; Worship&#10;3. Sermon&#10;4. Altar Call&#10;5. Offering&#10;6. Benediction" style="min-height:90px"></textarea></div>
     </div>
+    <div class="fsec"><div class="fsec-t">Recurring Service (Optional)</div>
+      <div class="fg">
+        <div class="frow"><label>Repeat?</label>
+          <select id="svc-repeat"><option value="">One-time only</option><option value="weekly">Weekly</option><option value="biweekly">Bi-weekly</option><option value="monthly">Monthly (1st Sunday)</option></select>
+        </div>
+        <div class="frow"><label>Generate Until Date</label><input id="svc-until" type="date" placeholder="Auto-create up to this date"></div>
+      </div>
+      <div style="font-size:10px;color:var(--g400);margin-top:6px;padding:8px;background:var(--g50);border-radius:6px"><i class="ti ti-info-circle"></i> Recurring services will be pre-created with the same Type, Time, and Location. Manpower, Offering, and Theme can be filled in later per-service.</div>
+    </div>
     <div class="frow" style="margin-top:10px"><label>Notes</label><textarea id="svc-notes" placeholder="Service notes..."></textarea></div>
     <input type="hidden" id="svc-id">
   </div>
@@ -762,7 +812,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
       <div class="frow"><label>Meeting Time</label><input id="cg-time" type="time" value="19:30"></div>
       <div class="frow"><label>Location / Host</label><input id="cg-loc" type="text" placeholder="Venue or host address"></div>
       <div class="frow"><label>Zone / Area</label><input id="cg-zone" type="text" placeholder="e.g. North Zone, KL"></div>
-      <div class="frow"><label>Monthly Budget (RM)</label><input id="cg-bud" type="number" min="0" step="0.01" placeholder="0"></div>
+      <div class="frow"><label>Weekly Offering Target (RM)</label><input id="cg-bud" type="number" min="0" step="0.01" placeholder="0"></div>
       <div class="frow" style="grid-column:1/-1"><label>Description / Focus</label><textarea id="cg-desc" placeholder="Group focus..."></textarea></div>
     </div>
     <input type="hidden" id="cg-id">
@@ -792,6 +842,156 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
     <input type="hidden" id="nc-id">
   </div>
   <div class="mf"><button class="btn btn-s" onclick="closeMo('mo-notice')">Cancel</button><button class="btn btn-p" onclick="saveNotice()"><i class="ti ti-check"></i>Post</button></div>
+</div></div>
+
+<!-- STAFF -->
+<div class="mo" id="mo-staff"><div class="modal lg">
+  <div class="mh"><span class="mt"><i class="ti ti-id-badge-2"></i><span id="staff-mo-t">Add Staff</span></span><button class="cx" onclick="closeMo('mo-staff')"><i class="ti ti-x"></i></button></div>
+  <div class="mb">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px">
+      <div>
+        <div class="pu" id="staff-photo-prev" onclick="document.getElementById('staff-photo-inp').click()">
+          <i class="ti ti-camera" style="font-size:20px;color:var(--g400)"></i>
+        </div>
+        <input type="file" id="staff-photo-inp" accept="image/*" style="display:none" onchange="prevStaffPhoto(this)">
+        <div style="font-size:9px;color:var(--g400);margin-top:3px;text-align:center">Photo</div>
+      </div>
+      <div style="flex:1">
+        <div class="fg">
+          <div class="frow"><label>Full Name (EN) *</label><input id="sf-nen" type="text" placeholder="Full name"></div>
+          <div class="frow"><label>Chinese Name 中文</label><input id="sf-nzh" type="text" placeholder="中文名字"></div>
+          <div class="frow"><label>Staff Type</label>
+            <select id="sf-type"><option>Pastoral</option><option>Ministry Staff</option><option>Administrative</option><option>Support</option></select>
+          </div>
+          <div class="frow"><label>Post / Title</label>
+            <select id="sf-post">
+              <option>Senior Pastor</option><option>Associate Pastor</option><option>Youth Pastor</option><option>Children Pastor</option>
+              <option>Worship Director</option><option>Ministry Director</option><option>Ministry Leader</option>
+              <option>Administrative Manager</option><option>Church Secretary</option><option>Treasurer</option>
+              <option>Support Staff</option><option>Intern</option><option>Volunteer Coordinator</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fsec"><div class="fsec-t">Personal Details</div>
+      <div class="fg">
+        <div class="frow"><label>Date of Birth</label><input id="sf-dob" type="date"></div>
+        <div class="frow"><label>Gender</label><select id="sf-gen"><option>Male</option><option>Female</option></select></div>
+        <div class="frow"><label>NRIC / Passport</label><input id="sf-ic" type="text" placeholder="NRIC No."></div>
+        <div class="frow"><label>Nationality</label><input id="sf-nat" type="text" value="Malaysian"></div>
+        <div class="frow"><label>Mobile Phone</label><input id="sf-ph" type="tel" placeholder="01X-XXXXXXX"></div>
+        <div class="frow"><label>Email</label><input id="sf-em" type="email" placeholder="email@example.com"></div>
+        <div class="frow"><label>Start Date</label><input id="sf-start" type="date"></div>
+        <div class="frow"><label>Department / Ministry</label><select id="sf-dept"><option value="">General</option></select></div>
+      </div>
+      <div class="frow" style="margin-top:10px"><label>Home Address</label><textarea id="sf-addr" placeholder="Full address"></textarea></div>
+    </div>
+    <div class="fsec"><div class="fsec-t">Compensation (Optional — Confidential)</div>
+      <div class="fg">
+        <div class="frow"><label>Compensation Type</label>
+          <select id="sf-comp-type"><option value="">None / Volunteer</option><option value="Pastoral Support">Pastoral Support (Salary)</option><option value="Ministry Compensation">Ministry Compensation</option><option value="Honorarium">Honorarium</option><option value="Part-time Pay">Part-time Pay</option></select>
+        </div>
+        <div class="frow"><label>Monthly Amount (RM)</label><input id="sf-comp-amt" type="number" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="frow"><label>EPF Contributed?</label><select id="sf-epf"><option value="">N/A</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+        <div class="frow"><label>SOCSO Contributed?</label><select id="sf-socso"><option value="">N/A</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+      </div>
+    </div>
+    <div class="fsec"><div class="fsec-t">Qualifications &amp; Notes</div>
+      <div class="fg">
+        <div class="frow" style="grid-column:1/-1"><label>Theological / Academic Qualifications</label><input id="sf-qual" type="text" placeholder="e.g. B.Th, M.Div, Diploma in Ministry"></div>
+        <div class="frow" style="grid-column:1/-1"><label>Notes</label><textarea id="sf-notes" placeholder="Additional notes..."></textarea></div>
+      </div>
+    </div>
+    <input type="hidden" id="sf-id"><input type="hidden" id="sf-photo">
+  </div>
+  <div class="mf"><button class="btn btn-s" onclick="closeMo('mo-staff')">Cancel</button><button class="btn btn-p" onclick="saveStaff()"><i class="ti ti-check"></i>Save Staff</button></div>
+</div></div>
+
+<!-- FELLOWSHIP -->
+<div class="mo" id="mo-fl"><div class="modal lg">
+  <div class="mh"><span class="mt"><i class="ti ti-friends"></i><span id="fl-mo-t">Create Fellowship</span></span><button class="cx" onclick="closeMo('mo-fl')"><i class="ti ti-x"></i></button></div>
+  <div class="mb">
+    <div class="fg">
+      <div class="frow" style="grid-column:1/-1"><label>Fellowship Name *</label><input id="fl-name" type="text" placeholder="e.g. Youth Fellowship, Women Fellowship"></div>
+      <div class="frow" style="grid-column:1/-1"><label>Chinese Name</label><input id="fl-namezh" type="text" placeholder="中文名称"></div>
+      <div class="frow"><label>Fellowship Type</label>
+        <select id="fl-type"><option>Youth Fellowship</option><option>Womens Fellowship</option><option>Mens Fellowship</option><option>Senior Fellowship</option><option>Young Adults</option><option>Children Ministry</option><option>Mixed Fellowship</option><option>Other</option></select>
+      </div>
+      <div class="frow"><label>Meeting Day</label>
+        <select id="fl-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select>
+      </div>
+      <div class="frow"><label>Meeting Time</label><input id="fl-time" type="time" value="19:00"></div>
+      <div class="frow"><label>Meeting Location</label><input id="fl-loc" type="text" placeholder="Room / Hall"></div>
+      <div class="frow" style="grid-column:1/-1"><label>Vision / Description</label><textarea id="fl-desc" placeholder="Fellowship purpose and activities..."></textarea></div>
+    </div>
+    <div class="fsec"><div class="fsec-t">Committee Members</div>
+      <div id="fl-committee-wrap" style="margin-bottom:10px"></div>
+      <button class="btn btn-s sm" onclick="addFLCommittee()"><i class="ti ti-plus"></i>Add Committee Member</button>
+    </div>
+    <div class="fsec"><div class="fsec-t">Group Photo</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="fl-photo-prev" onclick="document.getElementById('fl-photo-inp').click()" style="width:120px;height:80px;border:2px dashed var(--g300);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--g50)">
+          <i class="ti ti-camera" style="font-size:24px;color:var(--g400)"></i>
+        </div>
+        <input type="file" id="fl-photo-inp" accept="image/*" style="display:none" onchange="prevFLPhoto(this)">
+        <div style="font-size:11px;color:var(--g400)">Upload a group photo (JPG/PNG, max ~2MB)</div>
+      </div>
+    </div>
+    <input type="hidden" id="fl-id"><input type="hidden" id="fl-photo">
+  </div>
+  <div class="mf"><button class="btn btn-s" onclick="closeMo('mo-fl')">Cancel</button><button class="btn btn-p" onclick="saveFL()"><i class="ti ti-check"></i>Save Fellowship</button></div>
+</div></div>
+
+<!-- FELLOWSHIP DETAIL -->
+<div class="mo" id="mo-fl-det"><div class="modal lg">
+  <div class="mh"><span class="mt"><i class="ti ti-friends"></i><span id="fl-det-t">Fellowship Detail</span></span><button class="cx" onclick="closeMo('mo-fl-det')"><i class="ti ti-x"></i></button></div>
+  <div class="mb" id="fl-det-body"></div>
+  <div class="mf"><button class="btn btn-s" onclick="closeMo('mo-fl-det')">Close</button></div>
+</div></div>
+
+<!-- CG ADD MEMBER MODAL -->
+<div class="mo" id="mo-cg-addmem"><div class="modal sm">
+  <div class="mh"><span class="mt"><i class="ti ti-user-plus"></i>Manage Group Members</span><button class="cx" onclick="closeMo('mo-cg-addmem')"><i class="ti ti-x"></i></button></div>
+  <div class="mb">
+    <div style="margin-bottom:10px;font-size:12px;color:var(--g500)">Search and add members to this cell group. Removing a member will clear their cell group assignment.</div>
+    <div class="tb" style="margin-bottom:10px">
+      <input type="text" id="cg-mem-srch" placeholder="Search member name..." oninput="searchCGMembers()" style="flex:1;min-width:0">
+    </div>
+    <div id="cg-mem-results" style="max-height:200px;overflow-y:auto;border:1px solid var(--g200);border-radius:8px;margin-bottom:12px"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--g400);text-transform:uppercase;margin-bottom:6px">Current Members</div>
+    <div id="cg-cur-members" style="max-height:180px;overflow-y:auto"></div>
+    <input type="hidden" id="cg-addmem-id">
+  </div>
+  <div class="mf"><button class="btn btn-s" onclick="closeMo('mo-cg-addmem')">Done</button></div>
+</div></div>
+
+<!-- FELLOWSHIP OFFERING ENTRY -->
+<div class="mo" id="mo-fl-offering"><div class="modal sm">
+  <div class="mh"><span class="mt"><i class="ti ti-heart"></i>Record Weekly Offering</span><button class="cx" onclick="closeMo('mo-fl-offering')"><i class="ti ti-x"></i></button></div>
+  <div class="mb">
+    <div class="fg">
+      <div class="frow"><label>Date *</label><input id="flo-date" type="date"></div>
+      <div class="frow"><label>Offering Amount (RM) *</label><input id="flo-amt" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="frow" style="grid-column:1/-1"><label>Notes</label><input id="flo-notes" type="text" placeholder="e.g. Week 1 Jan offering"></div>
+    </div>
+    <input type="hidden" id="flo-fl-id">
+  </div>
+  <div class="mf"><button class="btn btn-s" onclick="closeMo('mo-fl-offering')">Cancel</button><button class="btn btn-p" onclick="saveFLOffering()"><i class="ti ti-check"></i>Save</button></div>
+</div></div>
+
+<!-- CG WEEKLY OFFERING -->
+<div class="mo" id="mo-cg-offering"><div class="modal sm">
+  <div class="mh"><span class="mt"><i class="ti ti-heart"></i>Record Weekly Offering</span><button class="cx" onclick="closeMo('mo-cg-offering')"><i class="ti ti-x"></i></button></div>
+  <div class="mb">
+    <div class="fg">
+      <div class="frow"><label>Date *</label><input id="cgo-date" type="date"></div>
+      <div class="frow"><label>Offering (RM) *</label><input id="cgo-amt" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="frow" style="grid-column:1/-1"><label>Notes</label><input id="cgo-notes" type="text" placeholder="Optional notes"></div>
+    </div>
+    <input type="hidden" id="cgo-cg-id">
+  </div>
+  <div class="mf"><button class="btn btn-s" onclick="closeMo('mo-cg-offering')">Cancel</button><button class="btn btn-p" onclick="saveCGOffering()"><i class="ti ti-check"></i>Save</button></div>
 </div></div>
 
 <!-- CONFIRM -->
@@ -836,10 +1036,10 @@ function go(p){
   const pg=document.getElementById('page-'+p);if(!pg)return;
   pg.classList.add('active');
   const ni=document.querySelector('.ni[onclick="go(\''+p+'\')"]');if(ni)ni.classList.add('active');
-  const titles={dashboard:'Dashboard',members:'Members',events:'Events',accounting:'Accounting',ministries:'Ministries',donations:'Donations',services:'Services',cellgroups:'Cell Groups',notices:'Announcements',settings:'Settings'};
+  const titles={dashboard:'Dashboard',members:'Members',staff:'Pastoral & Staff',events:'Events',accounting:'Accounting',ministries:'Ministries',donations:'Offerings',services:'Services',cellgroups:'Cell Groups',fellowship:'Fellowships',notices:'Admin Notes',settings:'Settings'};
   document.getElementById('tb-title').textContent=titles[p]||p;
   closeSB();
-  ({dashboard:renderDash,members:renderMembers,events:renderEvents,accounting:renderAcc,ministries:renderMins,donations:renderDons,services:renderSvcs,cellgroups:renderCGs,notices:renderNotices,settings:renderSettings}[p]||function(){})();
+  ({dashboard:renderDash,members:renderMembers,staff:renderStaff,events:renderEvents,accounting:renderAcc,ministries:renderMins,donations:renderDons,services:renderSvcs,cellgroups:renderCGs,fellowship:renderFellowship,notices:renderNotices,settings:renderSettings}[p]||function(){})();
 }
 function stab(pg,tab,el){
   const pfx={ev:'ev',acc:'acc'}[pg]||pg;
@@ -937,7 +1137,7 @@ function popDrops(){
 }
 function openMemberModal(id){
   ['m-nen','m-nzh','m-dob','m-ic','m-ph','m-em','m-wa','m-ec','m-addr','m-notes','m-occ','m-nat','m-bap','m-conf','m-role','m-prev','m-joined'].forEach(f=>{sv(f,'')});
-  sv('m-id','');sv('m-photo','');sv('m-st','Active');sv('m-gen','Male');sv('m-mar','Single');sv('m-nat','Malaysian');
+  sv('m-id','');sv('m-photo','');sv('m-st','Active');sv('m-faith','Believer');sv('m-baptised','');sv('m-gen','Male');sv('m-mar','Single');sv('m-nat','Malaysian');
   sv('m-joined',new Date().toISOString().split('T')[0]);
   document.getElementById('photo-prev').innerHTML='<i class="ti ti-camera" style="font-size:20px;color:var(--g400)"></i>';
   popDrops();
@@ -945,8 +1145,9 @@ function openMemberModal(id){
     const m=DB.get('members').find(x=>x.id===id);if(!m)return;
     document.getElementById('mem-mo-t').textContent='Edit Member';
     sv('m-id',m.id);sv('m-nen',m.nen);sv('m-nzh',m.nzh);sv('m-dob',m.dob);sv('m-ic',m.ic);
-    sv('m-st',m.st||'Active');sv('m-gen',m.gen||'Male');sv('m-mar',m.mar||'Single');
-    sv('m-ph',m.ph);sv('m-em',m.em);sv('m-wa',m.wa);sv('m-ec',m.ec);sv('m-addr',m.addr);
+    sv('m-st',m.st||'Active');sv('m-faith',m.faith||'Believer');sv('m-baptised',m.baptised||'');
+    sv('m-gen',m.gen||'Male');sv('m-mar',m.mar||'Single');
+    sv('m-ph',m.ph);sv('m-em',m.em);sv('m-ec',m.ec);sv('m-addr',m.addr);
     sv('m-occ',m.occ);sv('m-nat',m.nat||'Malaysian');sv('m-bap',m.bap);sv('m-conf',m.conf);
     sv('m-joined',m.joined);sv('m-min',m.min||'');sv('m-cg',m.cg||'');
     sv('m-role',m.role);sv('m-prev',m.prev);sv('m-notes',m.notes);sv('m-photo',m.photo||'');
@@ -964,7 +1165,7 @@ function saveMember(){
   const nen=v('m-nen').trim();if(!nen){toast('English name required','x');return;}
   const mem=DB.get('members');
   const id=v('m-id')||DB.id();
-  const obj={id,nen,nzh:v('m-nzh'),dob:v('m-dob'),gen:v('m-gen'),ic:v('m-ic'),mar:v('m-mar'),occ:v('m-occ'),nat:v('m-nat'),ph:v('m-ph'),em:v('m-em'),wa:v('m-wa'),ec:v('m-ec'),addr:v('m-addr'),st:v('m-st')||'Active',bap:v('m-bap'),conf:v('m-conf'),joined:v('m-joined'),min:v('m-min'),cg:v('m-cg'),role:v('m-role'),prev:v('m-prev'),notes:v('m-notes'),photo:v('m-photo')};
+  const obj={id,nen,nzh:v('m-nzh'),dob:v('m-dob'),gen:v('m-gen'),ic:v('m-ic'),mar:v('m-mar'),occ:v('m-occ'),nat:v('m-nat'),ph:v('m-ph'),em:v('m-em'),ec:v('m-ec'),addr:v('m-addr'),st:v('m-st')||'Active',faith:v('m-faith')||'Believer',baptised:v('m-baptised'),bap:v('m-bap'),conf:v('m-conf'),joined:v('m-joined'),min:v('m-min'),cg:v('m-cg'),role:v('m-role'),prev:v('m-prev'),notes:v('m-notes'),photo:v('m-photo')};
   const idx=mem.findIndex(x=>x.id===id);
   if(idx>=0)mem[idx]=obj;else mem.push(obj);
   if(!DB.set('members',mem))return;
@@ -1040,7 +1241,7 @@ function viewMember(id){
       </div>
     </div>
     <div class="two" style="gap:10px;margin-bottom:12px">
-      ${[['Phone',m.ph,'ti-phone'],['Email',m.em,'ti-mail'],['WhatsApp',m.wa,'ti-brand-whatsapp'],
+      ${[['Phone',m.ph,'ti-phone'],['Email',m.em,'ti-mail'],['Faith',m.faith||'Believer','ti-star'],['Baptised',m.baptised||'—','ti-droplet'],
          ['Date of Birth',(m.dob||'—')+(age?' (Age '+age+')':''),'ti-cake'],
          ['Gender',m.gen||'—','ti-gender-androgyne'],['NRIC',m.ic||'—','ti-id'],
          ['Marital',m.mar||'—','ti-heart'],['Occupation',m.occ||'—','ti-briefcase'],
@@ -1301,7 +1502,7 @@ function renderAcc(){
     <div class="sc green"><div class="sc-ico"><i class="ti ti-trending-up"></i></div><div class="sl">Total Income</div><div class="sv">${fmtRM(totIn)}</div><div class="ss">All time</div></div>
     <div class="sc red"><div class="sc-ico"><i class="ti ti-trending-down"></i></div><div class="sl">Total Expenses</div><div class="sv">${fmtRM(totEx)}</div><div class="ss">All time</div></div>
     <div class="sc ${totIn-totEx>=0?'green':'red'}"><div class="sc-ico"><i class="ti ti-scale"></i></div><div class="sl">Net P&L</div><div class="sv">${fmtRM(totIn-totEx)}</div><div class="ss">All time</div></div>
-    <div class="sc blue"><div class="sc-ico"><i class="ti ti-heart"></i></div><div class="sl">Total Donations</div><div class="sv">${fmtRM(totDon)}</div></div>
+    <div class="sc blue"><div class="sc-ico"><i class="ti ti-heart"></i></div><div class="sl">Total Offerings</div><div class="sv">${fmtRM(totDon)}</div></div>
     <div class="sc amber"><div class="sc-ico"><i class="ti ti-building"></i></div><div class="sl">Monthly Overhead</div><div class="sv">${fmtRM(mOH)}</div><div class="ss">Recurring/mo</div></div>
     <div class="sc ${mIn-mEx>=0?'green':'red'}"><div class="sc-ico"><i class="ti ti-calendar-stats"></i></div><div class="sl">This Month P&L</div><div class="sv">${fmtRM(mIn-mEx)}</div><div class="ss">${tm}</div></div>`;
   const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(d.toISOString().substr(0,7));}
@@ -1436,7 +1637,7 @@ function renderMins(){
         </div>
         <div style="text-align:center;background:var(--g50);border-radius:7px;padding:9px">
           <div style="font-size:12px;font-weight:700;color:var(--success)">${fmtRM(mDon)}</div>
-          <div style="font-size:9px;color:var(--g400);text-transform:uppercase">Donations</div>
+          <div style="font-size:9px;color:var(--g400);text-transform:uppercase">Offerings</div>
         </div>
         <div style="text-align:center;background:var(--g50);border-radius:7px;padding:9px">
           <div style="font-size:12px;font-weight:700;color:var(--warning)">${fmtRM(m.bud||0)}</div>
@@ -1456,7 +1657,7 @@ function viewMin(id){
   document.getElementById('min-det-body').innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
       <div class="sc blue"><div class="sl">Members</div><div class="sv">${mem.length}</div></div>
-      <div class="sc green"><div class="sl">Total Donations</div><div class="sv" style="font-size:15px">${fmtRM(totDon)}</div></div>
+      <div class="sc green"><div class="sl">Total Offerings</div><div class="sv" style="font-size:15px">${fmtRM(totDon)}</div></div>
       <div class="sc amber"><div class="sl">Budget/mo</div><div class="sv" style="font-size:15px">${fmtRM(m.bud||0)}</div></div>
     </div>
     <div style="font-size:12px;margin-bottom:12px"><b>Leader:</b> ${m.ldr||'—'} ${m.namezh?'&nbsp;·&nbsp; <b>中文:</b> '+m.namezh:''}</div>
@@ -1483,7 +1684,7 @@ function exportMinPDF(id){
   doc.setFontSize(9);doc.text('Leader: '+(m.ldr||'—')+'  Budget: '+fmtRM2(m.bud||0)+'/mo  Members: '+mem.length,14,y);y+=7;
   doc.autoTable({startY:y,head:[['#','Member','Chinese','Phone','Status']],body:mem.map((mb,i)=>[i+1,mb.nen,mb.nzh||'',mb.ph||'',mb.st||'Active']),headStyles:{fillColor:[15,36,68]},styles:{fontSize:8}});
   y=doc.lastAutoTable.finalY+7;
-  doc.text('Total Donations: '+fmtRM2(dons.reduce((s,d)=>s+d.amt,0)),14,y);y+=5;
+  doc.text('Total Offerings: '+fmtRM2(dons.reduce((s,d)=>s+d.amt,0)),14,y);y+=5;
   doc.autoTable({startY:y,head:[['Date','Donor','Type','Method','Amount (RM)']],body:dons.map(d=>[d.date,d.donor||'Anon',d.type,d.meth||'',d.amt.toFixed(2)]),headStyles:{fillColor:[15,36,68]},styles:{fontSize:8}});
   doc.save('ministry-'+m.name.replace(/\s+/g,'-')+'.pdf');toast('Report downloaded');
 }
@@ -1520,7 +1721,7 @@ function saveDon(){
   const exTx=txs.find(t=>t.donId===id);
   const txObj={id:exTx?exTx.id:DB.id(),donId:id,date,type:'Income',cat:'Donation',amt,desc:obj.type+' – '+obj.donor,ref:obj.ref||''};
   if(exTx)txs[txs.findIndex(t=>t.id===exTx.id)]=txObj;else txs.push(txObj);
-  DB.set('transactions',txs);DB.set('donations',dons);closeMo('mo-don');renderDons();toast('Donation recorded');
+  DB.set('transactions',txs);DB.set('donations',dons);closeMo('mo-don');renderDons();toast('Offering recorded');
 }
 function renderDons(){
   popDonDrops();
@@ -1540,11 +1741,11 @@ function renderDons(){
     <div class="sc amber"><div class="sc-ico"><i class="ti ti-list"></i></div><div class="sl">Records</div><div class="sv">${dons.length}</div></div>
     <div class="sc purple"><div class="sc-ico"><i class="ti ti-filter"></i></div><div class="sl">Filtered Total</div><div class="sv">${fmtRM(fil.reduce((s,d)=>s+d.amt,0))}</div></div>`;
   const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(d.toISOString().substr(0,7));}
-  mkChart('don-chart',{type:'line',data:{labels:months.map(m=>new Date(m+'-01').toLocaleDateString('en-MY',{month:'short'})),datasets:[{label:'Donations',data:months.map(m=>dons.filter(d=>d.date.startsWith(m)).reduce((s,d)=>s+d.amt,0)),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.1)',tension:.4,fill:true,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:n=>'RM'+n.toLocaleString(),font:{size:9}}}}}});
+  mkChart('don-chart',{type:'line',data:{labels:months.map(m=>new Date(m+'-01').toLocaleDateString('en-MY',{month:'short'})),datasets:[{label:'Offerings',data:months.map(m=>dons.filter(d=>d.date.startsWith(m)).reduce((s,d)=>s+d.amt,0)),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.1)',tension:.4,fill:true,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:n=>'RM'+n.toLocaleString(),font:{size:9}}}}}});
   const typs=['Tithe','Offering','Special Offering','Building Fund','Ministry Fund','Mission Fund'];
   mkChart('don-pie',{type:'doughnut',data:{labels:typs,datasets:[{data:typs.map(t=>dons.filter(d=>d.type===t).reduce((s,d)=>s+d.amt,0)),backgroundColor:['#1d4ed8','#16a34a','#f59e0b','#dc2626','#7c3aed','#0891b2'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:8,font:{size:9}}}}}});
   const tb=document.getElementById('don-tbody');if(!tb)return;
-  if(!fil.length){tb.innerHTML=`<tr><td colspan="9"><div class="es"><i class="ti ti-heart"></i><p>No donations recorded yet.</p></div></td></tr>`;return;}
+  if(!fil.length){tb.innerHTML=`<tr><td colspan="9"><div class="es"><i class="ti ti-heart"></i><p>No offerings recorded yet.</p></div></td></tr>`;return;}
   const tc={Tithe:'bb',Offering:'bg2','Special Offering':'ba','Building Fund':'br','Ministry Fund':'bv','Mission Fund':'bt'};
   tb.innerHTML=fil.map(d=>{
     const mn=ms.find(m=>m.id===d.minId);
@@ -1566,7 +1767,7 @@ function renderDons(){
 }
 function delDon(id){confirm2('Delete Donation','',()=>{DB.set('donations',DB.get('donations').filter(x=>x.id!==id));DB.set('transactions',DB.get('transactions').filter(t=>t.donId!==id));renderDons();toast('Deleted')})}
 function exportDonPDF(){
-  const {jsPDF}=window.jspdf;const doc=new jsPDF();let y=pdfH(doc,'Donation Report');
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();let y=pdfH(doc,'Offering Report');
   const dons=DB.get('donations');const tot=dons.reduce((s,d)=>s+d.amt,0);
   doc.setFontSize(9);doc.text('Total: '+fmtRM2(tot)+'  Records: '+dons.length,14,y);y+=7;
   doc.autoTable({startY:y,head:[['Date','Donor','Type','Fund','Method','Ref','Amount (RM)','Notes']],body:dons.map(d=>[d.date,d.donor||'Anon',d.type,'',d.meth||'Cash',d.ref||'',d.amt.toFixed(2),d.notes||'']),headStyles:{fillColor:[15,36,68]},styles:{fontSize:7},alternateRowStyles:{fillColor:[248,250,255]}});
@@ -1839,13 +2040,13 @@ function renderDash(){
   const statEl=document.getElementById('dash-stats');
   if(statEl)statEl.innerHTML=`
     <div class="sc blue"><div class="sc-ico"><i class="ti ti-users"></i></div><div class="sl">Active Members</div><div class="sv">${act}</div><div class="ss">of ${mem.length} total</div></div>
-    <div class="sc green"><div class="sc-ico"><i class="ti ti-heart"></i></div><div class="sl">Month Donations</div><div class="sv">${fmtRM(mDon)}</div><div class="ss">${tm}</div></div>
+    <div class="sc green"><div class="sc-ico"><i class="ti ti-heart"></i></div><div class="sl">Month Offerings</div><div class="sv">${fmtRM(mDon)}</div><div class="ss">${tm}</div></div>
     <div class="sc ${mIn-mEx-mOH>=0?'green':'red'}"><div class="sc-ico"><i class="ti ti-scale"></i></div><div class="sl">Month P&L</div><div class="sv">${fmtRM(mIn-mEx-mOH)}</div><div class="ss">After overhead</div></div>
     <div class="sc amber"><div class="sc-ico"><i class="ti ti-calendar-event"></i></div><div class="sl">Upcoming Events</div><div class="sv">${upEv}</div></div>
     <div class="sc purple"><div class="sc-ico"><i class="ti ti-crown"></i></div><div class="sl">Ministries</div><div class="sv">${ms.length}</div></div>
     <div class="sc teal"><div class="sc-ico"><i class="ti ti-sitemap"></i></div><div class="sl">Cell Groups</div><div class="sv">${cgs.length}</div></div>`;
   const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(d.toISOString().substr(0,7));}
-  mkChart('dash-chart',{type:'line',data:{labels:months.map(m=>new Date(m+'-01').toLocaleDateString('en-MY',{month:'short'})),datasets:[{label:'Donations',data:months.map(m=>dons.filter(d=>d.date.startsWith(m)).reduce((s,d)=>s+d.amt,0)),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.1)',tension:.4,fill:true,pointRadius:3},{label:'Expenses',data:months.map(m=>txs.filter(t=>t.type==='Expense'&&t.date.startsWith(m)).reduce((s,t)=>s+t.amt,0)+mOH),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.07)',tension:.4,fill:true,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:8,font:{size:9}}}},scales:{y:{beginAtZero:true,ticks:{callback:n=>'RM'+n.toLocaleString(),font:{size:9}}}}}});
+  mkChart('dash-chart',{type:'line',data:{labels:months.map(m=>new Date(m+'-01').toLocaleDateString('en-MY',{month:'short'})),datasets:[{label:'Offerings',data:months.map(m=>dons.filter(d=>d.date.startsWith(m)).reduce((s,d)=>s+d.amt,0)),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.1)',tension:.4,fill:true,pointRadius:3},{label:'Expenses',data:months.map(m=>txs.filter(t=>t.type==='Expense'&&t.date.startsWith(m)).reduce((s,t)=>s+t.amt,0)+mOH),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.07)',tension:.4,fill:true,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:8,font:{size:9}}}},scales:{y:{beginAtZero:true,ticks:{callback:n=>'RM'+n.toLocaleString(),font:{size:9}}}}}});
   const dn=document.getElementById('dash-notices');
   if(dn){const active=ns.filter(n=>!n.exp||n.exp>=today).slice(0,4);
     dn.innerHTML=active.length?active.map(n=>`<div class="ni-item ni-${n.pri}"><div style="font-weight:600;margin-bottom:2px;font-size:12px">${n.title}</div><div style="font-size:11px;opacity:.85">${n.body.substr(0,90)}${n.body.length>90?'…':''}</div></div>`).join(''):`<div style="text-align:center;padding:18px;color:var(--g400);font-size:12px">No active announcements.</div>`;}
@@ -1860,7 +2061,7 @@ function renderDash(){
     dd.innerHTML=rd.length?rd.map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--g100)">
       <div><div style="font-size:12px;font-weight:500">${d.donor||'Anonymous'}</div><div style="font-size:10px;color:var(--g400)">${d.date} · ${d.type}</div></div>
       <div style="font-weight:700;color:var(--success);font-size:12px">RM ${d.amt.toFixed(0)}</div>
-    </div>`).join(''):`<div style="text-align:center;padding:18px;color:var(--g400);font-size:12px">No donations recorded yet.</div>`;}
+    </div>`).join(''):`<div style="text-align:center;padding:18px;color:var(--g400);font-size:12px">No offerings recorded yet.</div>`;}
   const ds=document.getElementById('dash-sub');if(ds)ds.textContent=new Date().toLocaleDateString('en-MY',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 }
 // ==================== INIT ====================
@@ -1871,6 +2072,450 @@ if(pf)pf.value=new Date(pd.getFullYear(),pd.getMonth()-1,1).toISOString().split(
 if(pt2)pt2.value=pd.toISOString().split('T')[0];
 applySettings();
 renderDash();
+
+// ==================== STAFF ====================
+function prevStaffPhoto(inp){
+  if(!inp.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{sv('sf-photo',e.target.result);document.getElementById('staff-photo-prev').innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`};
+  r.readAsDataURL(inp.files[0]);
+}
+function popStaffDept(){
+  const ms=DB.get('ministries');
+  const el=document.getElementById('sf-dept');if(!el)return;
+  const c2=el.value;el.innerHTML='<option value="">General</option>';
+  ms.forEach(m=>el.insertAdjacentHTML('beforeend',`<option value="${m.id}">${m.name}</option>`));
+  el.value=c2;
+}
+function openStaffModal(id){
+  ['sf-nen','sf-nzh','sf-dob','sf-ic','sf-nat','sf-ph','sf-em','sf-start','sf-addr','sf-qual','sf-notes','sf-comp-amt'].forEach(f=>sv(f,''));
+  sv('sf-id','');sv('sf-photo','');sv('sf-type','Pastoral');sv('sf-post','Senior Pastor');sv('sf-gen','Male');sv('sf-nat','Malaysian');sv('sf-comp-type','');sv('sf-epf','');sv('sf-socso','');
+  document.getElementById('staff-photo-prev').innerHTML='<i class="ti ti-camera" style="font-size:20px;color:var(--g400)"></i>';
+  popStaffDept();
+  document.getElementById('staff-mo-t').textContent=id?'Edit Staff':'Add Staff';
+  if(id){
+    const s=DB.get('staff').find(x=>x.id===id);if(!s)return;
+    sv('sf-id',s.id);sv('sf-nen',s.nen);sv('sf-nzh',s.nzh||'');sv('sf-dob',s.dob||'');sv('sf-ic',s.ic||'');
+    sv('sf-type',s.type||'Pastoral');sv('sf-post',s.post||'');sv('sf-gen',s.gen||'Male');sv('sf-nat',s.nat||'Malaysian');
+    sv('sf-ph',s.ph||'');sv('sf-em',s.em||'');sv('sf-start',s.start||'');sv('sf-dept',s.dept||'');
+    sv('sf-addr',s.addr||'');sv('sf-qual',s.qual||'');sv('sf-notes',s.notes||'');
+    sv('sf-comp-type',s.compType||'');sv('sf-comp-amt',s.compAmt||'');sv('sf-epf',s.epf||'');sv('sf-socso',s.socso||'');
+    sv('sf-photo',s.photo||'');
+    if(s.photo)document.getElementById('staff-photo-prev').innerHTML=`<img src="${s.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  }
+  openMo('mo-staff');
+}
+function saveStaff(){
+  const nen=v('sf-nen').trim();if(!nen){toast('Name required','x');return;}
+  const staff=DB.get('staff');const id=v('sf-id')||DB.id();
+  const obj={id,nen,nzh:v('sf-nzh'),dob:v('sf-dob'),ic:v('sf-ic'),type:v('sf-type'),post:v('sf-post'),gen:v('sf-gen'),nat:v('sf-nat'),ph:v('sf-ph'),em:v('sf-em'),start:v('sf-start'),dept:v('sf-dept'),addr:v('sf-addr'),qual:v('sf-qual'),notes:v('sf-notes'),compType:v('sf-comp-type'),compAmt:parseFloat(v('sf-comp-amt'))||0,epf:v('sf-epf'),socso:v('sf-socso'),photo:v('sf-photo')};
+  const idx=staff.findIndex(x=>x.id===id);if(idx>=0)staff[idx]=obj;else staff.push(obj);
+  DB.set('staff',staff);closeMo('mo-staff');renderStaff();toast('Staff saved');
+}
+function renderStaff(){
+  popStaffDept();
+  const staff=DB.get('staff'),ms=DB.get('ministries');
+  const sr=v('staff-srch').toLowerCase(),tyF=v('stf-type');
+  const fil=staff.filter(s=>(!sr||(s.nen+s.post).toLowerCase().includes(sr))&&(!tyF||s.type===tyF));
+  const statEl=document.getElementById('staff-stats');
+  if(statEl){
+    const pastoral=staff.filter(s=>s.type==='Pastoral').length;
+    const minStaff=staff.filter(s=>s.type==='Ministry Staff').length;
+    const withComp=staff.filter(s=>s.compAmt>0).length;
+    const totalComp=staff.reduce((s,x)=>s+(x.compAmt||0),0);
+    statEl.innerHTML=`
+      <div class="sc blue"><div class="sc-ico"><i class="ti ti-users"></i></div><div class="sl">Total Staff</div><div class="sv">${staff.length}</div></div>
+      <div class="sc purple"><div class="sc-ico"><i class="ti ti-microphone"></i></div><div class="sl">Pastoral</div><div class="sv">${pastoral}</div></div>
+      <div class="sc teal"><div class="sc-ico"><i class="ti ti-crown"></i></div><div class="sl">Ministry Staff</div><div class="sv">${minStaff}</div></div>
+      <div class="sc amber"><div class="sc-ico"><i class="ti ti-currency-dollar"></i></div><div class="sl">Monthly Compensation</div><div class="sv">${fmtRM(totalComp)}</div><div class="ss">${withComp} compensated</div></div>`;
+  }
+  const tb=document.getElementById('staff-tbody');if(!tb)return;
+  if(!fil.length){tb.innerHTML=`<tr><td colspan="10"><div class="es"><i class="ti ti-id-badge-2"></i><p>No staff added yet.</p></div></td></tr>`;return;}
+  const typeC={Pastoral:'bv','Ministry Staff':'bt',Administrative:'bb',Support:'bgr'};
+  const cols=['#7c3aed','#0891b2','#1d4ed8','#16a34a'];
+  fil.forEach((s,i)=>{});
+  tb.innerHTML=fil.map(s=>{
+    const mn=ms.find(m=>m.id===s.dept);
+    const ini=(s.nen||'?').split(' ').map(w=>w[0]).join('').substr(0,2).toUpperCase();
+    const cl=cols[s.type==='Pastoral'?0:s.type==='Ministry Staff'?1:s.type==='Administrative'?2:3];
+    const photo=s.photo?`<img src="${s.photo}" class="av">`:`<div class="av-in" style="background:${cl}20;color:${cl}">${ini}</div>`;
+    return`<tr>
+      <td>${photo}</td>
+      <td><div style="font-weight:600">${s.nen}</div>${s.nzh?`<div style="font-size:10px;color:var(--g400)">${s.nzh}</div>`:''}</td>
+      <td><span class="bx ${typeC[s.type]||'bgr'}">${s.type}</span></td>
+      <td style="font-size:11px;font-weight:500">${s.post||'—'}</td>
+      <td style="font-size:11px">${mn?mn.name:'General'}</td>
+      <td style="font-size:11px">${s.ph||'—'}</td>
+      <td style="font-size:11px">${s.em||'—'}</td>
+      <td style="font-size:11px">${s.start||'—'}</td>
+      <td style="font-size:11px">${s.compType?`<div style="font-size:10px;color:var(--g400)">${s.compType}</div><div style="font-weight:600;color:var(--success)">RM ${(s.compAmt||0).toFixed(0)}/mo</div>`:'<span style="color:var(--g300)">Volunteer</span>'}</td>
+      <td><div style="display:flex;gap:3px">
+        <button class="btn btn-s xs ico" onclick="openStaffModal('${s.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-x xs ico" onclick="delStaff('${s.id}')"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function delStaff(id){confirm2('Delete Staff Record','',()=>{DB.set('staff',DB.get('staff').filter(x=>x.id!==id));renderStaff();toast('Deleted')})}
+
+// ==================== CELL GROUP: MEMBER MANAGEMENT ====================
+function openCGMembersModal(cgId){
+  sv('cg-addmem-id',cgId);sv('cg-mem-srch','');
+  renderCGMemberResults(cgId);renderCGCurrentMembers(cgId);
+  openMo('mo-cg-addmem');
+}
+function searchCGMembers(){
+  const cgId=v('cg-addmem-id');renderCGMemberResults(cgId);
+}
+function renderCGMemberResults(cgId){
+  const q=v('cg-mem-srch').toLowerCase();
+  const all=DB.get('members');
+  const candidates=all.filter(m=>m.cg!==cgId&&(m.nen||'').toLowerCase().includes(q)&&m.st!=='Deceased').slice(0,15);
+  const el=document.getElementById('cg-mem-results');if(!el)return;
+  if(!q&&!candidates.length){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--g400);font-size:12px">Type to search members</div>';return;}
+  el.innerHTML=candidates.map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--g100)">
+    <div><div style="font-size:12px;font-weight:500">${m.nen}</div><div style="font-size:10px;color:var(--g400)">${m.nzh||''} · ${m.st||'Active'}</div></div>
+    <button class="btn btn-ok xs" onclick="addToCG('${m.id}','${cgId}')"><i class="ti ti-plus"></i>Add</button>
+  </div>`).join('')||'<div style="padding:12px;text-align:center;color:var(--g400);font-size:12px">No matching members</div>';
+}
+function renderCGCurrentMembers(cgId){
+  const mem=DB.get('members').filter(m=>m.cg===cgId);
+  const el=document.getElementById('cg-cur-members');if(!el)return;
+  el.innerHTML=mem.length?mem.map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--g100)">
+    <div style="font-size:12px;font-weight:500">${m.nen} <span style="font-size:10px;color:var(--g400)">${m.nzh||''}</span></div>
+    <button class="btn btn-x xs" onclick="removeFromCG('${m.id}','${cgId}')"><i class="ti ti-x"></i>Remove</button>
+  </div>`).join(''):'<div style="padding:10px;color:var(--g400);font-size:12px">No members yet.</div>';
+}
+function addToCG(memberId,cgId){
+  const mem=DB.get('members');const idx=mem.findIndex(x=>x.id===memberId);
+  if(idx>=0){mem[idx].cg=cgId;DB.set('members',mem);}
+  renderCGMemberResults(cgId);renderCGCurrentMembers(cgId);renderCGs();toast('Member added to group');
+}
+function removeFromCG(memberId,cgId){
+  const mem=DB.get('members');const idx=mem.findIndex(x=>x.id===memberId);
+  if(idx>=0){mem[idx].cg='';DB.set('members',mem);}
+  renderCGMemberResults(cgId);renderCGCurrentMembers(cgId);renderCGs();toast('Member removed');
+}
+
+// ==================== CELL GROUP: OFFERINGS ====================
+function openCGOffering(cgId){
+  sv('cgo-date',new Date().toISOString().split('T')[0]);sv('cgo-amt','');sv('cgo-notes','');sv('cgo-cg-id',cgId);
+  openMo('mo-cg-offering');
+}
+function saveCGOffering(){
+  const date=v('cgo-date'),amt=parseFloat(v('cgo-amt'));if(!date||!amt){toast('Date and amount required','x');return;}
+  const cgId=v('cgo-cg-id');
+  const offerings=DB.get('cg_offerings');
+  offerings.push({id:DB.id(),cgId,date,amt,notes:v('cgo-notes')});
+  DB.set('cg_offerings',offerings);
+  const txs=DB.get('transactions');
+  const cg=DB.get('cellgroups').find(x=>x.id===cgId);
+  txs.push({id:DB.id(),date,type:'Income',cat:'Donation',amt,desc:`Cell Group Offering – ${cg?cg.name:'Group'}`,ref:''});
+  DB.set('transactions',txs);
+  closeMo('mo-cg-offering');renderCGs();toast('Offering recorded');
+}
+
+// ==================== FELLOWSHIPS ====================
+let flCommitteeRows=[];
+function addFLCommittee(){
+  const idx=flCommitteeRows.length;
+  flCommitteeRows.push({post:'',name:'',year:''});
+  renderFLCommitteeEditor();
+}
+function renderFLCommitteeEditor(){
+  const wrap=document.getElementById('fl-committee-wrap');if(!wrap)return;
+  const postOpts=['Fellowship Leader','Assistant Leader','Secretary','Treasurer','Worship Leader','Event Coordinator','Youth Rep','Welfare Officer','Other'];
+  wrap.innerHTML=flCommitteeRows.map((r,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px">
+      <select onchange="flCommitteeRows[${i}].post=this.value">${postOpts.map(p=>`<option value="${p}" ${r.post===p?'selected':''}>${p}</option>`).join('')}</select>
+      <input type="text" value="${r.name}" placeholder="Member name" onchange="flCommitteeRows[${i}].name=this.value" style="padding:7px 9px;border:1px solid var(--g300);border-radius:7px;font-size:12px">
+      <input type="text" value="${r.year}" placeholder="Year e.g. 2024" onchange="flCommitteeRows[${i}].year=this.value" style="padding:7px 9px;border:1px solid var(--g300);border-radius:7px;font-size:12px">
+      <button class="btn btn-x xs ico" onclick="flCommitteeRows.splice(${i},1);renderFLCommitteeEditor()"><i class="ti ti-trash"></i></button>
+    </div>`).join('')||'<div style="font-size:11px;color:var(--g400);padding:6px 0">No committee members added.</div>';
+}
+function prevFLPhoto(inp){
+  if(!inp.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{sv('fl-photo',e.target.result);document.getElementById('fl-photo-prev').innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`};
+  r.readAsDataURL(inp.files[0]);
+}
+function openFLModal(id){
+  ['fl-name','fl-namezh','fl-type','fl-day','fl-time','fl-loc','fl-desc'].forEach(f=>sv(f,''));
+  sv('fl-id','');sv('fl-photo','');sv('fl-time','19:00');sv('fl-day','Friday');
+  flCommitteeRows=[];renderFLCommitteeEditor();
+  document.getElementById('fl-photo-prev').innerHTML='<i class="ti ti-camera" style="font-size:24px;color:var(--g400)"></i>';
+  document.getElementById('fl-mo-t').textContent=id?'Edit Fellowship':'Create Fellowship';
+  if(id){
+    const fl=DB.get('fellowships').find(x=>x.id===id);if(!fl)return;
+    sv('fl-id',fl.id);sv('fl-name',fl.name);sv('fl-namezh',fl.namezh||'');sv('fl-type',fl.type||'');
+    sv('fl-day',fl.day||'Friday');sv('fl-time',fl.time||'19:00');sv('fl-loc',fl.loc||'');sv('fl-desc',fl.desc||'');
+    flCommitteeRows=fl.committee?JSON.parse(JSON.stringify(fl.committee)):[];
+    renderFLCommitteeEditor();
+    sv('fl-photo',fl.photo||'');
+    if(fl.photo)document.getElementById('fl-photo-prev').innerHTML=`<img src="${fl.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`;
+  }
+  openMo('mo-fl');
+}
+function saveFL(){
+  const name=v('fl-name').trim();if(!name){toast('Name required','x');return;}
+  const fls=DB.get('fellowships');const id=v('fl-id')||DB.id();
+  const obj={id,name,namezh:v('fl-namezh'),type:v('fl-type'),day:v('fl-day'),time:v('fl-time'),loc:v('fl-loc'),desc:v('fl-desc'),committee:JSON.parse(JSON.stringify(flCommitteeRows)),photo:v('fl-photo')};
+  const idx=fls.findIndex(x=>x.id===id);if(idx>=0)fls[idx]=obj;else fls.push(obj);
+  DB.set('fellowships',fls);closeMo('mo-fl');renderFellowship();toast('Fellowship saved');
+}
+function openFLOffering(flId){
+  sv('flo-date',new Date().toISOString().split('T')[0]);sv('flo-amt','');sv('flo-notes','');sv('flo-fl-id',flId);
+  openMo('mo-fl-offering');
+}
+function saveFLOffering(){
+  const date=v('flo-date'),amt=parseFloat(v('flo-amt'));if(!date||!amt){toast('Date and amount required','x');return;}
+  const flId=v('flo-fl-id');
+  const offerings=DB.get('fl_offerings');
+  offerings.push({id:DB.id(),flId,date,amt,notes:v('flo-notes')});
+  DB.set('fl_offerings',offerings);
+  const txs=DB.get('transactions');
+  const fl=DB.get('fellowships').find(x=>x.id===flId);
+  txs.push({id:DB.id(),date,type:'Income',cat:'Donation',amt,desc:`Fellowship Offering – ${fl?fl.name:'Fellowship'}`,ref:''});
+  DB.set('transactions',txs);
+  closeMo('mo-fl-offering');renderFellowship();toast('Offering recorded');
+}
+function openFLMembersModal(flId){
+  // Reuse CG member modal logic
+  const existing=document.getElementById('fl-mem-modal-dyn');if(existing)existing.remove();
+  const fl=DB.get('fellowships').find(x=>x.id===flId);if(!fl)return;
+  const mem=DB.get('members');
+  const curIds=fl.members||[];
+  const cur=mem.filter(m=>curIds.includes(m.id));
+  const others=mem.filter(m=>!curIds.includes(m.id)&&m.st!=='Deceased');
+  const ov=document.createElement('div');ov.id='fl-mem-modal-dyn';ov.className='mo open';
+  ov.innerHTML=`<div class="modal sm">
+    <div class="mh"><span class="mt"><i class="ti ti-users"></i>Fellowship Members: ${fl.name}</span><button class="cx" onclick="this.closest('.mo').remove()"><i class="ti ti-x"></i></button></div>
+    <div class="mb">
+      <div style="font-size:11px;font-weight:700;color:var(--g400);text-transform:uppercase;margin-bottom:7px">Current Members (${cur.length})</div>
+      <div style="max-height:160px;overflow-y:auto;margin-bottom:12px">
+        ${cur.map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--g100)">
+          <span style="font-size:12px">${m.nen}</span>
+          <button class="btn btn-x xs" onclick="removeFLMember('${flId}','${m.id}',this.closest('.mo'))"><i class="ti ti-x"></i></button>
+        </div>`).join('')||'<div style="padding:8px;color:var(--g400);font-size:12px">None yet.</div>'}
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--g400);text-transform:uppercase;margin-bottom:7px">Add Members</div>
+      <div style="max-height:180px;overflow-y:auto">
+        ${others.map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--g100)">
+          <span style="font-size:12px">${m.nen} <span style="font-size:10px;color:var(--g400)">${m.nzh||''}</span></span>
+          <button class="btn btn-ok xs" onclick="addFLMember('${flId}','${m.id}',this.closest('.mo'))"><i class="ti ti-plus"></i></button>
+        </div>`).join('')||'<div style="padding:8px;color:var(--g400);font-size:12px">All members assigned.</div>'}
+      </div>
+    </div>
+    <div class="mf"><button class="btn btn-s" onclick="this.closest('.mo').remove()">Done</button></div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function addFLMember(flId,memId,mo){
+  const fls=DB.get('fellowships');const idx=fls.findIndex(x=>x.id===flId);
+  if(idx>=0){if(!fls[idx].members)fls[idx].members=[];if(!fls[idx].members.includes(memId))fls[idx].members.push(memId);DB.set('fellowships',fls);}
+  mo.remove();openFLMembersModal(flId);renderFellowship();
+}
+function removeFLMember(flId,memId,mo){
+  const fls=DB.get('fellowships');const idx=fls.findIndex(x=>x.id===flId);
+  if(idx>=0){fls[idx].members=(fls[idx].members||[]).filter(x=>x!==memId);DB.set('fellowships',fls);}
+  mo.remove();openFLMembersModal(flId);renderFellowship();
+}
+function renderFellowship(){
+  const fls=DB.get('fellowships');
+  const topEl=document.getElementById('fl-top-stats');
+  const offerings=DB.get('fl_offerings');
+  const totOff=offerings.reduce((s,o)=>s+o.amt,0);
+  const mem=DB.get('members');
+  if(topEl)topEl.innerHTML=`
+    <div class="sc purple"><div class="sc-ico"><i class="ti ti-friends"></i></div><div class="sl">Fellowships</div><div class="sv">${fls.length}</div></div>
+    <div class="sc green"><div class="sc-ico"><i class="ti ti-heart"></i></div><div class="sl">Total Offerings</div><div class="sv">${fmtRM(totOff)}</div></div>
+    <div class="sc blue"><div class="sc-ico"><i class="ti ti-users"></i></div><div class="sl">Total Members</div><div class="sv">${fls.reduce((s,f)=>s+(f.members||[]).length,0)}</div></div>`;
+  const cont=document.getElementById('fl-list');if(!cont)return;
+  if(!fls.length){cont.innerHTML=`<div class="card" style="grid-column:1/-1"><div class="es"><i class="ti ti-friends"></i><p>No fellowships yet. Create your first fellowship.</p></div></div>`;return;}
+  const cols=['#7c3aed','#0891b2','#db2777','#d97706','#16a34a','#1d4ed8'];
+  cont.innerHTML=fls.map((fl,i)=>{
+    const flMem=(fl.members||[]).map(id=>mem.find(m=>m.id===id)).filter(Boolean);
+    const flOff=offerings.filter(o=>o.flId===fl.id).reduce((s,o)=>s+o.amt,0);
+    const cl=cols[i%cols.length];
+    const leader=fl.committee?.find(c=>c.post==='Fellowship Leader');
+    return`<div class="card" style="border-top:3px solid ${cl}">
+      ${fl.photo?`<div style="width:100%;height:120px;border-radius:8px;overflow:hidden;margin-bottom:12px"><img src="${fl.photo}" style="width:100%;height:100%;object-fit:cover"></div>`:''}
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+        <div style="width:40px;height:40px;border-radius:9px;background:${cl}18;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-friends" style="color:${cl};font-size:19px"></i></div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:13px">${fl.name}</div>
+          ${fl.namezh?`<div style="font-size:10px;color:var(--g400)">${fl.namezh}</div>`:''}
+          <div style="font-size:10px;color:var(--g400);margin-top:1px">${fl.type||''} · ${leader?'Led by '+leader.name:'No leader set'}</div>
+        </div>
+        <div style="display:flex;gap:3px">
+          <button class="btn btn-s xs ico" onclick="openFLModal('${fl.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-x xs ico" onclick="delFL('${fl.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px">
+        <div style="text-align:center;background:var(--g50);border-radius:7px;padding:9px">
+          <div style="font-size:20px;font-weight:800;color:${cl}">${flMem.length}</div>
+          <div style="font-size:9px;color:var(--g400);text-transform:uppercase">Members</div>
+        </div>
+        <div style="text-align:center;background:var(--g50);border-radius:7px;padding:9px">
+          <div style="font-size:12px;font-weight:700;color:var(--success)">${fmtRM(flOff)}</div>
+          <div style="font-size:9px;color:var(--g400);text-transform:uppercase">Offerings</div>
+        </div>
+        <div style="text-align:center;background:var(--g50);border-radius:7px;padding:9px">
+          <div style="font-size:12px;font-weight:700;color:var(--warning)">${fl.committee?fl.committee.length:0}</div>
+          <div style="font-size:9px;color:var(--g400);text-transform:uppercase">Committee</div>
+        </div>
+      </div>
+      ${fl.day?`<div style="font-size:11px;color:var(--g400);margin-bottom:8px"><i class="ti ti-clock" style="font-size:10px"></i> ${fl.day} ${fl.time||''} ${fl.loc?'· '+fl.loc:''}</div>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+        <button class="btn btn-s sm" onclick="openFLMembersModal('${fl.id}')"><i class="ti ti-users"></i>Members</button>
+        <button class="btn btn-s sm" onclick="openFLOffering('${fl.id}')"><i class="ti ti-heart"></i>Offering</button>
+        <button class="btn btn-s sm" onclick="viewFLDetail('${fl.id}')"><i class="ti ti-eye"></i>Detail</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function viewFLDetail(id){
+  const fl=DB.get('fellowships').find(x=>x.id===id);if(!fl)return;
+  const mem=DB.get('members');
+  const flMem=(fl.members||[]).map(id2=>mem.find(m=>m.id===id2)).filter(Boolean);
+  const offerings=DB.get('fl_offerings').filter(o=>o.flId===id);
+  const totOff=offerings.reduce((s,o)=>s+o.amt,0);
+  document.getElementById('fl-det-t').textContent=fl.name;
+  document.getElementById('fl-det-body').innerHTML=`
+    ${fl.photo?`<div style="width:100%;height:180px;border-radius:10px;overflow:hidden;margin-bottom:14px"><img src="${fl.photo}" style="width:100%;height:100%;object-fit:cover"></div>`:''}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      <div class="sc blue"><div class="sl">Members</div><div class="sv">${flMem.length}</div></div>
+      <div class="sc green"><div class="sl">Total Offerings</div><div class="sv" style="font-size:14px">${fmtRM(totOff)}</div></div>
+      <div class="sc purple"><div class="sl">Committee</div><div class="sv">${(fl.committee||[]).length}</div></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--g400);text-transform:uppercase;margin-bottom:8px">Committee</div>
+      ${(fl.committee||[]).length?`<div class="tw"><table class="dt"><thead><tr><th>Post</th><th>Name</th><th>Year</th></tr></thead><tbody>${fl.committee.map(c=>`<tr><td style="font-weight:600">${c.post}</td><td>${c.name}</td><td>${c.year||'—'}</td></tr>`).join('')}</tbody></table></div>`:'<div style="font-size:12px;color:var(--g400)">No committee defined.</div>'}
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--g400);text-transform:uppercase;margin-bottom:8px">Members (${flMem.length})</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${flMem.map(m=>`<div style="background:var(--g50);border-radius:6px;padding:5px 9px;font-size:11px;font-weight:500">${m.nen}</div>`).join('')||'<span style="font-size:12px;color:var(--g400)">None.</span>'}</div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--g400);text-transform:uppercase;margin-bottom:8px">Offering History</div>
+      <div class="tw"><table class="dt"><thead><tr><th>Date</th><th>Amount (RM)</th><th>Notes</th></tr></thead>
+        <tbody>${offerings.sort((a,b)=>b.date.localeCompare(a.date)).map(o=>`<tr><td>${o.date}</td><td style="font-weight:600;color:var(--success)">RM ${o.amt.toFixed(2)}</td><td style="font-size:11px;color:var(--g400)">${o.notes||''}</td></tr>`).join('')||`<tr><td colspan="3" style="text-align:center;padding:14px;color:var(--g400)">No offerings recorded.</td></tr>`}</tbody>
+      </table></div>
+    </div>`;
+  openMo('mo-fl-det');
+}
+function delFL(id){confirm2('Delete Fellowship','',()=>{DB.set('fellowships',DB.get('fellowships').filter(x=>x.id!==id));renderFellowship();toast('Deleted')})}
+
+// ==================== CELL GROUP: patch card to add offering + manage members buttons ====================
+// This overrides the old renderCGs function by adding new button row
+const _oldRenderCGs=renderCGs;
+function renderCGs(){
+  const cgs=DB.get('cellgroups'),mem=DB.get('members');
+  const cgOffs=DB.get('cg_offerings');
+  const topEl=document.getElementById('cg-top-stats');
+  if(topEl)topEl.innerHTML=`
+    <div class="sc teal"><div class="sc-ico"><i class="ti ti-sitemap"></i></div><div class="sl">Total Groups</div><div class="sv">${cgs.length}</div></div>
+    <div class="sc blue"><div class="sc-ico"><i class="ti ti-users"></i></div><div class="sl">In Groups</div><div class="sv">${mem.filter(m=>m.cg).length}</div></div>
+    <div class="sc amber"><div class="sc-ico"><i class="ti ti-user-off"></i></div><div class="sl">Not in Group (Active)</div><div class="sv">${mem.filter(m=>!m.cg&&m.st==='Active').length}</div></div>
+    <div class="sc green"><div class="sc-ico"><i class="ti ti-heart"></i></div><div class="sl">Total Offerings</div><div class="sv">${fmtRM(cgOffs.reduce((s,o)=>s+o.amt,0))}</div></div>`;
+  const cont=document.getElementById('cg-list');if(!cont)return;
+  if(!cgs.length){cont.innerHTML=`<div class="card" style="grid-column:1/-1"><div class="es"><i class="ti ti-sitemap"></i><p>No cell groups yet.</p></div></div>`;return;}
+  const cols=['#1d4ed8','#16a34a','#7c3aed','#d97706','#db2777','#0891b2','#dc2626'];
+  const dmap={Monday:'Mon',Tuesday:'Tue',Wednesday:'Wed',Thursday:'Thu',Friday:'Fri',Saturday:'Sat',Sunday:'Sun'};
+  cont.innerHTML=cgs.map((g,i)=>{
+    const gMem=mem.filter(m=>m.cg===g.id);
+    const gOff=cgOffs.filter(o=>o.cgId===g.id).reduce((s,o)=>s+o.amt,0);
+    const cl=cols[i%cols.length];
+    return`<div class="card" style="border-top:3px solid ${cl}">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+        <div style="width:42px;height:42px;border-radius:10px;background:${cl}18;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:${cl};flex-shrink:0">${(g.name[0]||'G').toUpperCase()}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:13px">${g.name}</div>
+          ${g.zone?`<div style="font-size:10px;color:var(--g400)"><i class="ti ti-map-pin" style="font-size:10px"></i> ${g.zone}</div>`:''}
+          <div style="font-size:11px;color:var(--g400);margin-top:1px"><i class="ti ti-user" style="font-size:10px"></i> ${g.ldr}${g.co?' / '+g.co:''}</div>
+        </div>
+        <div style="display:flex;gap:3px">
+          <button class="btn btn-s xs ico" onclick="viewCG('${g.id}')"><i class="ti ti-eye"></i></button>
+          <button class="btn btn-s xs ico" onclick="openCGModal('${g.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-x xs ico" onclick="delCG('${g.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px">
+        <div style="text-align:center;background:var(--g50);border-radius:7px;padding:9px">
+          <div style="font-size:20px;font-weight:800;color:${cl}">${gMem.length}</div>
+          <div style="font-size:9px;color:var(--g400);text-transform:uppercase">Members</div>
+        </div>
+        <div style="text-align:center;background:var(--g50);border-radius:7px;padding:9px">
+          <div style="font-size:12px;font-weight:700;color:var(--success)">${fmtRM(gOff)}</div>
+          <div style="font-size:9px;color:var(--g400);text-transform:uppercase">Offerings</div>
+        </div>
+        <div style="text-align:center;background:var(--g50);border-radius:7px;padding:9px">
+          <div style="font-size:12px;font-weight:700;color:var(--g700)">${dmap[g.day]||g.day}</div>
+          <div style="font-size:9px;color:var(--g400)">${g.time||''}</div>
+        </div>
+      </div>
+      ${g.loc?`<div style="font-size:10px;color:var(--g400);margin-bottom:7px"><i class="ti ti-home" style="font-size:10px"></i> ${g.loc}</div>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+        <button class="btn btn-s sm" onclick="openCGMembersModal('${g.id}')"><i class="ti ti-users"></i>Members</button>
+        <button class="btn btn-s sm" onclick="openCGOffering('${g.id}')"><i class="ti ti-heart"></i>Offering</button>
+        <button class="btn btn-s sm" onclick="exportCGPDF('${g.id}')"><i class="ti ti-file-download"></i>PDF</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ==================== SAVE saveSvc patch for recurring ====================
+const _oldSaveSvc=saveSvc;
+function saveSvc(){
+  const date=v('svc-date');if(!date){toast('Date required','x');return;}
+  const repeat=v('svc-repeat');const until=v('svc-until');
+  const svcs=DB.get('services');const id=v('svc-id')||DB.id();
+  const off=parseFloat(v('svc-off'))||0;
+  const base={date,time:v('svc-time'),type:v('svc-type'),spk:v('svc-spk'),theme:v('svc-theme'),script:v('svc-script'),wldr:v('svc-wldr'),off,est:parseInt(v('svc-est'))||0,act:parseInt(v('svc-act'))||0,order:v('svc-order'),notes:v('svc-notes')};
+  const obj=Object.assign({id},base);
+  const idx=svcs.findIndex(x=>x.id===id);if(idx>=0)svcs[idx]=obj;else svcs.push(obj);
+  if(off>0){const txs=DB.get('transactions');const exTx=txs.find(t=>t.svcId===id);const txObj={id:exTx?exTx.id:DB.id(),svcId:id,date,type:'Income',cat:'Donation',amt:off,desc:obj.type+' Offering'+(obj.spk?' – '+obj.spk:''),ref:''};if(exTx)txs[txs.findIndex(t=>t.id===exTx.id)]=txObj;else txs.push(txObj);DB.set('transactions',txs);}
+  // Recurring logic
+  if(repeat&&until&&!v('svc-id')){
+    let cur=new Date(date);const end=new Date(until);
+    let count=0;
+    while(count<52){
+      if(repeat==='weekly')cur.setDate(cur.getDate()+7);
+      else if(repeat==='biweekly')cur.setDate(cur.getDate()+14);
+      else if(repeat==='monthly')cur.setMonth(cur.getMonth()+1);
+      if(cur>end)break;
+      const ds=cur.toISOString().split('T')[0];
+      svcs.push(Object.assign({},base,{id:DB.id(),date:ds,spk:'',theme:'',off:0,est:base.est,act:0,order:'',notes:'[Auto-created]'}));
+      count++;
+    }
+    toast('Service + '+count+' recurring entries created');
+  }else{toast('Service saved');}
+  DB.set('services',svcs);closeMo('mo-svc');renderSvcs();
+}
+
+// ==================== BACKUP: include new data stores ====================
+const _oldExportAll=exportAll;
+function exportAll(){
+  const d={version:'2.0',at:new Date().toISOString(),church:DB.obj('settings',{}),members:DB.get('members'),events:DB.get('events'),transactions:DB.get('transactions'),overhead:DB.get('overhead'),ministries:DB.get('ministries'),donations:DB.get('donations'),services:DB.get('services'),cellgroups:DB.get('cellgroups'),notices:DB.get('notices'),staff:DB.get('staff'),fellowships:DB.get('fellowships'),fl_offerings:DB.get('fl_offerings'),cg_offerings:DB.get('cg_offerings')};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));
+  a.download='church-backup-'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();toast('Backup exported');
+}
+const _oldImportAll=importAll;
+function importAll(inp){
+  if(!inp.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      ['members','events','transactions','overhead','ministries','donations','services','cellgroups','notices','staff','fellowships','fl_offerings','cg_offerings'].forEach(k=>{if(d[k])DB.set(k,d[k])});
+      if(d.church)DB.sobj('settings',d.church);
+      applySettings();renderDash();toast('Data restored');
+    }catch{toast('Invalid backup file','x')}
+  };
+  r.readAsText(inp.files[0]);inp.value='';
+}
+
 </script>
-</body>
-</html>
