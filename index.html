@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Church Admin Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.4.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#2563eb;--primary-light:#dbeafe;--primary-dark:#1e40af;
+  --success:#16a34a;--success-light:#dcfce7;
+  --warning:#d97706;--warning-light:#fef3c7;
+  --danger:#dc2626;--danger-light:#fee2e2;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;
+  --gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;
+  --gray-800:#1f2937;--gray-900:#111827;
+  --sidebar-w:240px;--header-h:56px;
+  --gold:#b8860b;--gold-light:#fef9e7;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;color:var(--gray-800);min-height:100vh;display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
+/* LAYOUT */
+#app{display:flex;min-height:100vh}
+#sidebar{width:var(--sidebar-w);background:#1e3a5f;color:#e2e8f0;display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto;z-index:100}
+#sidebar-logo{padding:16px;border-bottom:1px solid #2d4a7a;display:flex;align-items:center;gap:10px}
+#sidebar-logo .logo-icon{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+#sidebar-logo .logo-text{font-size:13px;font-weight:600;line-height:1.3;color:#fff}
+#sidebar-logo .logo-sub{font-size:10px;color:#94a3b8}
+nav{flex:1;padding:8px 0}
+.nav-section{padding:8px 12px 4px;font-size:10px;text-transform:uppercase;color:#64748b;letter-spacing:.08em}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;color:#cbd5e1;border-left:3px solid transparent;transition:all .15s}
+.nav-item:hover{background:#2d4a7a;color:#fff}
+.nav-item.active{background:#2d4a7a;color:#fff;border-left-color:var(--gold)}
+.nav-item i{font-size:16px;width:18px;flex-shrink:0}
+#main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column}
+#topbar{height:var(--header-h);background:#fff;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50}
+#topbar-title{font-size:16px;font-weight:600;color:var(--gray-800)}
+#topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--gray-200);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-500);font-size:16px}
+.topbar-btn:hover{background:var(--gray-100)}
+#content{flex:1;padding:24px;overflow-y:auto}
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+/* CARDS */
+.card{background:#fff;border-radius:12px;border:1px solid var(--gray-200);padding:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:600;color:var(--gray-800)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:16px}
+.stat-label{font-size:11px;color:var(--gray-500);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.stat-val{font-size:24px;font-weight:600;color:var(--gray-900)}
+.stat-sub{font-size:11px;color:var(--gray-400);margin-top:4px}
+.stat-card.blue{border-left:3px solid var(--primary);background:var(--primary-light)}
+.stat-card.green{border-left:3px solid var(--success);background:var(--success-light)}
+.stat-card.amber{border-left:3px solid var(--warning);background:var(--warning-light)}
+.stat-card.red{border-left:3px solid var(--danger);background:var(--danger-light)}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-secondary{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--gray-200)}.btn-secondary:hover{background:var(--gray-200)}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover{background:#15803d}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#b91c1c}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{background:#a07a09}
+/* TABLES */
+.table-wrap{overflow-x:auto}
+table.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{background:var(--gray-50);color:var(--gray-500);font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid var(--gray-200);font-size:11px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--gray-100);color:var(--gray-700);vertical-align:middle}
+.data-table tr:hover td{background:var(--gray-50)}
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:12px;font-weight:500;color:var(--gray-600)}
+.form-group input,.form-group select,.form-group textarea{padding:8px 10px;border:1px solid var(--gray-300);border-radius:8px;font-size:13px;color:var(--gray-800);background:#fff;outline:none;width:100%;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+.form-group textarea{resize:vertical;min-height:70px}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:90%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 40px rgba(0,0,0,.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--gray-200)}
+.modal-title{font-size:15px;font-weight:600}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--gray-200);display:flex;gap:8px;justify-content:flex-end}
+.close-btn{background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:20px;padding:2px;display:flex;align-items:center;justify-content:center;border-radius:6px}
+.close-btn:hover{background:var(--gray-100);color:var(--gray-700)}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-blue{background:var(--primary-light);color:var(--primary-dark)}
+.badge-green{background:var(--success-light);color:#15803d}
+.badge-amber{background:var(--warning-light);color:#b45309}
+.badge-red{background:var(--danger-light);color:#b91c1c}
+.badge-gray{background:var(--gray-100);color:var(--gray-600)}
+/* AVATAR */
+.avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--gray-200)}
+.avatar-initials{width:34px;height:34px;border-radius:50%;background:var(--primary-light);color:var(--primary-dark);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--gray-200);padding-bottom:-1px}
+.tab{padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;color:var(--gray-500);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+/* CALENDAR */
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}
+.cal-day-name{padding:6px;color:var(--gray-500);font-weight:600;font-size:11px}
+.cal-day{padding:8px 4px;border-radius:6px;cursor:pointer;min-height:56px;border:1px solid transparent;font-size:12px;background:#fff}
+.cal-day:hover{background:var(--gray-50)}
+.cal-day.today{background:var(--primary-light);border-color:var(--primary)}
+.cal-day.has-event{border-color:var(--warning)}
+.cal-day .day-num{font-weight:600;margin-bottom:2px}
+.cal-day .cal-evt{background:var(--warning-light);color:var(--warning);border-radius:3px;padding:1px 4px;font-size:10px;margin:1px 0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cal-prev-month{color:var(--gray-300)!important}
+/* SEARCH & FILTER ROW */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar input[type=text],.toolbar select{padding:7px 10px;border:1px solid var(--gray-300);border-radius:8px;font-size:13px;color:var(--gray-800);outline:none}
+.toolbar input[type=text]:focus,.toolbar select:focus{border-color:var(--primary)}
+/* PHOTO UPLOAD */
+.photo-upload{width:80px;height:80px;border-radius:50%;border:2px dashed var(--gray-300);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;background:var(--gray-50)}
+.photo-upload img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.photo-upload:hover{border-color:var(--primary)}
+/* CHART AREA */
+.chart-area{height:240px;position:relative}
+/* PNL */
+.pnl-positive{color:var(--success);font-weight:600}
+.pnl-negative{color:var(--danger);font-weight:600}
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.page-title{font-size:20px;font-weight:700;color:var(--gray-900)}
+.page-sub{font-size:13px;color:var(--gray-500);margin-top:2px}
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px 20px;color:var(--gray-400)}
+.empty-state i{font-size:40px;margin-bottom:10px;display:block}
+/* TICKET PREVIEW */
+.ticket{background:linear-gradient(135deg,#1e3a5f,#2d4a7a);color:#fff;border-radius:12px;padding:20px;max-width:400px;position:relative;overflow:hidden}
+.ticket::before{content:'';position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05)}
+.ticket-church{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.ticket-event{font-size:18px;font-weight:700;margin-bottom:10px}
+.ticket-detail{font-size:12px;opacity:.8;margin:3px 0;display:flex;align-items:center;gap:6px}
+.ticket-barcode{margin-top:14px;border-top:1px dashed rgba(255,255,255,.3);padding-top:12px;font-family:monospace;font-size:11px;opacity:.6;letter-spacing:.05em}
+/* RESPONSIVE */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%)}
+  #main{margin-left:0}
+}
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:#1f2937;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;z-index:9999;display:none;max-width:320px;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+/* CONFIRM DIALOG */
+#confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1100;align-items:center;justify-content:center}
+#confirm-overlay.open{display:flex}
+#confirm-box{background:#fff;border-radius:12px;padding:24px;width:340px;text-align:center}
+#confirm-box h3{font-size:15px;margin-bottom:8px}
+#confirm-box p{font-size:13px;color:var(--gray-500);margin-bottom:18px}
+</style>
+</head>
+<body>
+<div id="app">
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sidebar-logo">
+    <div class="logo-icon"><i class="ti ti-building-church"></i></div>
+    <div>
+      <div class="logo-text">Church Admin</div>
+      <div class="logo-sub">Management System</div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+    <div class="nav-section">People</div>
+    <div class="nav-item" onclick="showPage('members')"><i class="ti ti-users"></i>Members</div>
+    <div class="nav-item" onclick="showPage('cellgroups')"><i class="ti ti-sitemap"></i>Cell Groups</div>
+    <div class="nav-item" onclick="showPage('ministries')"><i class="ti ti-crown"></i>Ministries</div>
+    <div class="nav-section">Services</div>
+    <div class="nav-item" onclick="showPage('services')"><i class="ti ti-microphone"></i>Services</div>
+    <div class="nav-item" onclick="showPage('events')"><i class="ti ti-calendar-event"></i>Events</div>
+    <div class="nav-section">Finance</div>
+    <div class="nav-item" onclick="showPage('donations')"><i class="ti ti-heart"></i>Donations</div>
+    <div class="nav-item" onclick="showPage('accounting')"><i class="ti ti-report-money"></i>Accounting</div>
+  </nav>
+</div>
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <div id="topbar-title">Dashboard</div>
+    <div id="topbar-right">
+      <span style="font-size:12px;color:var(--gray-400)" id="topbar-date"></span>
+      <button class="topbar-btn" title="Notifications"><i class="ti ti-bell"></i></button>
+      <div style="width:30px;height:30px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600">AD</div>
+    </div>
+  </div>
+  <div id="content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header"><div><div class="page-title">Overview</div><div class="page-sub">Church at a glance</div></div></div>
+      <div class="stats-grid" id="dash-stats"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Monthly Donations vs Expenses</span></div>
+          <div class="chart-area"><canvas id="dash-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Upcoming Events</span></div>
+          <div id="dash-events-list" style="font-size:13px"></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent Donations</span></div>
+          <div id="dash-donations-list" style="font-size:13px"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Ministry Summary</span></div>
+          <div id="dash-ministry-list" style="font-size:13px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MEMBERS ===== -->
+    <div class="page" id="page-members">
+      <div class="page-header">
+        <div><div class="page-title">Members</div><div class="page-sub">Registration &amp; management</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="exportMembersPDF()"><i class="ti ti-file-download"></i>Export PDF</button>
+          <button class="btn btn-primary btn-sm" onclick="openMemberModal()"><i class="ti ti-plus"></i>Add Member</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <input type="text" id="member-search" placeholder="Search name, email, phone..." oninput="renderMembers()" style="min-width:220px">
+        <select id="member-filter-status" onchange="renderMembers()">
+          <option value="">All Status</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+          <option value="Visitor">Visitor</option>
+        </select>
+        <select id="member-filter-ministry" onchange="renderMembers()">
+          <option value="">All Ministries</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Photo</th><th>English Name</th><th>Chinese Name</th><th>Contact</th><th>DOB</th><th>Status</th><th>Ministry</th><th>Cell Group</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody id="members-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== EVENTS ===== -->
+    <div class="page" id="page-events">
+      <div class="page-header">
+        <div><div class="page-title">Events</div><div class="page-sub">Creation, management &amp; ticketing</div></div>
+        <button class="btn btn-primary btn-sm" onclick="openEventModal()"><i class="ti ti-plus"></i>Create Event</button>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('events','list')">Event List</div>
+        <div class="tab" onclick="switchTab('events','calendar')">Calendar View</div>
+      </div>
+      <div class="tab-content active" id="events-tab-list">
+        <div class="card">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Event Name</th><th>Date & Time</th><th>Type</th><th>Reg Fee</th><th>Cost</th><th>P&amp;L</th><th>Registered</th><th>Attended</th><th>Actions</th></tr></thead>
+              <tbody id="events-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="events-tab-calendar">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <button class="btn btn-secondary btn-sm" onclick="calNav(-1)"><i class="ti ti-chevron-left"></i></button>
+            <span id="cal-label" style="font-weight:600;font-size:14px"></span>
+            <button class="btn btn-secondary btn-sm" onclick="calNav(1)"><i class="ti ti-chevron-right"></i></button>
+          </div>
+          <div class="calendar-grid" id="cal-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ACCOUNTING ===== -->
+    <div class="page" id="page-accounting">
+      <div class="page-header">
+        <div><div class="page-title">Accounting</div><div class="page-sub">Donations, Expenses &amp; P&amp;L</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="exportAccountingPDF()"><i class="ti ti-file-download"></i>Export PDF</button>
+          <button class="btn btn-primary btn-sm" onclick="openTxModal()"><i class="ti ti-plus"></i>Add Transaction</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('acc','overview')">P&amp;L Overview</div>
+        <div class="tab" onclick="switchTab('acc','transactions')">Transactions</div>
+        <div class="tab" onclick="switchTab('acc','overhead')">Overhead Costs</div>
+      </div>
+      <div class="tab-content active" id="acc-tab-overview">
+        <div class="stats-grid" id="acc-stats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Monthly P&amp;L</span>
+              <select id="acc-period" onchange="renderAccounting()" style="font-size:12px;padding:4px 8px;border:1px solid var(--gray-200);border-radius:6px">
+                <option value="monthly">Monthly</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </div>
+            <div class="chart-area"><canvas id="acc-chart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Expense Breakdown</span></div>
+            <div style="height:240px;position:relative"><canvas id="acc-pie"></canvas></div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="acc-tab-transactions">
+        <div class="toolbar">
+          <select id="tx-filter-type" onchange="renderTransactions()">
+            <option value="">All Types</option>
+            <option value="Income">Income</option>
+            <option value="Expense">Expense</option>
+          </select>
+          <select id="tx-filter-cat" onchange="renderTransactions()">
+            <option value="">All Categories</option>
+            <option value="Donation">Donation</option>
+            <option value="Event Income">Event Income</option>
+            <option value="Variable Cost">Variable Cost</option>
+            <option value="Overhead">Overhead</option>
+            <option value="Ministry">Ministry</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="month" id="tx-filter-month" onchange="renderTransactions()" style="padding:7px 10px;border:1px solid var(--gray-300);border-radius:8px;font-size:13px">
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Category</th><th>Amount (RM)</th><th>Actions</th></tr></thead>
+              <tbody id="tx-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="acc-tab-overhead">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" onclick="openOverheadModal()"><i class="ti ti-plus"></i>Add Overhead</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Name</th><th>Type</th><th>Amount (RM/mo)</th><th>Start Date</th><th>Notes</th><th>Actions</th></tr></thead>
+              <tbody id="overhead-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MINISTRIES ===== -->
+    <div class="page" id="page-ministries">
+      <div class="page-header">
+        <div><div class="page-title">Ministries</div><div class="page-sub">Sub-departments of the church</div></div>
+        <button class="btn btn-primary btn-sm" onclick="openMinistryModal()"><i class="ti ti-plus"></i>Create Ministry</button>
+      </div>
+      <div id="ministries-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px"></div>
+    </div>
+
+    <!-- ===== DONATIONS ===== -->
+    <div class="page" id="page-donations">
+      <div class="page-header">
+        <div><div class="page-title">Donations</div><div class="page-sub">Record &amp; track giving</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="exportDonationsPDF()"><i class="ti ti-file-download"></i>Export PDF</button>
+          <button class="btn btn-primary btn-sm" onclick="openDonationModal()"><i class="ti ti-plus"></i>Record Donation</button>
+        </div>
+      </div>
+      <div class="stats-grid" id="donation-stats"></div>
+      <div class="card">
+        <div class="toolbar">
+          <select id="don-filter-type" onchange="renderDonations()">
+            <option value="">All Types</option>
+            <option value="Tithe">Tithe</option>
+            <option value="Offering">Offering</option>
+            <option value="Special">Special Offering</option>
+            <option value="Building Fund">Building Fund</option>
+            <option value="Ministry">Ministry Fund</option>
+            <option value="Mission">Mission Fund</option>
+          </select>
+          <input type="month" id="don-filter-month" onchange="renderDonations()" style="padding:7px 10px;border:1px solid var(--gray-300);border-radius:8px;font-size:13px">
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Donor</th><th>Type</th><th>Ministry</th><th>Amount (RM)</th><th>Note</th><th>Actions</th></tr></thead>
+            <tbody id="donations-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SERVICES ===== -->
+    <div class="page" id="page-services">
+      <div class="page-header">
+        <div><div class="page-title">Services</div><div class="page-sub">Worship service scheduling &amp; attendance</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="exportServicesPDF()"><i class="ti ti-file-download"></i>Export PDF</button>
+          <button class="btn btn-primary btn-sm" onclick="openServiceModal()"><i class="ti ti-plus"></i>Add Service</button>
+        </div>
+      </div>
+      <div class="stats-grid" id="service-stats"></div>
+      <div class="card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Date & Time</th><th>Service Type</th><th>Speaker/Pastor</th><th>Estimated Attendance</th><th>Actual Attendance</th><th>Theme/Title</th><th>Actions</th></tr></thead>
+            <tbody id="services-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CELL GROUPS ===== -->
+    <div class="page" id="page-cellgroups">
+      <div class="page-header">
+        <div><div class="page-title">Cell Groups</div><div class="page-sub">Small group management</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="exportCellGroupsPDF()"><i class="ti ti-file-download"></i>Export PDF</button>
+          <button class="btn btn-primary btn-sm" onclick="openCellGroupModal()"><i class="ti ti-plus"></i>Create Cell Group</button>
+        </div>
+      </div>
+      <div id="cellgroups-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px"></div>
+    </div>
+
+  </div><!-- end content -->
+</div><!-- end main -->
+</div><!-- end app -->
+
+<!-- ============ MODALS ============ -->
+
+<!-- MEMBER MODAL -->
+<div class="modal-overlay" id="modal-member">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="member-modal-title">Add Member</span>
+      <button class="close-btn" onclick="closeModal('modal-member')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+        <div>
+          <div class="photo-upload" id="photo-preview" onclick="document.getElementById('member-photo-input').click()">
+            <i class="ti ti-camera" style="font-size:24px;color:var(--gray-400)"></i>
+          </div>
+          <input type="file" id="member-photo-input" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+          <div style="font-size:10px;color:var(--gray-400);margin-top:4px;text-align:center">Click to upload</div>
+        </div>
+        <div style="flex:1">
+          <div class="form-grid">
+            <div class="form-group"><label>English Name *</label><input id="m-name-en" type="text" placeholder="Full English Name"></div>
+            <div class="form-group"><label>Chinese Name 中文名</label><input id="m-name-zh" type="text" placeholder="中文名字"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Date of Birth</label><input id="m-dob" type="date"></div>
+        <div class="form-group"><label>Gender</label><select id="m-gender"><option>Male</option><option>Female</option></select></div>
+        <div class="form-group"><label>IC / Passport</label><input id="m-ic" type="text" placeholder="NRIC / Passport No."></div>
+        <div class="form-group"><label>Phone</label><input id="m-phone" type="tel" placeholder="01X-XXXXXXX"></div>
+        <div class="form-group"><label>Email</label><input id="m-email" type="email" placeholder="email@example.com"></div>
+        <div class="form-group"><label>Occupation</label><input id="m-occupation" type="text" placeholder="e.g. Engineer"></div>
+        <div class="form-group"><label>Membership Status</label><select id="m-status"><option>Active</option><option>Inactive</option><option>Visitor</option><option>Transfer</option></select></div>
+        <div class="form-group"><label>Baptism Date</label><input id="m-baptism" type="date"></div>
+        <div class="form-group"><label>Join Date</label><input id="m-joined" type="date"></div>
+        <div class="form-group"><label>Ministry</label><select id="m-ministry"><option value="">None</option></select></div>
+        <div class="form-group"><label>Cell Group</label><select id="m-cellgroup"><option value="">None</option></select></div>
+        <div class="form-group"><label>Emergency Contact</label><input id="m-emergency" type="text" placeholder="Name / Phone"></div>
+      </div>
+      <div class="form-group" style="margin-top:10px"><label>Address</label><textarea id="m-address" placeholder="Home address"></textarea></div>
+      <div class="form-group" style="margin-top:10px"><label>Notes</label><textarea id="m-notes" placeholder="Any additional notes..."></textarea></div>
+      <input type="hidden" id="m-id">
+      <input type="hidden" id="m-photo-data">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-member')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMember()"><i class="ti ti-check"></i>Save Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="modal-overlay" id="modal-event">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="event-modal-title">Create Event</span>
+      <button class="close-btn" onclick="closeModal('modal-event')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column:1/-1"><label>Event Name *</label><input id="e-name" type="text" placeholder="Event Title"></div>
+        <div class="form-group"><label>Date</label><input id="e-date" type="date"></div>
+        <div class="form-group"><label>Time</label><input id="e-time" type="time"></div>
+        <div class="form-group"><label>End Date</label><input id="e-end-date" type="date"></div>
+        <div class="form-group"><label>End Time</label><input id="e-end-time" type="time"></div>
+        <div class="form-group"><label>Event Type</label>
+          <select id="e-type">
+            <option>Worship Service</option><option>Conference</option><option>Camp</option>
+            <option>Outreach</option><option>Fundraiser</option><option>Training</option><option>Fellowship</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Location / Venue</label><input id="e-location" type="text" placeholder="Church Hall / Venue"></div>
+        <div class="form-group"><label>Registration Fee (RM)</label><input id="e-reg-fee" type="number" value="0" min="0"></div>
+        <div class="form-group"><label>Estimated Cost (RM)</label><input id="e-cost" type="number" value="0" min="0"></div>
+        <div class="form-group"><label>Capacity</label><input id="e-capacity" type="number" placeholder="Max attendees" min="0"></div>
+        <div class="form-group"><label>Speaker / Guest</label><input id="e-speaker" type="text" placeholder="Name of speaker"></div>
+        <div class="form-group"><label>Lead Volunteer</label><input id="e-volunteer" type="text" placeholder="Coordinator name"></div>
+      </div>
+      <div class="form-group" style="margin-top:10px"><label>Description / Notes</label><textarea id="e-desc" placeholder="Event details..."></textarea></div>
+      <input type="hidden" id="e-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-event')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()"><i class="ti ti-check"></i>Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT DETAIL MODAL -->
+<div class="modal-overlay" id="modal-event-detail">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Event Detail</span>
+      <button class="close-btn" onclick="closeModal('modal-event-detail')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="event-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-event-detail')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSACTION MODAL -->
+<div class="modal-overlay" id="modal-tx">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="tx-modal-title">Add Transaction</span>
+      <button class="close-btn" onclick="closeModal('modal-tx')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Date *</label><input id="tx-date" type="date"></div>
+        <div class="form-group"><label>Type *</label>
+          <select id="tx-type"><option value="Income">Income</option><option value="Expense">Expense</option></select>
+        </div>
+        <div class="form-group"><label>Category</label>
+          <select id="tx-cat">
+            <option>Donation</option><option>Event Income</option><option>Variable Cost</option><option>Overhead</option><option>Ministry</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Amount (RM) *</label><input id="tx-amount" type="number" min="0" placeholder="0.00"></div>
+        <div class="form-group" style="grid-column:1/-1"><label>Description *</label><input id="tx-desc" type="text" placeholder="e.g. Sunday Tithe Collection"></div>
+      </div>
+      <input type="hidden" id="tx-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-tx')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTx()"><i class="ti ti-check"></i>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERHEAD MODAL -->
+<div class="modal-overlay" id="modal-overhead">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title">Add Overhead Cost</span>
+      <button class="close-btn" onclick="closeModal('modal-overhead')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Name *</label><input id="oh-name" type="text" placeholder="e.g. Pastor Salary"></div>
+        <div class="form-group"><label>Type</label>
+          <select id="oh-type">
+            <option>Full-time Salary</option><option>Part-time Salary</option><option>Rental</option>
+            <option>Bank Loan</option><option>Utilities</option><option>Insurance</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Monthly Amount (RM)</label><input id="oh-amount" type="number" min="0" placeholder="0.00"></div>
+        <div class="form-group"><label>Start Date</label><input id="oh-start" type="date"></div>
+        <div class="form-group" style="grid-column:1/-1"><label>Notes</label><input id="oh-notes" type="text" placeholder="Additional notes"></div>
+      </div>
+      <input type="hidden" id="oh-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-overhead')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOverhead()"><i class="ti ti-check"></i>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MINISTRY MODAL -->
+<div class="modal-overlay" id="modal-ministry">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title" id="ministry-modal-title">Create Ministry</span>
+      <button class="close-btn" onclick="closeModal('modal-ministry')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column:1/-1"><label>Ministry Name *</label><input id="min-name" type="text" placeholder="e.g. Youth Ministry"></div>
+        <div class="form-group"><label>Leader / Head</label><input id="min-leader" type="text" placeholder="Name of leader"></div>
+        <div class="form-group"><label>Monthly Budget (RM)</label><input id="min-budget" type="number" min="0" placeholder="0"></div>
+        <div class="form-group" style="grid-column:1/-1"><label>Description</label><textarea id="min-desc" placeholder="Ministry purpose and activities..."></textarea></div>
+      </div>
+      <input type="hidden" id="min-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-ministry')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMinistry()"><i class="ti ti-check"></i>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- DONATION MODAL -->
+<div class="modal-overlay" id="modal-donation">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <span class="modal-title">Record Donation</span>
+      <button class="close-btn" onclick="closeModal('modal-donation')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Date *</label><input id="don-date" type="date"></div>
+        <div class="form-group"><label>Donation Type</label>
+          <select id="don-type">
+            <option>Tithe</option><option>Offering</option><option>Special Offering</option>
+            <option>Building Fund</option><option>Ministry Fund</option><option>Mission Fund</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Donor Name</label><input id="don-donor" type="text" placeholder="Name or 'Anonymous'"></div>
+        <div class="form-group"><label>Amount (RM) *</label><input id="don-amount" type="number" min="0" placeholder="0.00"></div>
+        <div class="form-group"><label>Ministry (if applicable)</label><select id="don-ministry"><option value="">General Fund</option></select></div>
+        <div class="form-group"><label>Payment Method</label>
+          <select id="don-method"><option>Cash</option><option>Bank Transfer</option><option>DuitNow</option><option>Cheque</option><option>Online</option></select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1"><label>Notes</label><input id="don-notes" type="text" placeholder="Optional notes"></div>
+      </div>
+      <input type="hidden" id="don-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-donation')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDonation()"><i class="ti ti-check"></i>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE MODAL -->
+<div class="modal-overlay" id="modal-service">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header">
+      <span class="modal-title" id="service-modal-title">Add Service</span>
+      <button class="close-btn" onclick="closeModal('modal-service')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Date *</label><input id="svc-date" type="date"></div>
+        <div class="form-group"><label>Time</label><input id="svc-time" type="time" value="09:00"></div>
+        <div class="form-group"><label>Service Type</label>
+          <select id="svc-type"><option>Sunday Service</option><option>Wednesday Service</option><option>Prayer Meeting</option><option>Youth Service</option><option>Special Service</option><option>Christmas Service</option><option>Easter Service</option></select>
+        </div>
+        <div class="form-group"><label>Speaker / Pastor</label><input id="svc-speaker" type="text" placeholder="Name"></div>
+        <div class="form-group"><label>Theme / Title</label><input id="svc-theme" type="text" placeholder="Sermon title"></div>
+        <div class="form-group"><label>Est. Attendance</label><input id="svc-est" type="number" min="0" placeholder="0"></div>
+        <div class="form-group"><label>Actual Attendance</label><input id="svc-actual" type="number" min="0" placeholder="0"></div>
+      </div>
+      <div class="form-group" style="margin-top:10px"><label>Notes</label><textarea id="svc-notes" placeholder="Service notes..."></textarea></div>
+      <input type="hidden" id="svc-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-service')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveService()"><i class="ti ti-check"></i>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CELL GROUP MODAL -->
+<div class="modal-overlay" id="modal-cellgroup">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title" id="cg-modal-title">Create Cell Group</span>
+      <button class="close-btn" onclick="closeModal('modal-cellgroup')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column:1/-1"><label>Group Name *</label><input id="cg-name" type="text" placeholder="e.g. Petaling Jaya Cell Group"></div>
+        <div class="form-group"><label>Leader Name *</label><input id="cg-leader" type="text" placeholder="Group leader"></div>
+        <div class="form-group"><label>Meeting Day</label>
+          <select id="cg-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select>
+        </div>
+        <div class="form-group"><label>Meeting Time</label><input id="cg-time" type="time" value="19:30"></div>
+        <div class="form-group"><label>Location</label><input id="cg-location" type="text" placeholder="Venue / Address"></div>
+        <div class="form-group"><label>Monthly Budget (RM)</label><input id="cg-budget" type="number" min="0" placeholder="0"></div>
+        <div class="form-group" style="grid-column:1/-1"><label>Description</label><textarea id="cg-desc" placeholder="Group focus and activities..."></textarea></div>
+      </div>
+      <input type="hidden" id="cg-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-cellgroup')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCellGroup()"><i class="ti ti-check"></i>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div id="confirm-overlay">
+  <div id="confirm-box">
+    <h3 id="confirm-title">Confirm Delete</h3>
+    <p id="confirm-msg">This action cannot be undone.</p>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn btn-secondary" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirm-ok">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ==================== DATA LAYER ====================
+const DB = {
+  get(key){try{return JSON.parse(localStorage.getItem('cams_'+key)||'[]')}catch{return[]}},
+  set(key,val){localStorage.setItem('cams_'+key,JSON.stringify(val))},
+  genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
+};
+
+let dashChart=null, accChart=null, accPie=null;
+
+// ==================== NAVIGATION ====================
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelector(`.nav-item[onclick="showPage('${p}')"]`).classList.add('active');
+  document.getElementById('topbar-title').textContent = {
+    dashboard:'Dashboard',members:'Members',events:'Events',
+    accounting:'Accounting',ministries:'Ministries',donations:'Donations',
+    services:'Services',cellgroups:'Cell Groups'
+  }[p];
+  const renders = {
+    dashboard:renderDashboard, members:renderMembers, events:renderEvents,
+    accounting:renderAccounting, ministries:renderMinistries, donations:renderDonations,
+    services:renderServices, cellgroups:renderCellGroups
+  };
+  if(renders[p]) renders[p]();
+}
+function switchTab(page,tab){
+  const prefix = {events:'events',acc:'acc'}[page];
+  document.querySelectorAll(`[id^="${prefix}-tab-"]`).forEach(x=>x.classList.remove('active'));
+  document.getElementById(`${prefix}-tab-${tab}`).classList.add('active');
+  const tabs = document.querySelectorAll(`#page-${page=='events'?'events':'accounting'} .tab`);
+  tabs.forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  if(page==='acc'&&tab==='overview') renderAccounting();
+  if(page==='acc'&&tab==='transactions') renderTransactions();
+  if(page==='acc'&&tab==='overhead') renderOverhead();
+  if(page==='events'&&tab==='calendar') renderCalendar();
+}
+
+// ==================== MODALS ====================
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+let confirmCallback=null;
+function showConfirm(title,msg,cb){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=msg;
+  confirmCallback=cb;
+  document.getElementById('confirm-overlay').classList.add('open');
+  document.getElementById('confirm-ok').onclick=()=>{closeConfirm();cb()};
+}
+function closeConfirm(){document.getElementById('confirm-overlay').classList.remove('open')}
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=type==='error'?'#dc2626':type==='warn'?'#d97706':'#1e3a5f';
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none',3000);
+}
+
+// ==================== MEMBERS ====================
+function openMemberModal(id=null){
+  const fields=['name-en','name-zh','dob','gender','ic','phone','email','occupation','status','baptism','joined','ministry','cellgroup','emergency','address','notes'];
+  fields.forEach(f=>{ const el=document.getElementById('m-'+f); if(el) el.value=''; });
+  document.getElementById('m-id').value='';
+  document.getElementById('m-photo-data').value='';
+  document.getElementById('photo-preview').innerHTML='<i class="ti ti-camera" style="font-size:24px;color:var(--gray-400)"></i>';
+  populateMemberDropdowns();
+  if(id){
+    const m = DB.get('members').find(x=>x.id===id);
+    if(!m) return;
+    document.getElementById('member-modal-title').textContent='Edit Member';
+    document.getElementById('m-id').value=m.id;
+    fields.forEach(f=>{ const el=document.getElementById('m-'+f); if(el&&m[f.replace(/-/g,'_')]!==undefined) el.value=m[f.replace(/-/g,'_')]; });
+    if(m.photo){document.getElementById('m-photo-data').value=m.photo;document.getElementById('photo-preview').innerHTML=`<img src="${m.photo}">`}
+  } else {
+    document.getElementById('member-modal-title').textContent='Add Member';
+    document.getElementById('m-joined').value=new Date().toISOString().split('T')[0];
+  }
+  openModal('modal-member');
+}
+function populateMemberDropdowns(){
+  const ms=DB.get('ministries'),cgs=DB.get('cellgroups');
+  ['m-ministry','m-filter-ministry'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    const cur=el.value;
+    el.innerHTML='<option value="">None</option>';
+    ms.forEach(m=>el.insertAdjacentHTML('beforeend',`<option value="${m.id}">${m.name}</option>`));
+    el.value=cur;
+  });
+  const cg=document.getElementById('m-cellgroup');
+  if(cg){ cg.innerHTML='<option value="">None</option>'; cgs.forEach(g=>cg.insertAdjacentHTML('beforeend',`<option value="${g.id}">${g.name}</option>`)); }
+}
+function previewPhoto(input){
+  if(!input.files[0]) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    document.getElementById('m-photo-data').value=e.target.result;
+    document.getElementById('photo-preview').innerHTML=`<img src="${e.target.result}">`;
+  };
+  r.readAsDataURL(input.files[0]);
+}
+function saveMember(){
+  const name=document.getElementById('m-name-en').value.trim();
+  if(!name){toast('English name is required','error');return;}
+  const members=DB.get('members');
+  const id=document.getElementById('m-id').value||DB.genId();
+  const getF=f=>document.getElementById('m-'+f)?.value||'';
+  const obj={id,name_en:name,name_zh:getF('name-zh'),dob:getF('dob'),gender:getF('gender'),ic:getF('ic'),phone:getF('phone'),email:getF('email'),occupation:getF('occupation'),status:getF('status')||'Active',baptism:getF('baptism'),joined:getF('joined'),ministry:getF('ministry'),cellgroup:getF('cellgroup'),emergency:getF('emergency'),address:getF('address'),notes:getF('notes'),photo:document.getElementById('m-photo-data').value};
+  const idx=members.findIndex(x=>x.id===id);
+  if(idx>=0) members[idx]=obj; else members.push(obj);
+  DB.set('members',members);
+  closeModal('modal-member');
+  renderMembers();
+  toast('Member saved');
+}
+function renderMembers(){
+  const members=DB.get('members');
+  const search=(document.getElementById('member-search')?.value||'').toLowerCase();
+  const status=document.getElementById('member-filter-status')?.value||'';
+  const ministry=document.getElementById('member-filter-ministry')?.value||'';
+  populateMemberDropdowns();
+  const ministries=DB.get('ministries');
+  const cellgroups=DB.get('cellgroups');
+  const filtered=members.filter(m=>{
+    const ms=(m.name_en+m.name_zh+m.email+m.phone).toLowerCase();
+    return(!search||ms.includes(search))&&(!status||m.status===status)&&(!ministry||m.ministry===ministry);
+  });
+  const tbody=document.getElementById('members-tbody');
+  if(!tbody) return;
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--gray-400)">No members found. Click "Add Member" to get started.</td></tr>`;return;}
+  tbody.innerHTML=filtered.map(m=>{
+    const min=ministries.find(x=>x.id===m.ministry);
+    const cg=cellgroups.find(x=>x.id===m.cellgroup);
+    const initials=(m.name_en||'?').split(' ').map(w=>w[0]).join('').substr(0,2).toUpperCase();
+    const photo=m.photo?`<img src="${m.photo}" class="avatar">`:`<div class="avatar-initials">${initials}</div>`;
+    const statusColor={Active:'badge-green',Inactive:'badge-gray',Visitor:'badge-amber',Transfer:'badge-blue'}[m.status]||'badge-gray';
+    return `<tr>
+      <td>${photo}</td>
+      <td style="font-weight:500">${m.name_en}</td>
+      <td>${m.name_zh||'—'}</td>
+      <td><div style="font-size:12px">${m.phone||'—'}</div><div style="font-size:11px;color:var(--gray-400)">${m.email||''}</div></td>
+      <td>${m.dob||'—'}</td>
+      <td><span class="badge ${statusColor}">${m.status||'Active'}</span></td>
+      <td>${min?min.name:'—'}</td>
+      <td>${cg?cg.name:'—'}</td>
+      <td>${m.joined||'—'}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-secondary btn-sm" onclick="openMemberModal('${m.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function deleteMember(id){showConfirm('Delete Member','This member will be permanently removed.',()=>{const m=DB.get('members').filter(x=>x.id!==id);DB.set('members',m);renderMembers();toast('Member deleted');})}
+function exportMembersPDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  doc.setFontSize(16);doc.text('Church Member Directory',14,20);
+  doc.setFontSize(10);doc.text('Generated: '+new Date().toLocaleDateString(),14,28);
+  const members=DB.get('members');
+  doc.autoTable({startY:34,head:[['No.','English Name','Chinese Name','Phone','Email','Status','Joined']],
+    body:members.map((m,i)=>[i+1,m.name_en,m.name_zh||'',m.phone||'',m.email||'',m.status||'Active',m.joined||'']),
+    styles:{fontSize:8},headStyles:{fillColor:[30,58,95]}});
+  doc.save('church-members.pdf');toast('PDF downloaded');
+}
+
+// ==================== EVENTS ====================
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+function openEventModal(id=null){
+  ['name','date','time','end-date','end-time','type','location','reg-fee','cost','capacity','speaker','volunteer','desc'].forEach(f=>{
+    const el=document.getElementById('e-'+f);if(el) el.value=f==='reg-fee'||f==='cost'?'0':'';
+  });
+  document.getElementById('e-id').value='';
+  document.getElementById('event-modal-title').textContent='Create Event';
+  if(id){
+    const ev=DB.get('events').find(x=>x.id===id);
+    if(!ev) return;
+    document.getElementById('event-modal-title').textContent='Edit Event';
+    document.getElementById('e-id').value=ev.id;
+    document.getElementById('e-name').value=ev.name;
+    document.getElementById('e-date').value=ev.date;
+    document.getElementById('e-time').value=ev.time||'';
+    document.getElementById('e-end-date').value=ev.end_date||'';
+    document.getElementById('e-end-time').value=ev.end_time||'';
+    document.getElementById('e-type').value=ev.type;
+    document.getElementById('e-location').value=ev.location||'';
+    document.getElementById('e-reg-fee').value=ev.reg_fee||0;
+    document.getElementById('e-cost').value=ev.cost||0;
+    document.getElementById('e-capacity').value=ev.capacity||'';
+    document.getElementById('e-speaker').value=ev.speaker||'';
+    document.getElementById('e-volunteer').value=ev.volunteer||'';
+    document.getElementById('e-desc').value=ev.desc||'';
+  } else {
+    document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
+  }
+  openModal('modal-event');
+}
+function saveEvent(){
+  const name=document.getElementById('e-name').value.trim();
+  const date=document.getElementById('e-date').value;
+  if(!name||!date){toast('Event name and date required','error');return;}
+  const events=DB.get('events');
+  const id=document.getElementById('e-id').value||DB.genId();
+  const obj={id,name,date,time:document.getElementById('e-time').value,end_date:document.getElementById('e-end-date').value,end_time:document.getElementById('e-end-time').value,type:document.getElementById('e-type').value,location:document.getElementById('e-location').value,reg_fee:parseFloat(document.getElementById('e-reg-fee').value)||0,cost:parseFloat(document.getElementById('e-cost').value)||0,capacity:document.getElementById('e-capacity').value,speaker:document.getElementById('e-speaker').value,volunteer:document.getElementById('e-volunteer').value,desc:document.getElementById('e-desc').value,registered:0,attended:0};
+  const idx=events.findIndex(x=>x.id===id);
+  if(idx>=0){obj.registered=events[idx].registered||0;obj.attended=events[idx].attended||0;events[idx]=obj;}else events.push(obj);
+  DB.set('events',events);closeModal('modal-event');renderEvents();toast('Event saved');
+}
+function renderEvents(){
+  const events=DB.get('events').sort((a,b)=>b.date.localeCompare(a.date));
+  const tbody=document.getElementById('events-tbody');
+  if(!tbody) return;
+  if(!events.length){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--gray-400)">No events yet.</td></tr>`;return;}
+  tbody.innerHTML=events.map(ev=>{
+    const income=ev.reg_fee*ev.registered;
+    const pnl=income-ev.cost;
+    const pnlClass=pnl>=0?'pnl-positive':'pnl-negative';
+    const typeColors={Conference:'badge-blue','Worship Service':'badge-green',Camp:'badge-amber',Outreach:'badge-red',Fellowship:'badge-gray'};
+    return`<tr>
+      <td style="font-weight:500">${ev.name}</td>
+      <td><div>${ev.date}</div><div style="font-size:11px;color:var(--gray-400)">${ev.time||''}</div></td>
+      <td><span class="badge ${typeColors[ev.type]||'badge-gray'}">${ev.type}</span></td>
+      <td>RM ${(ev.reg_fee||0).toFixed(2)}</td>
+      <td>RM ${(ev.cost||0).toFixed(2)}</td>
+      <td class="${pnlClass}">RM ${pnl.toFixed(2)}</td>
+      <td>${ev.registered||0}</td>
+      <td>${ev.attended||0}</td>
+      <td><div style="display:flex;gap:3px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="viewEventDetail('${ev.id}')"><i class="ti ti-eye"></i></button>
+        <button class="btn btn-secondary btn-sm" onclick="openEventModal('${ev.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-gold btn-sm" onclick="downloadEventTicket('${ev.id}')"><i class="ti ti-ticket"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEvent('${ev.id}')"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function viewEventDetail(id){
+  const ev=DB.get('events').find(x=>x.id===id);
+  if(!ev) return;
+  const income=ev.reg_fee*(ev.registered||0);
+  const pnl=income-ev.cost;
+  document.getElementById('event-detail-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div><div class="stat-label">Event</div><div style="font-size:17px;font-weight:600">${ev.name}</div></div>
+      <div><div class="stat-label">Type</div><div>${ev.type}</div></div>
+      <div><div class="stat-label">Date & Time</div><div>${ev.date} ${ev.time||''}</div></div>
+      <div><div class="stat-label">Location</div><div>${ev.location||'TBC'}</div></div>
+      <div><div class="stat-label">Speaker</div><div>${ev.speaker||'—'}</div></div>
+      <div><div class="stat-label">Volunteer Lead</div><div>${ev.volunteer||'—'}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+      <div class="stat-card blue"><div class="stat-label">Reg Fee</div><div class="stat-val" style="font-size:18px">RM ${(ev.reg_fee||0).toFixed(0)}</div></div>
+      <div class="stat-card amber"><div class="stat-label">Total Cost</div><div class="stat-val" style="font-size:18px">RM ${(ev.cost||0).toFixed(0)}</div></div>
+      <div class="stat-card green"><div class="stat-label">Revenue</div><div class="stat-val" style="font-size:18px">RM ${income.toFixed(0)}</div></div>
+      <div class="stat-card ${pnl>=0?'green':'red'}"><div class="stat-label">P&L</div><div class="stat-val" style="font-size:18px">RM ${pnl.toFixed(0)}</div></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <div style="flex:1">
+        <label style="font-size:12px;color:var(--gray-500)">Registered</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+          <input type="number" id="ev-reg" value="${ev.registered||0}" min="0" style="width:80px;padding:6px 8px;border:1px solid var(--gray-300);border-radius:6px;font-size:13px">
+          <button class="btn btn-primary btn-sm" onclick="updateEventAttendance('${ev.id}')">Update</button>
+        </div>
+      </div>
+      <div style="flex:1">
+        <label style="font-size:12px;color:var(--gray-500)">Attended</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+          <input type="number" id="ev-att" value="${ev.attended||0}" min="0" style="width:80px;padding:6px 8px;border:1px solid var(--gray-300);border-radius:6px;font-size:13px">
+        </div>
+      </div>
+    </div>
+    ${ev.desc?`<div style="background:var(--gray-50);padding:12px;border-radius:8px;font-size:13px;color:var(--gray-600)">${ev.desc}</div>`:''}`;
+  openModal('modal-event-detail');
+}
+function updateEventAttendance(id){
+  const events=DB.get('events');
+  const idx=events.findIndex(x=>x.id===id);
+  if(idx>=0){events[idx].registered=parseInt(document.getElementById('ev-reg').value)||0;events[idx].attended=parseInt(document.getElementById('ev-att').value)||0;DB.set('events',events);toast('Attendance updated');renderEvents();}
+}
+function deleteEvent(id){showConfirm('Delete Event','This event will be permanently removed.',()=>{DB.set('events',DB.get('events').filter(x=>x.id!==id));renderEvents();toast('Event deleted');})}
+function downloadEventTicket(id){
+  const ev=DB.get('events').find(x=>x.id===id);if(!ev) return;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:[100,55]});
+  doc.setFillColor(30,58,95);doc.rect(0,0,100,55,'F');
+  doc.setFillColor(45,74,122);doc.circle(90,5,20,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(6);doc.text('CHURCH EVENT TICKET',7,10);
+  doc.setFontSize(11);doc.setFont(undefined,'bold');
+  const nameLines=doc.splitTextToSize(ev.name,70);
+  doc.text(nameLines,7,17);
+  doc.setFont(undefined,'normal');doc.setFontSize(7);
+  doc.setTextColor(180,200,230);
+  doc.text(`Date: ${ev.date} ${ev.time||''}`,7,28);
+  doc.text(`Location: ${ev.location||'Main Hall'}`,7,33);
+  doc.text(`Speaker: ${ev.speaker||'—'}`,7,38);
+  doc.text(`Reg Fee: RM ${(ev.reg_fee||0).toFixed(2)}`,7,43);
+  doc.setDrawColor(255,255,255);doc.setLineDashPattern([1,1],0);doc.line(7,47,93,47);
+  doc.setFontSize(6);doc.setTextColor(120,150,190);
+  doc.text(`Ticket: ${ev.id.toUpperCase()}  |  ${ev.type}`,7,50);
+  doc.save(`ticket-${ev.name.replace(/\s+/g,'-')}.pdf`);toast('Ticket downloaded');
+}
+function calNav(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+function renderCalendar(){
+  const events=DB.get('events');
+  const label=document.getElementById('cal-label');
+  if(label) label.textContent=new Date(calYear,calMonth,1).toLocaleDateString('en-MY',{month:'long',year:'numeric'});
+  const grid=document.getElementById('cal-grid');
+  if(!grid) return;
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html=days.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  const first=new Date(calYear,calMonth,1).getDay();
+  const last=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date();
+  for(let i=0;i<first;i++) html+=`<div class="cal-day cal-prev-month"></div>`;
+  for(let d=1;d<=last;d++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayEvs=events.filter(e=>e.date===dateStr);
+    const isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===d;
+    const hasEvt=dayEvs.length>0;
+    html+=`<div class="cal-day${isToday?' today':''}${hasEvt?' has-event':''}">
+      <div class="day-num">${d}</div>
+      ${dayEvs.slice(0,2).map(e=>`<div class="cal-evt">${e.name}</div>`).join('')}
+      ${dayEvs.length>2?`<div style="font-size:9px;color:var(--warning)">+${dayEvs.length-2} more</div>`:''}
+    </div>`;
+  }
+  grid.innerHTML=html;
+}
+
+// ==================== ACCOUNTING ====================
+function openTxModal(id=null){
+  ['date','type','cat','amount','desc'].forEach(f=>{
+    const el=document.getElementById('tx-'+f);if(el) el.value='';
+  });
+  document.getElementById('tx-id').value='';
+  document.getElementById('tx-modal-title').textContent='Add Transaction';
+  document.getElementById('tx-date').value=new Date().toISOString().split('T')[0];
+  if(id){
+    const tx=DB.get('transactions').find(x=>x.id===id);
+    if(!tx) return;
+    document.getElementById('tx-modal-title').textContent='Edit Transaction';
+    document.getElementById('tx-id').value=tx.id;
+    document.getElementById('tx-date').value=tx.date;
+    document.getElementById('tx-type').value=tx.type;
+    document.getElementById('tx-cat').value=tx.cat;
+    document.getElementById('tx-amount').value=tx.amount;
+    document.getElementById('tx-desc').value=tx.desc;
+  }
+  openModal('modal-tx');
+}
+function saveTx(){
+  const date=document.getElementById('tx-date').value;
+  const amount=parseFloat(document.getElementById('tx-amount').value);
+  const desc=document.getElementById('tx-desc').value.trim();
+  if(!date||!amount||!desc){toast('Date, amount and description required','error');return;}
+  const txs=DB.get('transactions');
+  const id=document.getElementById('tx-id').value||DB.genId();
+  const obj={id,date,type:document.getElementById('tx-type').value,cat:document.getElementById('tx-cat').value,amount,desc};
+  const idx=txs.findIndex(x=>x.id===id);
+  if(idx>=0) txs[idx]=obj; else txs.push(obj);
+  DB.set('transactions',txs);closeModal('modal-tx');renderAccounting();renderTransactions();toast('Transaction saved');
+}
+function renderTransactions(){
+  const txs=DB.get('transactions').sort((a,b)=>b.date.localeCompare(a.date));
+  const typeF=document.getElementById('tx-filter-type')?.value||'';
+  const catF=document.getElementById('tx-filter-cat')?.value||'';
+  const monthF=document.getElementById('tx-filter-month')?.value||'';
+  const filtered=txs.filter(t=>(!typeF||t.type===typeF)&&(!catF||t.cat===catF)&&(!monthF||t.date.startsWith(monthF)));
+  const tbody=document.getElementById('tx-tbody');if(!tbody) return;
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--gray-400)">No transactions found.</td></tr>`;return;}
+  tbody.innerHTML=filtered.map(t=>`<tr>
+    <td>${t.date}</td>
+    <td>${t.desc}</td>
+    <td><span class="badge ${t.type==='Income'?'badge-green':'badge-red'}">${t.type}</span></td>
+    <td><span class="badge badge-gray">${t.cat}</span></td>
+    <td style="font-weight:600;color:${t.type==='Income'?'var(--success)':'var(--danger)'}">RM ${t.amount.toFixed(2)}</td>
+    <td><div style="display:flex;gap:4px">
+      <button class="btn btn-secondary btn-sm" onclick="openTxModal('${t.id}')"><i class="ti ti-edit"></i></button>
+      <button class="btn btn-danger btn-sm" onclick="deleteTx('${t.id}')"><i class="ti ti-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+}
+function deleteTx(id){showConfirm('Delete Transaction','',()=>{DB.set('transactions',DB.get('transactions').filter(x=>x.id!==id));renderAccounting();renderTransactions();toast('Transaction deleted');})}
+function openOverheadModal(id=null){
+  ['name','type','amount','start','notes'].forEach(f=>{const el=document.getElementById('oh-'+f);if(el) el.value='';});
+  document.getElementById('oh-id').value='';
+  if(id){
+    const oh=DB.get('overhead').find(x=>x.id===id);if(!oh) return;
+    document.getElementById('oh-id').value=oh.id;
+    document.getElementById('oh-name').value=oh.name;
+    document.getElementById('oh-type').value=oh.type;
+    document.getElementById('oh-amount').value=oh.amount;
+    document.getElementById('oh-start').value=oh.start||'';
+    document.getElementById('oh-notes').value=oh.notes||'';
+  }
+  openModal('modal-overhead');
+}
+function saveOverhead(){
+  const name=document.getElementById('oh-name').value.trim();
+  const amount=parseFloat(document.getElementById('oh-amount').value);
+  if(!name||!amount){toast('Name and amount required','error');return;}
+  const oh=DB.get('overhead');
+  const id=document.getElementById('oh-id').value||DB.genId();
+  const obj={id,name,type:document.getElementById('oh-type').value,amount,start:document.getElementById('oh-start').value,notes:document.getElementById('oh-notes').value};
+  const idx=oh.findIndex(x=>x.id===id);
+  if(idx>=0) oh[idx]=obj; else oh.push(obj);
+  DB.set('overhead',oh);closeModal('modal-overhead');renderOverhead();toast('Overhead saved');
+}
+function renderOverhead(){
+  const oh=DB.get('overhead');
+  const tbody=document.getElementById('overhead-tbody');if(!tbody) return;
+  if(!oh.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--gray-400)">No overhead costs yet.</td></tr>`;return;}
+  tbody.innerHTML=oh.map(o=>`<tr>
+    <td style="font-weight:500">${o.name}</td>
+    <td><span class="badge badge-blue">${o.type}</span></td>
+    <td>RM ${o.amount.toFixed(2)}</td>
+    <td>${o.start||'—'}</td>
+    <td style="font-size:12px;color:var(--gray-500)">${o.notes||''}</td>
+    <td><div style="display:flex;gap:4px">
+      <button class="btn btn-secondary btn-sm" onclick="openOverheadModal('${o.id}')"><i class="ti ti-edit"></i></button>
+      <button class="btn btn-danger btn-sm" onclick="deleteOverhead('${o.id}')"><i class="ti ti-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
+}
+function deleteOverhead(id){showConfirm('Delete Overhead','',(  )=>{DB.set('overhead',DB.get('overhead').filter(x=>x.id!==id));renderOverhead();toast('Deleted');})}
+function renderAccounting(){
+  const txs=DB.get('transactions');
+  const oh=DB.get('overhead');
+  const donations=DB.get('donations');
+  const now=new Date();
+  const thisMonth=now.toISOString().substr(0,7);
+  const income=txs.filter(t=>t.type==='Income').reduce((s,t)=>s+t.amount,0);
+  const expenses=txs.filter(t=>t.type==='Expense').reduce((s,t)=>s+t.amount,0);
+  const totalDon=donations.reduce((s,d)=>s+d.amount,0);
+  const monthlyOH=oh.reduce((s,o)=>s+o.amount,0);
+  const pnl=income-expenses;
+  const statsEl=document.getElementById('acc-stats');
+  if(statsEl) statsEl.innerHTML=`
+    <div class="stat-card green"><div class="stat-label">Total Income</div><div class="stat-val">RM ${income.toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0})}</div><div class="stat-sub">All time</div></div>
+    <div class="stat-card red"><div class="stat-label">Total Expenses</div><div class="stat-val">RM ${expenses.toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0})}</div><div class="stat-sub">All time</div></div>
+    <div class="stat-card ${pnl>=0?'green':'red'}"><div class="stat-label">Net P&L</div><div class="stat-val">RM ${pnl.toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0})}</div><div class="stat-sub">All time</div></div>
+    <div class="stat-card amber"><div class="stat-label">Monthly Overhead</div><div class="stat-val">RM ${monthlyOH.toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0})}</div><div class="stat-sub">Recurring</div></div>
+    <div class="stat-card blue"><div class="stat-label">Total Donations</div><div class="stat-val">RM ${totalDon.toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0})}</div><div class="stat-sub">All records</div></div>`;
+  // Build monthly chart data from txs
+  const months=[];
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(d.toISOString().substr(0,7));}
+  const incomeByMonth=months.map(m=>txs.filter(t=>t.type==='Income'&&t.date.startsWith(m)).reduce((s,t)=>s+t.amount,0));
+  const expByMonth=months.map(m=>txs.filter(t=>t.type==='Expense'&&t.date.startsWith(m)).reduce((s,t)=>s+t.amount,0)+oh.reduce((s,o)=>s+o.amount,0));
+  const labels=months.map(m=>{const d=new Date(m+'-01');return d.toLocaleDateString('en-MY',{month:'short',year:'2-digit'})});
+  const accChartEl=document.getElementById('acc-chart');
+  if(accChartEl){
+    if(accChart) accChart.destroy();
+    accChart=new Chart(accChartEl,{type:'bar',data:{labels,datasets:[{label:'Income',data:incomeByMonth,backgroundColor:'rgba(22,163,74,.7)',borderRadius:4},{label:'Expenses',data:expByMonth,backgroundColor:'rgba(220,38,38,.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'RM'+v.toLocaleString()}}}}});
+  }
+  // Pie chart by expense category
+  const cats=['Variable Cost','Overhead','Ministry','Other'];
+  const catTotals=cats.map(c=>txs.filter(t=>t.type==='Expense'&&t.cat===c).reduce((s,t)=>s+t.amount,0));
+  catTotals[1]+=monthlyOH;
+  const pieEl=document.getElementById('acc-pie');
+  if(pieEl){
+    if(accPie) accPie.destroy();
+    accPie=new Chart(pieEl,{type:'doughnut',data:{labels:cats,datasets:[{data:catTotals,backgroundColor:['#f59e0b','#3b82f6','#8b5cf6','#6b7280'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+  }
+}
+function exportAccountingPDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  const txs=DB.get('transactions');const oh=DB.get('overhead');const donations=DB.get('donations');
+  doc.setFontSize(16);doc.text('Church Financial Report',14,20);
+  doc.setFontSize(10);doc.text('Generated: '+new Date().toLocaleDateString('en-MY'),14,28);
+  const income=txs.filter(t=>t.type==='Income').reduce((s,t)=>s+t.amount,0);
+  const expenses=txs.filter(t=>t.type==='Expense').reduce((s,t)=>s+t.amount,0);
+  doc.setFontSize(12);doc.text('Summary',14,38);
+  doc.autoTable({startY:42,head:[['Item','Amount (RM)']],body:[['Total Income',income.toFixed(2)],['Total Expenses',expenses.toFixed(2)],['Net P&L',(income-expenses).toFixed(2)]],styles:{fontSize:9},headStyles:{fillColor:[30,58,95]},columnStyles:{1:{halign:'right'}}});
+  let y=doc.lastAutoTable.finalY+10;
+  doc.setFontSize(12);doc.text('Transactions',14,y);
+  doc.autoTable({startY:y+4,head:[['Date','Description','Type','Category','Amount (RM)']],body:txs.map(t=>[t.date,t.desc,t.type,t.cat,t.amount.toFixed(2)]),styles:{fontSize:8},headStyles:{fillColor:[30,58,95]}});
+  doc.save('church-financial-report.pdf');toast('PDF downloaded');
+}
+
+// ==================== MINISTRIES ====================
+function openMinistryModal(id=null){
+  ['name','leader','budget','desc'].forEach(f=>{const el=document.getElementById('min-'+f);if(el) el.value='';});
+  document.getElementById('min-id').value='';
+  document.getElementById('ministry-modal-title').textContent='Create Ministry';
+  if(id){
+    const m=DB.get('ministries').find(x=>x.id===id);if(!m) return;
+    document.getElementById('ministry-modal-title').textContent='Edit Ministry';
+    document.getElementById('min-id').value=m.id;
+    document.getElementById('min-name').value=m.name;
+    document.getElementById('min-leader').value=m.leader||'';
+    document.getElementById('min-budget').value=m.budget||0;
+    document.getElementById('min-desc').value=m.desc||'';
+  }
+  openModal('modal-ministry');
+}
+function saveMinistry(){
+  const name=document.getElementById('min-name').value.trim();
+  if(!name){toast('Ministry name required','error');return;}
+  const mins=DB.get('ministries');
+  const id=document.getElementById('min-id').value||DB.genId();
+  const obj={id,name,leader:document.getElementById('min-leader').value,budget:parseFloat(document.getElementById('min-budget').value)||0,desc:document.getElementById('min-desc').value};
+  const idx=mins.findIndex(x=>x.id===id);
+  if(idx>=0) mins[idx]=obj; else mins.push(obj);
+  DB.set('ministries',mins);closeModal('modal-ministry');renderMinistries();toast('Ministry saved');
+}
+function renderMinistries(){
+  const mins=DB.get('ministries');
+  const members=DB.get('members');
+  const donations=DB.get('donations');
+  const txs=DB.get('transactions');
+  const container=document.getElementById('ministries-list');
+  if(!container) return;
+  if(!mins.length){container.innerHTML=`<div class="card" style="grid-column:1/-1;text-align:center;padding:40px"><i class="ti ti-crown" style="font-size:36px;color:var(--gray-300)"></i><div style="color:var(--gray-400);margin-top:8px">No ministries yet. Create your first ministry.</div></div>`;return;}
+  const colors=['#2563eb','#7c3aed','#db2777','#d97706','#16a34a','#0891b2'];
+  container.innerHTML=mins.map((m,i)=>{
+    const mMembers=members.filter(mb=>mb.ministry===m.id);
+    const mDon=donations.filter(d=>d.ministry_id===m.id).reduce((s,d)=>s+d.amount,0);
+    const mExp=txs.filter(t=>t.type==='Expense'&&t.cat==='Ministry').reduce((s,t)=>s+t.amount,0);
+    const pnl=mDon-mExp;
+    const color=colors[i%colors.length];
+    return`<div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:40px;height:40px;border-radius:10px;background:${color}20;display:flex;align-items:center;justify-content:center"><i class="ti ti-crown" style="color:${color};font-size:20px"></i></div>
+        <div style="flex:1"><div style="font-weight:600;font-size:14px">${m.name}</div><div style="font-size:12px;color:var(--gray-400)">${m.leader||'No leader assigned'}</div></div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-secondary btn-sm" onclick="openMinistryModal('${m.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteMinistry('${m.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        <div style="text-align:center;background:var(--gray-50);border-radius:8px;padding:10px">
+          <div style="font-size:20px;font-weight:600;color:${color}">${mMembers.length}</div>
+          <div style="font-size:10px;color:var(--gray-400)">Members</div>
+        </div>
+        <div style="text-align:center;background:var(--gray-50);border-radius:8px;padding:10px">
+          <div style="font-size:14px;font-weight:600;color:var(--success)">RM ${mDon.toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--gray-400)">Donations</div>
+        </div>
+        <div style="text-align:center;background:var(--gray-50);border-radius:8px;padding:10px">
+          <div style="font-size:14px;font-weight:600;color:${pnl>=0?'var(--success)':'var(--danger)'}">RM ${pnl.toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--gray-400)">Net P&L</div>
+        </div>
+      </div>
+      ${m.desc?`<div style="font-size:12px;color:var(--gray-500);border-top:1px solid var(--gray-100);padding-top:10px">${m.desc}</div>`:''}
+      <div style="margin-top:10px">
+        <button class="btn btn-secondary btn-sm" onclick="exportMinistryPDF('${m.id}')"><i class="ti ti-file-download"></i>Download Report</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function deleteMinistry(id){showConfirm('Delete Ministry','',()=>{DB.set('ministries',DB.get('ministries').filter(x=>x.id!==id));renderMinistries();toast('Ministry deleted');})}
+function exportMinistryPDF(id){
+  const m=DB.get('ministries').find(x=>x.id===id);if(!m) return;
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  const members=DB.get('members').filter(mb=>mb.ministry===id);
+  const donations=DB.get('donations').filter(d=>d.ministry_id===id);
+  doc.setFontSize(16);doc.text(`Ministry Report: ${m.name}`,14,20);
+  doc.setFontSize(10);doc.text('Generated: '+new Date().toLocaleDateString('en-MY'),14,28);
+  doc.text(`Leader: ${m.leader||'—'}  |  Budget: RM ${(m.budget||0).toFixed(2)}`,14,35);
+  doc.autoTable({startY:40,head:[['#','Member Name','Chinese Name','Contact','Status']],body:members.map((mb,i)=>[i+1,mb.name_en,mb.name_zh||'',mb.phone||'',mb.status]),headStyles:{fillColor:[30,58,95]},styles:{fontSize:8}});
+  let y=doc.lastAutoTable.finalY+10;
+  doc.text('Donations',14,y);
+  doc.autoTable({startY:y+4,head:[['Date','Donor','Type','Amount (RM)']],body:donations.map(d=>[d.date,d.donor||'Anon',d.type,d.amount.toFixed(2)]),headStyles:{fillColor:[30,58,95]},styles:{fontSize:8}});
+  doc.save(`ministry-${m.name.replace(/\s+/g,'-')}.pdf`);toast('Report downloaded');
+}
+
+// ==================== DONATIONS ====================
+function openDonationModal(id=null){
+  ['date','type','donor','amount','ministry','method','notes'].forEach(f=>{const el=document.getElementById('don-'+f);if(el) el.value='';});
+  document.getElementById('don-id').value='';
+  document.getElementById('don-date').value=new Date().toISOString().split('T')[0];
+  populateDonationDropdown();
+  if(id){
+    const d=DB.get('donations').find(x=>x.id===id);if(!d) return;
+    document.getElementById('don-id').value=d.id;
+    document.getElementById('don-date').value=d.date;
+    document.getElementById('don-type').value=d.type;
+    document.getElementById('don-donor').value=d.donor||'';
+    document.getElementById('don-amount').value=d.amount;
+    document.getElementById('don-ministry').value=d.ministry_id||'';
+    document.getElementById('don-method').value=d.method||'Cash';
+    document.getElementById('don-notes').value=d.notes||'';
+  }
+  openModal('modal-donation');
+}
+function populateDonationDropdown(){
+  const ms=DB.get('ministries');
+  const sel=document.getElementById('don-ministry');
+  if(!sel) return;
+  sel.innerHTML='<option value="">General Fund</option>';
+  ms.forEach(m=>sel.insertAdjacentHTML('beforeend',`<option value="${m.id}">${m.name}</option>`));
+}
+function saveDonation(){
+  const amount=parseFloat(document.getElementById('don-amount').value);
+  const date=document.getElementById('don-date').value;
+  if(!amount||!date){toast('Date and amount required','error');return;}
+  const dons=DB.get('donations');
+  const id=document.getElementById('don-id').value||DB.genId();
+  const obj={id,date,type:document.getElementById('don-type').value,donor:document.getElementById('don-donor').value||'Anonymous',amount,ministry_id:document.getElementById('don-ministry').value,method:document.getElementById('don-method').value,notes:document.getElementById('don-notes').value};
+  const idx=dons.findIndex(x=>x.id===id);
+  if(idx>=0) dons[idx]=obj; else dons.push(obj);
+  // Also add to transactions
+  const txs=DB.get('transactions');
+  const existingTx=txs.find(t=>t.donation_id===id);
+  const txObj={id:existingTx?existingTx.id:DB.genId(),donation_id:id,date,type:'Income',cat:'Donation',amount,desc:`${obj.type} - ${obj.donor}`};
+  if(existingTx){const i=txs.findIndex(t=>t.id===existingTx.id);txs[i]=txObj;}else txs.push(txObj);
+  DB.set('transactions',txs);
+  DB.set('donations',dons);closeModal('modal-donation');renderDonations();toast('Donation recorded');
+}
+function renderDonations(){
+  const dons=DB.get('donations').sort((a,b)=>b.date.localeCompare(a.date));
+  const typeF=document.getElementById('don-filter-type')?.value||'';
+  const monthF=document.getElementById('don-filter-month')?.value||'';
+  const filtered=dons.filter(d=>(!typeF||d.type===typeF)&&(!monthF||d.date.startsWith(monthF)));
+  const ministries=DB.get('ministries');
+  const tbody=document.getElementById('donations-tbody');if(!tbody) return;
+  const total=filtered.reduce((s,d)=>s+d.amount,0);
+  const thisMonth=new Date().toISOString().substr(0,7);
+  const monthTotal=dons.filter(d=>d.date.startsWith(thisMonth)).reduce((s,d)=>s+d.amount,0);
+  const statsEl=document.getElementById('donation-stats');
+  if(statsEl) statsEl.innerHTML=`
+    <div class="stat-card green"><div class="stat-label">Total (All Time)</div><div class="stat-val">RM ${dons.reduce((s,d)=>s+d.amount,0).toLocaleString('en-MY',{maximumFractionDigits:0})}</div></div>
+    <div class="stat-card blue"><div class="stat-label">This Month</div><div class="stat-val">RM ${monthTotal.toLocaleString('en-MY',{maximumFractionDigits:0})}</div></div>
+    <div class="stat-card amber"><div class="stat-label">Total Records</div><div class="stat-val">${dons.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Filtered Total</div><div class="stat-val">RM ${total.toLocaleString('en-MY',{maximumFractionDigits:0})}</div></div>`;
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--gray-400)">No donations recorded yet.</td></tr>`;return;}
+  tbody.innerHTML=filtered.map(d=>{
+    const min=ministries.find(m=>m.id===d.ministry_id);
+    const typeColor={Tithe:'badge-blue',Offering:'badge-green','Special Offering':'badge-amber','Building Fund':'badge-red','Ministry Fund':'badge-gray','Mission Fund':'badge-gray'};
+    return`<tr>
+      <td>${d.date}</td>
+      <td style="font-weight:500">${d.donor||'Anonymous'}</td>
+      <td><span class="badge ${typeColor[d.type]||'badge-gray'}">${d.type}</span></td>
+      <td>${min?min.name:'General Fund'}</td>
+      <td style="font-weight:600;color:var(--success)">RM ${d.amount.toFixed(2)}</td>
+      <td style="font-size:12px;color:var(--gray-500)">${d.notes||'—'}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-secondary btn-sm" onclick="openDonationModal('${d.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDonation('${d.id}')"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function deleteDonation(id){showConfirm('Delete Donation','',()=>{DB.set('donations',DB.get('donations').filter(x=>x.id!==id));DB.set('transactions',DB.get('transactions').filter(t=>t.donation_id!==id));renderDonations();toast('Deleted');})}
+function exportDonationsPDF(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  const dons=DB.get('donations');
+  doc.setFontSize(16);doc.text('Donation Report',14,20);
+  doc.setFontSize(10);doc.text('Generated: '+new Date().toLocaleDateString('en-MY'),14,28);
+  const total=dons.reduce((s,d)=>s+d.amount,0);
+  doc.text(`Total Donations: RM ${total.toFixed(2)}`,14,35);
+  doc.autoTable({startY:40,head:[['Date','Donor','Type','Amount (RM)','Notes']],body:dons.map(d=>[d.date,d.donor||'Anon',d.type,d.amount.toFixed(2),d.notes||'']),headStyles:{fillColor:[30,58,95]},styles:{fontSize:8}});
+  doc.save('church-donations.pdf');toast('PDF downloaded');
+}
+
+// ==================== SERVICES ====================
+function openServiceModal(id=null){
+  ['date','time','type','speaker','theme','est','actual','notes'].forEach(f=>{const el=document.getElementById('svc-'+f);if(el) el.value='';});
+  document.getElementById('svc-id').value='';
+  document.getElementById('service-modal-title').textContent='Add Service';
+  document.getElementById('svc-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('svc-time').value='09:00';
+  if(id){
+    const s=DB.get('services').find(x=>x.id===id);if(!s) return;
+    document.getElementById('service-modal-title').textContent='Edit Service';
+    document.getElementById('svc-id').value=s.id;
+    document.getElementById('svc-date').value=s.date;
+    document.getElementById('svc-time').value=s.time||'09:00';
+    document.getElementById('svc-type').value=s.type;
+    document.getElementById('svc-speaker').value=s.speaker||'';
+    document.getElementById('svc-theme').value=s.theme||'';
+    document.getElementById('svc-est').value=s.est||'';
+    document.getElementById('svc-actual').value=s.actual||'';
+    document.getElementById('svc-notes').value=s.notes||'';
+  }
+  openModal('modal-service');
+}
+function saveService(){
+  const date=document.getElementById('svc-date').value;
+  if(!date){toast('Date required','error');return;}
+  const svcs=DB.get('services');
+  const id=document.getElementById('svc-id').value||DB.genId();
+  const obj={id,date,time:document.getElementById('svc-time').value,type:document.getElementById('svc-type').value,speaker:document.getElementById('svc-speaker').value,theme:document.getElementById('svc-theme').value,est:parseInt(document.getElementById('svc-est').value)||0,actual:parseInt(document.getElementById('svc-actual').value)||0,notes:document.getElementById('svc-notes').value};
+  const idx=svcs.findIndex(x=>x.id===id);
+  if(idx>=0) svcs[idx]=obj; else svcs.push(obj);
+  DB.set('services',svcs);closeModal('modal-service');renderServices();toast('Service saved');
+}
+function renderServices(){
+  const svcs=DB.get('services').sort((a,b)=>b.date.localeCompare(a.date));
+  const tbody=document.getElementById('services-tbody');if(!tbody) return;
+  const totalAtt=svcs.reduce((s,v)=>s+(v.actual||0),0);
+  const avgAtt=svcs.length?Math.round(totalAtt/svcs.length):0;
+  const statsEl=document.getElementById('service-stats');
+  if(statsEl) statsEl.innerHTML=`
+    <div class="stat-card blue"><div class="stat-label">Total Services</div><div class="stat-val">${svcs.length}</div></div>
+    <div class="stat-card green"><div class="stat-label">Avg Attendance</div><div class="stat-val">${avgAtt}</div></div>
+    <div class="stat-card amber"><div class="stat-label">Total Attendance</div><div class="stat-val">${totalAtt.toLocaleString()}</div></div>`;
+  if(!svcs.length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--gray-400)">No services recorded yet.</td></tr>`;return;}
+  tbody.innerHTML=svcs.map(s=>{
+    const fill=s.actual&&s.est?Math.round((s.actual/s.est)*100):null;
+    return`<tr>
+      <td><div>${s.date}</div><div style="font-size:11px;color:var(--gray-400)">${s.time||''}</div></td>
+      <td><span class="badge badge-blue">${s.type}</span></td>
+      <td>${s.speaker||'—'}</td>
+      <td>${s.est||'—'}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-weight:600">${s.actual||0}</span>
+          ${fill!==null?`<div style="flex:1;background:var(--gray-200);border-radius:4px;height:6px;min-width:50px"><div style="width:${Math.min(fill,100)}%;background:var(--success);border-radius:4px;height:6px"></div></div><span style="font-size:11px;color:var(--gray-400)">${fill}%</span>`:''}
+        </div>
+      </td>
+      <td style="font-size:13px">${s.theme||'—'}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-secondary btn-sm" onclick="openServiceModal('${s.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteService('${s.id}')"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function deleteService(id){showConfirm('Delete Service','',()=>{DB.set('services',DB.get('services').filter(x=>x.id!==id));renderServices();toast('Deleted');})}
+function exportServicesPDF(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  const svcs=DB.get('services');
+  doc.setFontSize(16);doc.text('Service Attendance Report',14,20);
+  doc.setFontSize(10);doc.text('Generated: '+new Date().toLocaleDateString('en-MY'),14,28);
+  doc.autoTable({startY:34,head:[['Date','Time','Type','Speaker','Est.','Actual','Theme']],body:svcs.map(s=>[s.date,s.time||'',s.type,s.speaker||'',s.est||0,s.actual||0,s.theme||'']),headStyles:{fillColor:[30,58,95]},styles:{fontSize:8}});
+  doc.save('church-services.pdf');toast('PDF downloaded');
+}
+
+// ==================== CELL GROUPS ====================
+function openCellGroupModal(id=null){
+  ['name','leader','day','time','location','budget','desc'].forEach(f=>{const el=document.getElementById('cg-'+f);if(el) el.value='';});
+  document.getElementById('cg-id').value='';
+  document.getElementById('cg-modal-title').textContent='Create Cell Group';
+  document.getElementById('cg-time').value='19:30';
+  if(id){
+    const g=DB.get('cellgroups').find(x=>x.id===id);if(!g) return;
+    document.getElementById('cg-modal-title').textContent='Edit Cell Group';
+    document.getElementById('cg-id').value=g.id;
+    document.getElementById('cg-name').value=g.name;
+    document.getElementById('cg-leader').value=g.leader||'';
+    document.getElementById('cg-day').value=g.day||'Friday';
+    document.getElementById('cg-time').value=g.time||'19:30';
+    document.getElementById('cg-location').value=g.location||'';
+    document.getElementById('cg-budget').value=g.budget||0;
+    document.getElementById('cg-desc').value=g.desc||'';
+  }
+  openModal('modal-cellgroup');
+}
+function saveCellGroup(){
+  const name=document.getElementById('cg-name').value.trim();
+  const leader=document.getElementById('cg-leader').value.trim();
+  if(!name||!leader){toast('Name and leader required','error');return;}
+  const cgs=DB.get('cellgroups');
+  const id=document.getElementById('cg-id').value||DB.genId();
+  const obj={id,name,leader,day:document.getElementById('cg-day').value,time:document.getElementById('cg-time').value,location:document.getElementById('cg-location').value,budget:parseFloat(document.getElementById('cg-budget').value)||0,desc:document.getElementById('cg-desc').value};
+  const idx=cgs.findIndex(x=>x.id===id);
+  if(idx>=0) cgs[idx]=obj; else cgs.push(obj);
+  DB.set('cellgroups',cgs);closeModal('modal-cellgroup');renderCellGroups();toast('Cell Group saved');
+}
+function renderCellGroups(){
+  const cgs=DB.get('cellgroups');
+  const members=DB.get('members');
+  const txs=DB.get('transactions');
+  const container=document.getElementById('cellgroups-list');if(!container) return;
+  if(!cgs.length){container.innerHTML=`<div class="card" style="grid-column:1/-1;text-align:center;padding:40px"><i class="ti ti-sitemap" style="font-size:36px;color:var(--gray-300)"></i><div style="color:var(--gray-400);margin-top:8px">No cell groups yet. Create your first group.</div></div>`;return;}
+  const colors=['#2563eb','#16a34a','#7c3aed','#d97706','#db2777','#0891b2'];
+  container.innerHTML=cgs.map((g,i)=>{
+    const gMembers=members.filter(m=>m.cellgroup===g.id);
+    const color=colors[i%colors.length];
+    const dayAbbr={Monday:'Mon',Tuesday:'Tue',Wednesday:'Wed',Thursday:'Thu',Friday:'Fri',Saturday:'Sat',Sunday:'Sun'};
+    return`<div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:44px;height:44px;border-radius:12px;background:${color}20;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="font-size:13px;font-weight:700;color:${color}">${(g.name||'?')[0].toUpperCase()}</span>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">${g.name}</div>
+          <div style="font-size:12px;color:var(--gray-400)">Leader: ${g.leader}</div>
+        </div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-secondary btn-sm" onclick="openCellGroupModal('${g.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCellGroup('${g.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
+        <div style="background:var(--gray-50);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:${color}">${gMembers.length}</div>
+          <div style="font-size:10px;color:var(--gray-400)">Members</div>
+        </div>
+        <div style="background:var(--gray-50);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:13px;font-weight:600;color:var(--gray-700)">${dayAbbr[g.day]||g.day} ${g.time||''}</div>
+          <div style="font-size:10px;color:var(--gray-400)">Meeting</div>
+        </div>
+      </div>
+      ${g.location?`<div style="font-size:12px;color:var(--gray-500);margin-bottom:8px"><i class="ti ti-map-pin" style="font-size:12px"></i> ${g.location}</div>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--gray-100);padding-top:10px">
+        <div style="font-size:11px;color:var(--gray-400)">Budget: RM ${(g.budget||0).toFixed(0)}/mo</div>
+        <button class="btn btn-secondary btn-sm" onclick="exportCellGroupPDF('${g.id}')"><i class="ti ti-file-download"></i>Report</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function deleteCellGroup(id){showConfirm('Delete Cell Group','',()=>{DB.set('cellgroups',DB.get('cellgroups').filter(x=>x.id!==id));renderCellGroups();toast('Deleted');})}
+function exportCellGroupsPDF(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  const cgs=DB.get('cellgroups');const members=DB.get('members');
+  doc.setFontSize(16);doc.text('Cell Groups Summary',14,20);
+  doc.setFontSize(10);doc.text('Generated: '+new Date().toLocaleDateString('en-MY'),14,28);
+  doc.autoTable({startY:34,head:[['Group Name','Leader','Meeting','Location','Members','Budget/mo']],body:cgs.map(g=>[g.name,g.leader,`${g.day} ${g.time||''}`,g.location||'',members.filter(m=>m.cellgroup===g.id).length,`RM ${(g.budget||0).toFixed(0)}`]),headStyles:{fillColor:[30,58,95]},styles:{fontSize:9}});
+  doc.save('church-cellgroups.pdf');toast('PDF downloaded');
+}
+function exportCellGroupPDF(id){
+  const g=DB.get('cellgroups').find(x=>x.id===id);if(!g) return;
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  const members=DB.get('members').filter(m=>m.cellgroup===id);
+  doc.setFontSize(16);doc.text(`Cell Group: ${g.name}`,14,20);
+  doc.setFontSize(10);
+  doc.text(`Leader: ${g.leader}  |  Meeting: ${g.day} ${g.time}  |  Location: ${g.location||'TBC'}`,14,28);
+  doc.autoTable({startY:34,head:[['#','Member Name','Chinese Name','Phone','Status']],body:members.map((m,i)=>[i+1,m.name_en,m.name_zh||'',m.phone||'',m.status]),headStyles:{fillColor:[30,58,95]},styles:{fontSize:9}});
+  doc.save(`cellgroup-${g.name.replace(/\s+/g,'-')}.pdf`);toast('Report downloaded');
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard(){
+  const members=DB.get('members');
+  const events=DB.get('events');
+  const donations=DB.get('donations');
+  const ministries=DB.get('ministries');
+  const services=DB.get('services');
+  const cellgroups=DB.get('cellgroups');
+  const txs=DB.get('transactions');
+  const now=new Date();
+  const thisMonth=now.toISOString().substr(0,7);
+  const activeMembers=members.filter(m=>m.status==='Active').length;
+  const monthDon=donations.filter(d=>d.date.startsWith(thisMonth)).reduce((s,d)=>s+d.amount,0);
+  const monthIncome=txs.filter(t=>t.type==='Income'&&t.date.startsWith(thisMonth)).reduce((s,t)=>s+t.amount,0);
+  const monthExp=txs.filter(t=>t.type==='Expense'&&t.date.startsWith(thisMonth)).reduce((s,t)=>s+t.amount,0);
+  const statsEl=document.getElementById('dash-stats');
+  if(statsEl) statsEl.innerHTML=`
+    <div class="stat-card blue"><div class="stat-label">Active Members</div><div class="stat-val">${activeMembers}</div><div class="stat-sub">of ${members.length} total</div></div>
+    <div class="stat-card green"><div class="stat-label">This Month Donations</div><div class="stat-val">RM ${monthDon.toLocaleString('en-MY',{maximumFractionDigits:0})}</div><div class="stat-sub">${thisMonth}</div></div>
+    <div class="stat-card ${monthIncome-monthExp>=0?'green':'red'}"><div class="stat-label">Monthly P&L</div><div class="stat-val">RM ${(monthIncome-monthExp).toLocaleString('en-MY',{maximumFractionDigits:0})}</div><div class="stat-sub">Income vs Expenses</div></div>
+    <div class="stat-card amber"><div class="stat-label">Upcoming Events</div><div class="stat-val">${events.filter(e=>e.date>=now.toISOString().split('T')[0]).length}</div><div class="stat-sub">Scheduled ahead</div></div>
+    <div class="stat-card"><div class="stat-label">Ministries</div><div class="stat-val">${ministries.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Cell Groups</div><div class="stat-val">${cellgroups.length}</div></div>`;
+  // Chart
+  const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(d.toISOString().substr(0,7));}
+  const donByMonth=months.map(m=>donations.filter(d=>d.date.startsWith(m)).reduce((s,d)=>s+d.amount,0));
+  const expByMonth=months.map(m=>txs.filter(t=>t.type==='Expense'&&t.date.startsWith(m)).reduce((s,t)=>s+t.amount,0));
+  const labels=months.map(m=>{const d=new Date(m+'-01');return d.toLocaleDateString('en-MY',{month:'short'})});
+  const chartEl=document.getElementById('dash-chart');
+  if(chartEl){if(dashChart) dashChart.destroy();dashChart=new Chart(chartEl,{type:'line',data:{labels,datasets:[{label:'Donations',data:donByMonth,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.1)',tension:.4,fill:true},{label:'Expenses',data:expByMonth,borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.08)',tension:.4,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'RM'+v.toLocaleString()}}}}});}
+  // Upcoming events
+  const upcoming=events.filter(e=>e.date>=now.toISOString().split('T')[0]).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  const evEl=document.getElementById('dash-events-list');
+  if(evEl) evEl.innerHTML=upcoming.length?upcoming.map(e=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+    <div style="width:36px;height:36px;border-radius:8px;background:var(--warning-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-calendar" style="color:var(--warning)"></i></div>
+    <div style="flex:1"><div style="font-weight:500;font-size:13px">${e.name}</div><div style="font-size:11px;color:var(--gray-400)">${e.date} · ${e.type}</div></div>
+  </div>`).join(''):`<div style="text-align:center;padding:20px;color:var(--gray-400);font-size:13px">No upcoming events</div>`;
+  // Recent donations
+  const recentDon=donations.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  const donEl=document.getElementById('dash-donations-list');
+  if(donEl) donEl.innerHTML=recentDon.length?recentDon.map(d=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--gray-100)">
+    <div><div style="font-size:13px;font-weight:500">${d.donor||'Anonymous'}</div><div style="font-size:11px;color:var(--gray-400)">${d.date} · ${d.type}</div></div>
+    <div style="font-weight:600;color:var(--success);font-size:13px">RM ${d.amount.toFixed(0)}</div>
+  </div>`).join(''):`<div style="text-align:center;padding:20px;color:var(--gray-400);font-size:13px">No donations yet</div>`;
+  // Ministry summary
+  const minEl=document.getElementById('dash-ministry-list');
+  if(minEl) minEl.innerHTML=ministries.length?ministries.map(m=>{
+    const cnt=members.filter(mb=>mb.ministry===m.id).length;
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--gray-100)">
+      <div style="font-size:13px;font-weight:500">${m.name}</div>
+      <div style="font-size:12px;color:var(--gray-400)">${cnt} members</div>
+    </div>`;
+  }).join(''):`<div style="text-align:center;padding:20px;color:var(--gray-400);font-size:13px">No ministries yet</div>`;
+}
+
+// ==================== INIT ====================
+document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('en-MY',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+renderDashboard();
+</script>
+</body>
+</html>
