@@ -876,17 +876,7 @@ async function renderDash() {
         <div style="font-size:14px;font-weight:700">Recent Members</div>
         <button class="btn btn-p sm" onclick="go('members')"><i class="ti ti-users"></i>View All</button>
       </div>
-      ${recent5.length ? `<div class="tw"><table class="dt">
-        <thead><tr><th>Name</th><th>Phone</th><th>Status</th><th>Faith</th><th>Joined</th></tr></thead>
-        <tbody>${recent5.map(m=>`<tr>
-          <td><div style="font-weight:600">${esc(m.name_en)}</div>${m.name_zh?`<div style="font-size:11px;color:var(--g400)">${esc(m.name_zh)}</div>`:''}
-          </td>
-          <td>${esc(m.phone||'—')}</td>
-          <td><span class="bx ${m.membership_status==='Active'?'bg2':m.membership_status==='Newcomer'?'ba':'bgr'}">${esc(m.membership_status||'Active')}</span></td>
-          <td><span class="bx bb">${esc(m.faith_status||'Believer')}</span></td>
-          <td style="font-size:11px">${esc(m.year_joined||'—')}</td>
-        </tr>`).join('')}</tbody>
-      </table></div>` : '<div class="es"><i class="ti ti-users"></i><p>No members yet. <a href="#" onclick="go('members')" style="color:var(--primary)">Add your first member</a></p></div>'}
+      ${recent5.length ? buildDashMemberTable(recent5) : '<div class="es"><i class="ti ti-users"></i><p>No members yet.</p></div>'}
     </div>`;
 }
 
@@ -918,23 +908,37 @@ async function renderMembers() {
     ${memberModal()}`;
 }
 
+function getMemberStatusClass(s) {
+  if(s==='Active') return 'bg2';
+  if(s==='Newcomer') return 'ba';
+  if(s==='Transfer') return 'bt';
+  return 'bgr';
+}
+
+function buildMemberRow(m) {
+  var photo = m.photo_url 
+    ? '<img src="'+m.photo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+    : '<i class="ti ti-user"></i>';
+  var zh = m.name_zh 
+    ? '<div style="font-size:11px;color:var(--g400)">'+esc(m.name_zh)+'</div>' 
+    : '';
+  return '<tr>'+
+    '<td><div class="photo-prev" style="width:36px;height:36px;font-size:14px;cursor:default">'+photo+'</div></td>'+
+    '<td><div style="font-weight:600">'+esc(m.name_en)+'</div>'+zh+'</td>'+
+    '<td style="font-size:12px">'+esc(m.phone||'—')+'</td>'+
+    '<td><span class="bx '+getMemberStatusClass(m.membership_status)+'">'+esc(m.membership_status||'Active')+'</span></td>'+
+    '<td><span class="bx bb">'+esc(m.faith_status||'Believer')+'</span></td>'+
+    '<td style="font-size:12px">'+esc(m.cell_group_id||'—')+'</td>'+
+    '<td><div style="display:flex;gap:4px">'+
+      '<button class="btn btn-s btn xs" onclick="editMember(''+m.id+'')"><i class="ti ti-edit"></i></button>'+
+      '<button class="btn btn-x btn xs" onclick="deleteMember(''+m.id+'')"><i class="ti ti-trash"></i></button>'+
+    '</div></td>'+
+    '</tr>';
+}
+
 function renderMemberRows(members) {
-  if(!members.length) return `<tr><td colspan="7"><div class="es"><i class="ti ti-users"></i><p>No members found.</p></div></td></tr>`;
-  return members.map(m => `<tr>
-    <td><div class="photo-prev" style="width:36px;height:36px;font-size:14px;cursor:default">
-      ${m.photo_url ? `<img src="${m.photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : `<i class="ti ti-user"></i>`}
-    </div></td>
-    <td><div style="font-weight:600">${esc(m.name_en)}</div>${m.name_zh?`<div style="font-size:11px;color:var(--g400)">${esc(m.name_zh)}</div>`:''}
-    </td>
-    <td style="font-size:12px">${esc(m.phone||'—')}</td>
-    <td><span class="bx ${m.membership_status==='Active'?'bg2':m.membership_status==='Newcomer'?'ba':m.membership_status==='Transfer'?'bt':'bgr'}">${esc(m.membership_status||'Active')}</span></td>
-    <td><span class="bx bb">${esc(m.faith_status||'Believer')}</span></td>
-    <td style="font-size:12px">${esc(m.cell_group_id||'—')}</td>
-    <td><div style="display:flex;gap:4px">
-      <button class="btn btn-s btn xs" onclick="editMember('${m.id}')"><i class="ti ti-edit"></i></button>
-      <button class="btn btn-x btn xs" onclick="deleteMember('${m.id}')"><i class="ti ti-trash"></i></button>
-    </div></td>
-  </tr>`).join('');
+  if(!members.length) return '<tr><td colspan="7"><div class="es"><i class="ti ti-users"></i><p>No members found.</p></div></td></tr>';
+  return members.map(buildMemberRow).join('');
 }
 
 function filterMembers() {
@@ -1084,6 +1088,21 @@ async function deleteMember(id) {
 // OFFERINGS / DONATIONS
 // ═══════════════════════════════════════════════════════════════
 let _donations = [];
+function buildDonationRows(donations) {
+  if(!donations.length) return '<tr><td colspan="7"><div class="es"><i class="ti ti-heart"></i><p>No offerings recorded yet.</p></div></td></tr>';
+  return donations.map(function(d) {
+    return '<tr>'+
+      '<td style="font-size:12px">'+fmtDate(d.donation_date)+'</td>'+
+      '<td><span class="bx bb">'+esc(d.type)+'</span></td>'+
+      '<td style="font-size:12px">'+esc(d.donor_name||'Anonymous')+'</td>'+
+      '<td style="font-weight:700;color:var(--success)">'+fmt(d.amount)+'</td>'+
+      '<td style="font-size:11px">'+esc(d.payment_method||'—')+'</td>'+
+      '<td style="font-size:11px;color:var(--g400)">'+esc(d.notes||'')+'</td>'+
+      '<td><button class="btn btn-x btn xs ico" onclick="deleteDonation(''+d.id+'')"><i class="ti ti-trash"></i></button></td>'+
+      '</tr>';
+  }).join('');
+}
+
 async function renderDonations() {
   const page = document.getElementById('page-donations');
   _donations = await Cloud.get('donations');
@@ -1180,6 +1199,22 @@ async function deleteDonation(id) {
 // ACCOUNTING
 // ═══════════════════════════════════════════════════════════════
 let _transactions = [];
+function buildTransactionRows(transactions) {
+  if(!transactions.length) return '<tr><td colspan="6"><div class="es"><i class="ti ti-report-money"></i><p>No transactions yet.</p></div></td></tr>';
+  return transactions.map(function(t) {
+    var amtColor = t.type==='Income' ? 'var(--success)' : 'var(--danger)';
+    var stClass = t.type==='Income' ? 'bg2' : 'br';
+    return '<tr>'+
+      '<td style="font-size:12px">'+fmtDate(t.transaction_date)+'</td>'+
+      '<td><span class="bx '+stClass+'">'+t.type+'</span></td>'+
+      '<td style="font-size:12px">'+esc(t.category||'—')+'</td>'+
+      '<td style="font-size:12px">'+esc(t.description)+'</td>'+
+      '<td style="font-weight:700;color:'+amtColor+'">'+fmt(t.amount)+'</td>'+
+      '<td><button class="btn btn-x btn xs ico" onclick="deleteTx(''+t.id+'')"><i class="ti ti-trash"></i></button></td>'+
+      '</tr>';
+  }).join('');
+}
+
 async function renderAccounting() {
   const page = document.getElementById('page-accounting');
   _transactions = await Cloud.get('transactions');
