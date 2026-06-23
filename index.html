@@ -859,7 +859,7 @@ async function renderDash() {
 
   page.innerHTML =
     '<div class="ph"><div><div class="pt">Dashboard</div>' +
-    '<div class="ps">Welcome back, ' + (SESSION?.admin?.fullName||SESSION?.admin?.username) + '. Here's your church at a glance.</div></div>' +
+    '<div class="ps">Welcome back, ' + (SESSION?.admin?.fullName||SESSION?.admin?.username) + '. Here is your church at a glance.</div></div>' +
     '<div style="font-size:12px;color:var(--g400)">' + new Date().toLocaleDateString('en-MY',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) + '</div></div>' +
     '<div class="sg">' +
     '<div class="sc blue"><div class="sc-ico"><i class="ti ti-users"></i></div><div class="sl">Total Members</div><div class="sv">' + memberCount + '</div><div class="ss">Registered members</div></div>' +
