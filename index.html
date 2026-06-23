@@ -930,8 +930,8 @@ function buildMemberRow(m) {
     '<td><span class="bx bb">'+esc(m.faith_status||'Believer')+'</span></td>'+
     '<td style="font-size:12px">'+esc(m.cell_group_id||'—')+'</td>'+
     '<td><div style="display:flex;gap:4px">'+
-      '<button class="btn btn-s btn xs" onclick="editMember(''+m.id+'')"><i class="ti ti-edit"></i></button>'+
-      '<button class="btn btn-x btn xs" onclick="deleteMember(''+m.id+'')"><i class="ti ti-trash"></i></button>'+
+      '<button class="btn btn-s btn xs" data-mid="'+m.id+'" onclick="editMember(this.dataset.mid)"><i class="ti ti-edit"></i></button>'+
+      '<button class="btn btn-x btn xs" data-mid="'+m.id+'" onclick="deleteMember(this.dataset.mid)"><i class="ti ti-trash"></i></button>'+
     '</div></td>'+
     '</tr>';
 }
@@ -1098,7 +1098,7 @@ function buildDonationRows(donations) {
       '<td style="font-weight:700;color:var(--success)">'+fmt(d.amount)+'</td>'+
       '<td style="font-size:11px">'+esc(d.payment_method||'—')+'</td>'+
       '<td style="font-size:11px;color:var(--g400)">'+esc(d.notes||'')+'</td>'+
-      '<td><button class="btn btn-x btn xs ico" onclick="deleteDonation(''+d.id+'')"><i class="ti ti-trash"></i></button></td>'+
+      '<td><button class="btn btn-x btn xs ico" data-did="'+d.id+'" onclick="deleteDonation(this.dataset.did)"><i class="ti ti-trash"></i></button></td>'+
       '</tr>';
   }).join('');
 }
@@ -1210,7 +1210,7 @@ function buildTransactionRows(transactions) {
       '<td style="font-size:12px">'+esc(t.category||'—')+'</td>'+
       '<td style="font-size:12px">'+esc(t.description)+'</td>'+
       '<td style="font-weight:700;color:'+amtColor+'">'+fmt(t.amount)+'</td>'+
-      '<td><button class="btn btn-x btn xs ico" onclick="deleteTx(''+t.id+'')"><i class="ti ti-trash"></i></button></td>'+
+      '<td><button class="btn btn-x btn xs ico" data-tid="'+t.id+'" onclick="deleteTx(this.dataset.tid)"><i class="ti ti-trash"></i></button></td>'+
       '</tr>';
   }).join('');
 }
