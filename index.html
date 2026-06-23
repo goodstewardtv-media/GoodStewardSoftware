@@ -1168,15 +1168,7 @@ async function renderDonations() {
     <div class="card">
       <div class="tw"><table class="dt">
         <thead><tr><th>Date</th><th>Type</th><th>Donor</th><th>Amount</th><th>Method</th><th>Notes</th><th>Actions</th></tr></thead>
-        <tbody>${_donations.length ? _donations.map(d=>`<tr>
-          <td style="font-size:12px">${fmtDate(d.donation_date)}</td>
-          <td><span class="bx bb">${esc(d.type)}</span></td>
-          <td style="font-size:12px">${esc(d.donor_name||'Anonymous')}</td>
-          <td style="font-weight:700;color:var(--success)">${fmt(d.amount)}</td>
-          <td style="font-size:11px">${esc(d.payment_method||'—')}</td>
-          <td style="font-size:11px;color:var(--g400)">${esc(d.notes||'')}</td>
-          <td><button class="btn btn-x btn xs ico" onclick="deleteDonation('${d.id}')"><i class="ti ti-trash"></i></button></td>
-        </tr>`).join('') : '<tr><td colspan="7"><div class="es"><i class="ti ti-heart"></i><p>No offerings recorded yet.</p></div></td></tr>'}</tbody>
+        <tbody id="donations-tbody"></tbody>
       </table></div>
     </div>
     <div class="mo" id="mo-donation">
@@ -1203,6 +1195,7 @@ async function renderDonations() {
         </div>
       </div>
     </div>`;
+  if(document.getElementById('donations-tbody')) document.getElementById('donations-tbody').innerHTML = buildDonationRows(_donations);
 }
 
 function openAddDonation() {
@@ -1280,14 +1273,7 @@ async function renderAccounting() {
     <div class="card">
       <div class="tw"><table class="dt">
         <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th><th>Actions</th></tr></thead>
-        <tbody>${_transactions.length ? _transactions.map(t=>`<tr>
-          <td style="font-size:12px">${fmtDate(t.transaction_date)}</td>
-          <td><span class="bx ${t.type==='Income'?'bg2':'br'}">${t.type}</span></td>
-          <td style="font-size:12px">${esc(t.category||'—')}</td>
-          <td style="font-size:12px">${esc(t.description)}</td>
-          <td style="font-weight:700;color:${t.type==='Income'?'var(--success)':'var(--danger)'}">${fmt(t.amount)}</td>
-          <td><button class="btn btn-x btn xs ico" onclick="deleteTx('${t.id}')"><i class="ti ti-trash"></i></button></td>
-        </tr>`).join('') : '<tr><td colspan="6"><div class="es"><i class="ti ti-report-money"></i><p>No transactions yet.</p></div></td></tr>'}</tbody>
+        <tbody id="transactions-tbody"></tbody>
       </table></div>
     </div>
     <div class="mo" id="mo-tx">
@@ -1311,6 +1297,7 @@ async function renderAccounting() {
         </div>
       </div>
     </div>`;
+  if(document.getElementById('transactions-tbody')) document.getElementById('transactions-tbody').innerHTML = buildTransactionRows(_transactions);
 }
 function openAddTx() {
   sv('tx-date',new Date().toISOString().split('T')[0]);
