@@ -859,7 +859,7 @@ async function renderDash() {
 
   page.innerHTML =
     '<div class="ph"><div><div class="pt">Dashboard</div>' +
-    '<div class="ps">Welcome back, ' + (SESSION?.admin?.fullName||SESSION?.admin?.username) + '. Here's your church at a glance.</div></div>' +
+    '<div class="ps">Welcome back, ' + (SESSION?.admin?.fullName||SESSION?.admin?.username) + '. Here is your church at a glance.</div></div>' +
     '<div style="font-size:12px;color:var(--g400)">' + new Date().toLocaleDateString('en-MY',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) + '</div></div>' +
     '<div class="sg">' +
     '<div class="sc blue"><div class="sc-ico"><i class="ti ti-users"></i></div><div class="sl">Total Members</div><div class="sv">' + memberCount + '</div><div class="ss">Registered members</div></div>' +
@@ -871,7 +871,7 @@ async function renderDash() {
     '</div>' +
     '<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">' +
     '<div style="font-size:14px;font-weight:700">Recent Members</div>' +
-    '<button class="btn btn-p sm" onclick="go('members')"><i class="ti ti-users"></i>View All</button></div>' +
+    '<button class="btn btn-p sm" onclick="go(\'members\')"><i class="ti ti-users"></i>View All</button></div>' +
     (recent5.length ? buildDashMemberTable(recent5) : '<div class="es"><i class="ti ti-users"></i><p>No members yet.</p></div>') +
     '</div>';
 }
@@ -1403,7 +1403,7 @@ function buildStaffRows(staff) {
 function staffModal() {
   return '<div class="mo" id="mo-staff"><div class="modal lg">' +
     '<div class="mh"><span class="mt" id="mo-staff-title"><i class="ti ti-id-badge-2"></i>Add Staff</span>' +
-    '<button class="cx" onclick="closeMo('mo-staff')"><i class="ti ti-x"></i></button></div>' +
+    '<button class="cx" onclick="closeMo(\'mo-staff\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
     '<div class="frow"><label>English Name *</label><input type="text" id="sf-name-en" placeholder="Full name"></div>' +
     '<div class="frow"><label>Chinese Name</label><input type="text" id="sf-name-zh"></div>' +
@@ -1423,7 +1423,7 @@ function staffModal() {
     '<div class="frow full"><label>Address</label><textarea id="sf-addr" rows="2"></textarea></div>' +
     '<div class="frow full"><label>Notes</label><textarea id="sf-notes" rows="2"></textarea></div>' +
     '</div><input type="hidden" id="sf-id"></div>' +
-    '<div class="mf"><button class="btn btn-s" onclick="closeMo('mo-staff')">Cancel</button>' +
+    '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-staff\')">Cancel</button>' +
     '<button class="btn btn-p" onclick="saveStaff()"><i class="ti ti-check"></i>Save</button></div>' +
     '</div></div>';
 }
@@ -1506,7 +1506,7 @@ function buildCGRows(groups) {
 function cgModal() {
   return '<div class="mo" id="mo-cg"><div class="modal"><div class="mh">' +
     '<span class="mt" id="mo-cg-title"><i class="ti ti-sitemap"></i>Add Cell Group</span>' +
-    '<button class="cx" onclick="closeMo('mo-cg')"><i class="ti ti-x"></i></button></div>' +
+    '<button class="cx" onclick="closeMo(\'mo-cg\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
     '<div class="frow"><label>Group Name *</label><input type="text" id="cg-name" placeholder="e.g. Love Cell Group"></div>' +
     '<div class="frow"><label>Leader</label><input type="text" id="cg-leader"></div>' +
@@ -1518,7 +1518,7 @@ function cgModal() {
     '<div class="frow"><label>Weekly Offering Target (RM)</label><input type="number" id="cg-target" step="0.01" placeholder="0.00"></div>' +
     '<div class="frow full"><label>Description</label><textarea id="cg-desc" rows="2"></textarea></div>' +
     '</div><input type="hidden" id="cg-id"></div>' +
-    '<div class="mf"><button class="btn btn-s" onclick="closeMo('mo-cg')">Cancel</button>' +
+    '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-cg\')">Cancel</button>' +
     '<button class="btn btn-p" onclick="saveCG()"><i class="ti ti-check"></i>Save</button></div>' +
     '</div></div>';
 }
@@ -1588,7 +1588,7 @@ function buildFLRows(fls) {
 function flModal() {
   return '<div class="mo" id="mo-fl"><div class="modal"><div class="mh">' +
     '<span class="mt" id="mo-fl-title"><i class="ti ti-friends"></i>Add Fellowship</span>' +
-    '<button class="cx" onclick="closeMo('mo-fl')"><i class="ti ti-x"></i></button></div>' +
+    '<button class="cx" onclick="closeMo(\'mo-fl\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
     '<div class="frow"><label>Fellowship Name *</label><input type="text" id="fl-name" placeholder="e.g. Youth Fellowship"></div>' +
     '<div class="frow"><label>Chinese Name</label><input type="text" id="fl-name-zh"></div>' +
@@ -1598,7 +1598,7 @@ function flModal() {
     '<div class="frow"><label>Location</label><input type="text" id="fl-loc"></div>' +
     '<div class="frow full"><label>Description</label><textarea id="fl-desc" rows="2"></textarea></div>' +
     '</div><input type="hidden" id="fl-id"></div>' +
-    '<div class="mf"><button class="btn btn-s" onclick="closeMo('mo-fl')">Cancel</button>' +
+    '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-fl\')">Cancel</button>' +
     '<button class="btn btn-p" onclick="saveFL()"><i class="ti ti-check"></i>Save</button></div>' +
     '</div></div>';
 }
@@ -1665,7 +1665,7 @@ function buildMinRows(mins) {
 function minModal() {
   return '<div class="mo" id="mo-min"><div class="modal sm"><div class="mh">' +
     '<span class="mt" id="mo-min-title"><i class="ti ti-crown"></i>Add Ministry</span>' +
-    '<button class="cx" onclick="closeMo('mo-min')"><i class="ti ti-x"></i></button></div>' +
+    '<button class="cx" onclick="closeMo(\'mo-min\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
     '<div class="frow"><label>Ministry Name *</label><input type="text" id="mn-name" placeholder="e.g. Worship Ministry"></div>' +
     '<div class="frow"><label>Chinese Name</label><input type="text" id="mn-name-zh"></div>' +
@@ -1673,7 +1673,7 @@ function minModal() {
     '<div class="frow"><label>Monthly Budget (RM)</label><input type="number" id="mn-budget" step="0.01" placeholder="0.00"></div>' +
     '<div class="frow full"><label>Description</label><textarea id="mn-desc" rows="3"></textarea></div>' +
     '</div><input type="hidden" id="mn-id"></div>' +
-    '<div class="mf"><button class="btn btn-s" onclick="closeMo('mo-min')">Cancel</button>' +
+    '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-min\')">Cancel</button>' +
     '<button class="btn btn-p" onclick="saveMin()"><i class="ti ti-check"></i>Save</button></div>' +
     '</div></div>';
 }
@@ -1742,7 +1742,7 @@ function buildSvcRows(svcs) {
 function svcModal() {
   return '<div class="mo" id="mo-svc"><div class="modal lg"><div class="mh">' +
     '<span class="mt" id="mo-svc-title"><i class="ti ti-microphone"></i>Add Service</span>' +
-    '<button class="cx" onclick="closeMo('mo-svc')"><i class="ti ti-x"></i></button></div>' +
+    '<button class="cx" onclick="closeMo(\'mo-svc\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
     '<div class="frow"><label>Service Date *</label><input type="date" id="sv-date" value="'+new Date().toISOString().split("T")[0]+'"></div>' +
     '<div class="frow"><label>Service Time</label><input type="time" id="sv-time"></div>' +
@@ -1757,7 +1757,7 @@ function svcModal() {
     '<div class="frow full"><label>Order of Service</label><textarea id="sv-order" rows="3" placeholder="Opening, Worship, Prayer, Sermon, Closing..."></textarea></div>' +
     '<div class="frow full"><label>Notes</label><textarea id="sv-notes" rows="2"></textarea></div>' +
     '</div><input type="hidden" id="sv-id"></div>' +
-    '<div class="mf"><button class="btn btn-s" onclick="closeMo('mo-svc')">Cancel</button>' +
+    '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-svc\')">Cancel</button>' +
     '<button class="btn btn-p" onclick="saveSvc()"><i class="ti ti-check"></i>Save</button></div>' +
     '</div></div>';
 }
@@ -1841,7 +1841,7 @@ function buildEventRows(evts) {
 function eventModal() {
   return '<div class="mo" id="mo-ev"><div class="modal lg"><div class="mh">' +
     '<span class="mt" id="mo-ev-title"><i class="ti ti-calendar-event"></i>Add Event</span>' +
-    '<button class="cx" onclick="closeMo('mo-ev')"><i class="ti ti-x"></i></button></div>' +
+    '<button class="cx" onclick="closeMo(\'mo-ev\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
     '<div class="frow full"><label>Event Name *</label><input type="text" id="ev-name" placeholder="e.g. Christmas Celebration 2025"></div>' +
     '<div class="frow"><label>Event Date *</label><input type="date" id="ev-date"></div>' +
@@ -1861,7 +1861,7 @@ function eventModal() {
     '<div class="frow"><label>Attended</label><input type="number" id="ev-att" placeholder="0"></div>' +
     '<div class="frow full"><label>Description</label><textarea id="ev-desc" rows="2"></textarea></div>' +
     '</div><input type="hidden" id="ev-id"></div>' +
-    '<div class="mf"><button class="btn btn-s" onclick="closeMo('mo-ev')">Cancel</button>' +
+    '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-ev\')">Cancel</button>' +
     '<button class="btn btn-p" onclick="saveEvent()"><i class="ti ti-check"></i>Save</button></div>' +
     '</div></div>';
 }
@@ -1940,14 +1940,14 @@ async function renderNotices() {
 function noteModal() {
   return '<div class="mo" id="mo-note"><div class="modal sm"><div class="mh">' +
     '<span class="mt"><i class="ti ti-speakerphone"></i>Add Admin Note</span>' +
-    '<button class="cx" onclick="closeMo('mo-note')"><i class="ti ti-x"></i></button></div>' +
+    '<button class="cx" onclick="closeMo(\'mo-note\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb">' +
     '<div class="frow"><label>Title *</label><input type="text" id="nt-title" placeholder="Note title"></div>' +
     '<div class="frow"><label>Priority</label><select id="nt-priority"><option value="info">Info (Blue)</option><option value="warning">Warning (Yellow)</option><option value="urgent">Urgent (Red)</option></select></div>' +
     '<div class="frow"><label>Message *</label><textarea id="nt-msg" rows="4" placeholder="Write your note here..."></textarea></div>' +
     '<div class="frow"><label>Created By</label><input type="text" id="nt-by" placeholder="Your name"></div>' +
     '</div>' +
-    '<div class="mf"><button class="btn btn-s" onclick="closeMo('mo-note')">Cancel</button>' +
+    '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-note\')">Cancel</button>' +
     '<button class="btn btn-p" onclick="saveNote()"><i class="ti ti-check"></i>Save</button></div>' +
     '</div></div>';
 }
@@ -2098,7 +2098,7 @@ function botAnswer(question){
   setTimeout(function(){
     var c2=document.getElementById('bot-quick');
     c2.innerHTML='<button onclick="renderQuickBtns()" style="background:#f0f4ff;border:1px solid #dbeafe;color:#1d4ed8;border-radius:12px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit">More topics</button>'+
-      '<button onclick="askBot('Contact support')" style="background:#fee2e2;border:1px solid #fecaca;color:#b91c1c;border-radius:12px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit">Contact support</button>';
+      '<button onclick="askBot(\'Contact support\')" style="background:#fee2e2;border:1px solid #fecaca;color:#b91c1c;border-radius:12px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit">Contact support</button>';
   },500);
 }
 
