@@ -298,7 +298,10 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
         <div class="ni" onclick="go('events')"><i class="ti ti-calendar-event"></i>Events</div>
         <div class="ns">Finance</div>
         <div class="ni" onclick="go('donations')"><i class="ti ti-heart"></i>Offerings</div>
-        <div class="ni" onclick="go('accounting')"><i class="ti ti-report-money"></i>Accounting</div>
+        <div class="ni" onclick="go('accounting')"><i class="ti ti-report-money"></i>Church Finance</div>
+        <div class="ni" onclick="go('finance')"><i class="ti ti-chart-pie"></i>Fund Tracker</div>
+        <div class="ns">Reports</div>
+        <div class="ni" onclick="go('reports')"><i class="ti ti-clipboard-list"></i>Leader Reports</div>
         <div class="ns">System</div>
         <div class="ni" onclick="go('notices')"><i class="ti ti-speakerphone"></i>Admin Notes</div>
         <div class="ni" onclick="go('settings')"><i class="ti ti-settings"></i>Settings</div>
@@ -334,6 +337,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
         <div class="page" id="page-accounting"></div>
         <div class="page" id="page-notices"></div>
         <div class="page" id="page-settings"></div>
+        <div class="page" id="page-finance"></div>
+        <div class="page" id="page-reports"></div>
       </div>
     </div>
   </div>
@@ -523,7 +528,7 @@ const pageTitles = {
   dash:'Dashboard', members:'Members', staff:'Pastoral & Staff',
   cellgroups:'Cell Groups', fellowships:'Fellowships', ministries:'Ministries',
   services:'Services', events:'Events', donations:'Offerings',
-  accounting:'Accounting', notices:'Admin Notes', settings:'Settings'
+  accounting:'Church Finance', notices:'Admin Notes', settings:'Settings'
 };
 
 const pageRenderers = {
@@ -537,6 +542,8 @@ const pageRenderers = {
   events: renderEvents,
   donations: renderDonations,
   accounting: renderAccounting,
+  finance: renderFinance,
+  reports: renderLeaderReports,
   notices: renderNotices,
   settings: renderSettings
 };
@@ -846,11 +853,16 @@ function showCpwErr(msg) {
 async function renderDash() {
   const page = document.getElementById('page-dash');
   page.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;padding:60px"><div class="spinner"></div></div>';
-
-  const [memberCount, cgCount, eventCount, serviceCount, allDonations, recentMembers, staffCount] = await Promise.all([
-    Cloud.count('members'), Cloud.count('cell_groups'), Cloud.count('events'),
-    Cloud.count('services'), Cloud.get('donations'), Cloud.get('members'), Cloud.count('staff')
-  ]);
+  let memberCount=0, cgCount=0, eventCount=0, serviceCount=0, allDonations=[], recentMembers=[], staffCount=0;
+  try {
+    [memberCount, cgCount, eventCount, serviceCount, allDonations, recentMembers, staffCount] = await Promise.all([
+      Cloud.count('members'), Cloud.count('cell_groups'), Cloud.count('events'),
+      Cloud.count('services'), Cloud.get('donations'), Cloud.get('members'), Cloud.count('staff')
+    ]);
+  } catch(e) {
+    page.innerHTML = '<div style="padding:40px;text-align:center"><i class="ti ti-wifi-off" style="font-size:48px;color:var(--g300)"></i><p style="margin-top:12px;color:var(--g400)">Could not load dashboard. Check your connection and refresh.</p><button class="btn btn-p" onclick="go(\'dash\')">Retry</button></div>';
+    return;
+  }
 
   const donationTotal = allDonations.reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
   const thisMonth = new Date().toISOString().slice(0,7);
@@ -1158,7 +1170,7 @@ async function renderDonations() {
   page.innerHTML = `
     <div class="ph">
       <div><div class="pt">Offerings</div><div class="ps">${_donations.length} records · Total: ${fmt(total)}</div></div>
-      <button class="btn btn-p" onclick="openAddDonation()"><i class="ti ti-plus"></i>Record Offering</button>
+      <div style="display:flex;gap:8px"><button class="btn btn-s" onclick="openManageOfferingTypes()"><i class="ti ti-list"></i>Types</button><button class="btn btn-p" onclick="openAddDonation()"><i class="ti ti-plus"></i>Record Offering</button></div>
     </div>
     <div class="sg">
       <div class="sc green"><div class="sc-ico"><i class="ti ti-heart"></i></div><div class="sl">This Month</div><div class="sv">${fmt(monthTotal)}</div></div>
@@ -1178,7 +1190,7 @@ async function renderDonations() {
           <div class="fg">
             <div class="frow"><label>Date *</label><input type="date" id="d-date" value="${new Date().toISOString().split('T')[0]}"></div>
             <div class="frow"><label>Type *</label>
-              <select id="d-type"><option>Tithe</option><option>Offering</option><option>Building Fund</option><option>Mission Fund</option><option>Thanksgiving</option><option>Special</option></select>
+<select id="d-type"></select>
             </div>
             <div class="frow"><label>Amount (RM) *</label><input type="number" id="d-amount" placeholder="0.00" step="0.01"></div>
             <div class="frow"><label>Donor Name</label><input type="text" id="d-donor" placeholder="Anonymous"></div>
@@ -1200,8 +1212,8 @@ async function renderDonations() {
 
 function openAddDonation() {
   sv('d-date', new Date().toISOString().split('T')[0]);
-  sv('d-type','Tithe'); sv('d-amount',''); sv('d-donor','');
-  sv('d-method',''); sv('d-ref',''); sv('d-notes','');
+  var dtsel=document.getElementById('d-type'); if(dtsel) dtsel.innerHTML=buildOfferingTypeSelect('d-type','Tithe');
+  sv('d-amount',''); sv('d-donor',''); sv('d-method',''); sv('d-ref',''); sv('d-notes','');
   openMo('mo-donation');
 }
 async function saveDonation() {
@@ -1262,8 +1274,8 @@ async function renderAccounting() {
 
   page.innerHTML = `
     <div class="ph">
-      <div><div class="pt">Accounting</div><div class="ps">Full financial ledger</div></div>
-      <button class="btn btn-p" onclick="openAddTx()"><i class="ti ti-plus"></i>Add Transaction</button>
+      <div><div class="pt">Church Finance</div><div class="ps">Fund tracking, transactions &amp; ministry budgets</div></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-s" onclick="scanReceipt()"><i class="ti ti-scan"></i>Scan Receipt</button><button class="btn btn-p" onclick="openAddTx()"><i class="ti ti-plus"></i>Add Transaction</button></div>
     </div>
     <div class="sg">
       <div class="sc green"><div class="sc-ico"><i class="ti ti-trending-up"></i></div><div class="sl">Total Income</div><div class="sv">${fmt(income)}</div></div>
@@ -1388,8 +1400,9 @@ async function renderStaff() {
 function buildStaffRows(staff) {
   if(!staff.length) return '<tr><td colspan="6"><div class="es"><i class="ti ti-id-badge-2"></i><p>No staff records yet.</p></div></td></tr>';
   return staff.map(function(s) {
+    var photoHtml = s.photo ? '<img src="'+esc(s.photo)+'" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle">' : '<span style="display:inline-block;width:32px;height:32px;border-radius:50%;background:var(--g100);vertical-align:middle;margin-right:8px"></span>';
     return '<tr>' +
-      '<td><div style="font-weight:600">' + esc(s.name_en) + '</div>' + (s.name_zh?'<div style="font-size:11px;color:var(--g400)">'+esc(s.name_zh)+'</div>':'') + '</td>' +
+      '<td><div style="font-weight:600;display:flex;align-items:center">'+photoHtml+' ' + esc(s.name_en) + '</div>' + (s.name_zh?'<div style="font-size:11px;color:var(--g400)">'+esc(s.name_zh)+'</div>':'') + '</td>' +
       '<td style="font-size:12px">' + esc(s.post_title||'—') + '</td>' +
       '<td><span class="bx bb">' + esc(s.staff_type||'Staff') + '</span></td>' +
       '<td style="font-size:12px">' + esc(s.phone||'—') + '</td>' +
@@ -1430,8 +1443,10 @@ function staffModal() {
 let _staff = [];
 function openAddStaff() {
   _staff = [];
-  ['sf-id','sf-name-en','sf-name-zh','sf-post','sf-phone','sf-email','sf-ic','sf-epf','sf-socso','sf-qual','sf-addr','sf-notes','sf-dob','sf-start','sf-comp-amt'].forEach(id=>sv(id,''));
-  sv('sf-type','Pastoral'); sv('sf-gender',''); sv('sf-comp-type','Monthly Salary');
+  ['sf-id','sf-name-en','sf-name-zh','sf-post','sf-phone','sf-email','sf-ic','sf-epf','sf-socso','sf-qual','sf-addr','sf-notes','sf-dob','sf-start','sf-comp-amt','sf-photo-data','sf-pt-hours'].forEach(id=>sv(id,''));
+  sv('sf-type','Pastoral'); sv('sf-gender',''); sv('sf-comp-type','Full Time');
+  var prev=document.getElementById('sf-photo-prev'); if(prev) prev.innerHTML='<i class="ti ti-user" style="font-size:32px;color:var(--g300)"></i>';
+  var ms=document.getElementById('sf-member-search'); if(ms) ms.value='';
   document.getElementById('mo-staff-title').innerHTML = '<i class="ti ti-id-badge-2"></i>Add Staff';
   openMo('mo-staff');
 }
@@ -1442,11 +1457,13 @@ async function editStaff(id) {
   sv('sf-post',s.post_title||''); sv('sf-type',s.staff_type||'Pastoral');
   sv('sf-phone',s.phone||''); sv('sf-email',s.email||''); sv('sf-ic',s.ic_number||'');
   sv('sf-dob',s.dob||''); sv('sf-start',s.start_date||'');
-  sv('sf-comp-type',s.compensation_type||'Monthly Salary');
-  sv('sf-comp-amt',s.monthly_compensation||'');
+  sv('sf-comp-type',s.compensation_type||'Full Time');
+  sv('sf-comp-amt',s.monthly_compensation||''); sv('sf-pt-hours',s.pt_hours||'');
   sv('sf-epf',s.epf||''); sv('sf-socso',s.socso||'');
   sv('sf-qual',s.qualifications||''); sv('sf-addr',s.address||''); sv('sf-notes',s.notes||'');
   sv('sf-gender',s.gender||'');
+  sv('sf-photo-data',s.photo||'');
+  var prev2=document.getElementById('sf-photo-prev'); if(prev2&&s.photo) prev2.innerHTML='<img src="'+s.photo+'" style="width:100%;height:100%;object-fit:cover">';
   document.getElementById('mo-staff-title').innerHTML = '<i class="ti ti-edit"></i>Edit Staff';
   openMo('mo-staff');
 }
@@ -1460,8 +1477,10 @@ async function saveStaff() {
     ic_number:v('sf-ic'), gender:v('sf-gender'), dob:v('sf-dob')||null,
     start_date:v('sf-start')||null, compensation_type:v('sf-comp-type'),
     monthly_compensation:parseFloat(v('sf-comp-amt'))||0,
+    pt_hours:parseInt(v('sf-pt-hours'))||null,
     epf:v('sf-epf'), socso:v('sf-socso'), qualifications:v('sf-qual'),
-    address:v('sf-addr'), notes:v('sf-notes')
+    address:v('sf-addr'), notes:v('sf-notes'),
+    photo:v('sf-photo-data')||null
   };
   const id = v('sf-id');
   if(id){await Cloud.update('staff',id,row);toast('Staff updated');}
@@ -1478,6 +1497,8 @@ async function deleteStaff(id){
 async function renderCellGroups() {
   const page = document.getElementById('page-cellgroups');
   const groups = await Cloud.get('cell_groups');
+  const allMems = await Cloud.get('members');
+  groups.forEach(function(g){ g._memberCount = allMems.filter(function(m){ return m.cell_group_id===g.id; }).length; });
   page.innerHTML =
     '<div class="ph"><div><div class="pt">Cell Groups</div><div class="ps">' + groups.length + ' groups</div></div>' +
     '<button class="btn btn-p" onclick="openAddCG()"><i class="ti ti-plus"></i>Add Cell Group</button></div>' +
@@ -1485,18 +1506,18 @@ async function renderCellGroups() {
     '<div class="sc blue"><div class="sc-ico"><i class="ti ti-sitemap"></i></div><div class="sl">Total Groups</div><div class="sv">' + groups.length + '</div></div>' +
     '</div>' +
     '<div class="card"><div class="tw"><table class="dt"><thead><tr>' +
-    '<th>Group Name</th><th>Leader</th><th>Meeting</th><th>Zone</th><th>Weekly Target</th><th>Actions</th>' +
+    '<th>Group Name</th><th>Leader</th><th>Meeting</th><th>Zone</th><th>Members</th><th>Actions</th>' +
     '</tr></thead><tbody>' + buildCGRows(groups) + '</tbody></table></div></div>' + cgModal();
 }
 function buildCGRows(groups) {
   if(!groups.length) return '<tr><td colspan="6"><div class="es"><i class="ti ti-sitemap"></i><p>No cell groups yet.</p></div></td></tr>';
   return groups.map(function(g) {
     return '<tr>' +
-      '<td style="font-weight:600">' + esc(g.name) + '</td>' +
+      '<td style="font-weight:600;cursor:pointer;color:var(--primary)" data-gid="'+g.id+'" data-gname="'+esc(g.name)+'" onclick="openGroupMembers(\'cell_groups\',this.dataset.gid,this.dataset.gname)">'+esc(g.name)+' <i class="ti ti-users" style="font-size:11px"></i></td>' +
       '<td style="font-size:12px">' + esc(g.leader||'—') + '</td>' +
       '<td style="font-size:12px">' + esc((g.meeting_day||'') + ' ' + (g.meeting_time||'')) + '</td>' +
       '<td style="font-size:12px">' + esc(g.zone||'—') + '</td>' +
-      '<td style="font-size:12px;color:var(--success)">' + fmt(g.weekly_offering_target||0) + '</td>' +
+      '<td style="font-size:12px">' + (g._memberCount||0) + '</td>' +
       '<td><div style="display:flex;gap:4px">' +
         '<button class="btn btn-s xs" data-gid="'+g.id+'" onclick="editCG(this.dataset.gid)"><i class="ti ti-edit"></i></button>' +
         '<button class="btn btn-x xs" data-gid="'+g.id+'" onclick="deleteCG(this.dataset.gid)"><i class="ti ti-trash"></i></button>' +
@@ -1515,8 +1536,7 @@ function cgModal() {
     '<div class="frow"><label>Meeting Day</label><select id="cg-day"><option value="">Select</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select></div>' +
     '<div class="frow"><label>Meeting Time</label><input type="time" id="cg-time"></div>' +
     '<div class="frow"><label>Location</label><input type="text" id="cg-loc"></div>' +
-    '<div class="frow"><label>Weekly Offering Target (RM)</label><input type="number" id="cg-target" step="0.01" placeholder="0.00"></div>' +
-    '<div class="frow full"><label>Description</label><textarea id="cg-desc" rows="2"></textarea></div>' +
+        '<div class="frow full"><label>Description</label><textarea id="cg-desc" rows="2"></textarea></div>' +
     '</div><input type="hidden" id="cg-id"></div>' +
     '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-cg\')">Cancel</button>' +
     '<button class="btn btn-p" onclick="saveCG()"><i class="ti ti-check"></i>Save</button></div>' +
@@ -1524,7 +1544,7 @@ function cgModal() {
 }
 function openAddCG() {
   ['cg-id','cg-name','cg-leader','cg-co-leader','cg-zone','cg-time','cg-loc','cg-desc'].forEach(id=>sv(id,''));
-  sv('cg-day',''); sv('cg-target','0');
+  sv('cg-day','');
   document.getElementById('mo-cg-title').innerHTML = '<i class="ti ti-sitemap"></i>Add Cell Group';
   openMo('mo-cg');
 }
@@ -1534,8 +1554,7 @@ async function editCG(id) {
   sv('cg-id',g.id); sv('cg-name',g.name); sv('cg-leader',g.leader||'');
   sv('cg-co-leader',g.co_leader||''); sv('cg-zone',g.zone||'');
   sv('cg-day',g.meeting_day||''); sv('cg-time',g.meeting_time||'');
-  sv('cg-loc',g.location||''); sv('cg-target',g.weekly_offering_target||0);
-  sv('cg-desc',g.description||'');
+  sv('cg-loc',g.location||'');   sv('cg-desc',g.description||'');
   document.getElementById('mo-cg-title').innerHTML = '<i class="ti ti-edit"></i>Edit Cell Group';
   openMo('mo-cg');
 }
@@ -1575,7 +1594,7 @@ function buildFLRows(fls) {
   if(!fls.length) return '<tr><td colspan="5"><div class="es"><i class="ti ti-friends"></i><p>No fellowships yet.</p></div></td></tr>';
   return fls.map(function(f) {
     return '<tr>' +
-      '<td><div style="font-weight:600">' + esc(f.name) + '</div>' + (f.name_zh?'<div style="font-size:11px;color:var(--g400)">'+esc(f.name_zh)+'</div>':'') + '</td>' +
+      '<td style="cursor:pointer" data-fid="'+f.id+'" data-fname="'+esc(f.name)+'" onclick="openGroupMembers(\'fellowships\',this.dataset.fid,this.dataset.fname)"><div style="font-weight:600;color:var(--primary)">'+esc(f.name)+' <i class="ti ti-users" style="font-size:11px"></i></div>' + (f.name_zh?'<div style="font-size:11px;color:var(--g400)">'+esc(f.name_zh)+'</div>':'') + '</td>' +
       '<td><span class="bx bb">' + esc(f.type||'Fellowship') + '</span></td>' +
       '<td style="font-size:12px">' + esc((f.meeting_day||'') + ' ' + (f.meeting_time||'')) + '</td>' +
       '<td style="font-size:12px">' + esc(f.location||'—') + '</td>' +
@@ -1671,6 +1690,7 @@ function minModal() {
     '<div class="frow"><label>Chinese Name</label><input type="text" id="mn-name-zh"></div>' +
     '<div class="frow"><label>Ministry Leader</label><input type="text" id="mn-leader"></div>' +
     '<div class="frow"><label>Monthly Budget (RM)</label><input type="number" id="mn-budget" step="0.01" placeholder="0.00"></div>' +
+    '<div class="frow"><label>Yearly Budget (RM)</label><input type="number" id="mn-yearly-budget" step="0.01" placeholder="0.00"></div>' +
     '<div class="frow full"><label>Description</label><textarea id="mn-desc" rows="3"></textarea></div>' +
     '</div><input type="hidden" id="mn-id"></div>' +
     '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-min\')">Cancel</button>' +
@@ -1679,7 +1699,7 @@ function minModal() {
 }
 function openAddMin() {
   ['mn-id','mn-name','mn-name-zh','mn-leader','mn-desc'].forEach(id=>sv(id,''));
-  sv('mn-budget','0');
+  sv('mn-budget','0'); sv('mn-yearly-budget','0');
   document.getElementById('mo-min-title').innerHTML = '<i class="ti ti-crown"></i>Add Ministry';
   openMo('mo-min');
 }
@@ -1687,7 +1707,7 @@ async function editMin(id) {
   const all = await Cloud.get('ministries');
   const m = all.find(x=>x.id===id); if(!m) return;
   sv('mn-id',m.id); sv('mn-name',m.name); sv('mn-name-zh',m.name_zh||'');
-  sv('mn-leader',m.leader||''); sv('mn-budget',m.monthly_budget||0); sv('mn-desc',m.description||'');
+  sv('mn-leader',m.leader||''); sv('mn-budget',m.monthly_budget||0); sv('mn-yearly-budget',m.yearly_budget||0); sv('mn-desc',m.description||'');
   document.getElementById('mo-min-title').innerHTML = '<i class="ti ti-edit"></i>Edit Ministry';
   openMo('mo-min');
 }
@@ -1695,7 +1715,7 @@ async function saveMin() {
   const name = v('mn-name').trim();
   if(!name){toast('Ministry name required','x');return;}
   setSyncStatus('syncing');
-  const row = {name, name_zh:v('mn-name-zh'), leader:v('mn-leader'), monthly_budget:parseFloat(v('mn-budget'))||0, description:v('mn-desc')};
+  const row = {name, name_zh:v('mn-name-zh'), leader:v('mn-leader'), monthly_budget:parseFloat(v('mn-budget'))||0, yearly_budget:parseFloat(v('mn-yearly-budget'))||0, description:v('mn-desc')};
   const id = v('mn-id');
   if(id){await Cloud.update('ministries',id,row);toast('Ministry updated');}
   else{await Cloud.insert('ministries',row);toast('Ministry added');}
@@ -1746,7 +1766,7 @@ function svcModal() {
     '<div class="mb"><div class="fg">' +
     '<div class="frow"><label>Service Date *</label><input type="date" id="sv-date" value="'+new Date().toISOString().split("T")[0]+'"></div>' +
     '<div class="frow"><label>Service Time</label><input type="time" id="sv-time"></div>' +
-    '<div class="frow"><label>Type</label><select id="sv-type"><option>Sunday Service</option><option>Wednesday Service</option><option>Prayer Meeting</option><option>Special Service</option><option>Youth Service</option></select></div>' +
+    '<div class="frow"><label>Type</label><select id="sv-type"><option>Sunday Service</option><option>Prayer Meeting</option><option>Special Service</option><option>Youth Service</option></select></div>' +
     '<div class="frow"><label>Speaker</label><input type="text" id="sv-speaker"></div>' +
     '<div class="frow"><label>Sermon Theme</label><input type="text" id="sv-theme"></div>' +
     '<div class="frow"><label>Scripture Reference</label><input type="text" id="sv-scripture" placeholder="e.g. John 3:16"></div>' +
@@ -2133,3 +2153,613 @@ setTimeout(function(){if(!botOpen)document.getElementById('bot-badge').style.dis
 
 </body>
 </html>
+<script>
+
+// ═══════════════════════════════════════════════════════════════
+// CHANGE 1 — CG & FELLOWSHIP GROUP MEMBER MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+async function openGroupMembers(groupType, groupId, groupName) {
+  // groupType: 'cell_groups' or 'fellowships'
+  // Build a full-screen panel for managing members of this group
+  const page = document.getElementById('page-' + (groupType === 'cell_groups' ? 'cellgroups' : 'fellowships'));
+  const allMembers = await Cloud.get('members');
+  const groupField = groupType === 'cell_groups' ? 'cell_group_id' : 'fellowship_id';
+  const roleField  = groupType === 'cell_groups' ? 'cell_group_role' : 'fellowship_role';
+  const currentMembers = allMembers.filter(function(m){ return m[groupField] === groupId; });
+  const unassigned = allMembers.filter(function(m){ return !m[groupField]; });
+
+  const ROLES = groupType === 'cell_groups'
+    ? ['Member','Cell Leader','Co-Leader','Facilitator','Worship Lead','Prayer Lead']
+    : ['Member','Fellowship Leader','Co-Leader','Secretary','Treasurer','Worship Lead'];
+
+  function memberRow(m, inGroup) {
+    var role = m[roleField] || 'Member';
+    var roleOpts = ROLES.map(function(r){ return '<option'+(r===role?' selected':'')+'>'+r+'</option>'; }).join('');
+    if(inGroup) {
+      return '<tr>' +
+        '<td style="font-weight:600">'+esc(m.name_en||'')+'</td>' +
+        '<td style="color:var(--g400);font-size:12px">'+esc(m.name_zh||'')+'</td>' +
+        '<td><select style="font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:4px" ' +
+          'data-mid="'+m.id+'" data-gtype="'+groupType+'" data-gid="'+groupId+'" data-rfield="'+roleField+'" data-gfield="'+groupField+'" ' +
+          'onchange="updateGroupRole(this)">'+roleOpts+'</select></td>' +
+        '<td><button class="btn btn-x xs" data-mid="'+m.id+'" data-gfield="'+groupField+'" data-rfield="'+roleField+'" onclick="removeFromGroup(this,\''+groupType+'\')"><i class="ti ti-user-minus"></i></button></td>' +
+      '</tr>';
+    } else {
+      return '<tr>' +
+        '<td style="font-weight:600">'+esc(m.name_en||'')+'</td>' +
+        '<td style="color:var(--g400);font-size:12px">'+esc(m.name_zh||'')+'</td>' +
+        '<td><span style="font-size:11px;color:var(--g300)">—</span></td>' +
+        '<td><button class="btn btn-p xs" data-mid="'+m.id+'" data-gid="'+groupId+'" data-gfield="'+groupField+'" onclick="addToGroup(this,\''+groupType+'\')"><i class="ti ti-user-plus"></i>Add</button></td>' +
+      '</tr>';
+    }
+  }
+
+  var panel = document.getElementById('gm-panel');
+  if(!panel){ panel = document.createElement('div'); panel.id='gm-panel'; panel.style.cssText='position:fixed;inset:0;background:#fff;z-index:200;overflow-y:auto;padding:24px;'; document.body.appendChild(panel); }
+
+  panel.innerHTML = '<div style="max-width:900px;margin:0 auto">' +
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">' +
+      '<button class="btn btn-s" onclick="document.getElementById(\'gm-panel\').remove()"><i class="ti ti-arrow-left"></i>Back</button>' +
+      '<div><div style="font-size:18px;font-weight:700">'+esc(groupName)+'</div>' +
+        '<div style="font-size:12px;color:var(--g400)">Member Management</div></div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">' +
+      '<div class="card">' +
+        '<div style="font-size:14px;font-weight:700;margin-bottom:12px"><i class="ti ti-users" style="color:var(--primary)"></i> Current Members ('+currentMembers.length+')</div>' +
+        '<table class="dt"><thead><tr><th>Name</th><th>Chinese</th><th>Role</th><th></th></tr></thead>' +
+        '<tbody>'+( currentMembers.length ? currentMembers.map(function(m){return memberRow(m,true);}).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--g300);padding:20px">No members yet</td></tr>' )+'</tbody></table>' +
+      '</div>' +
+      '<div class="card">' +
+        '<div style="font-size:14px;font-weight:700;margin-bottom:12px"><i class="ti ti-user-plus" style="color:var(--success)"></i> Add Members</div>' +
+        '<input type="text" id="gm-search" placeholder="Search by name..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;font-size:13px" oninput="filterGmSearch()" />' +
+        '<div id="gm-add-list" style="max-height:340px;overflow-y:auto">' +
+          '<table class="dt"><tbody id="gm-add-tbody">'+( unassigned.length ? unassigned.map(function(m){return memberRow(m,false);}).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--g300);padding:20px">All members assigned</td></tr>' )+'</tbody></table>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function filterGmSearch() {
+  var q = (document.getElementById('gm-search').value||'').toLowerCase();
+  document.querySelectorAll('#gm-add-tbody tr').forEach(function(tr){
+    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+async function addToGroup(btn, groupType) {
+  var mid = btn.dataset.mid, gid = btn.dataset.gid, gfield = btn.dataset.gfield;
+  setSyncStatus('syncing');
+  await Cloud.update('members', mid, {[gfield]: gid});
+  toast('Member added to group');
+  var panel = document.getElementById('gm-panel');
+  if(panel){ var title = panel.querySelector('[style*="font-size:18px"]'); var gname = title ? title.textContent : ''; await openGroupMembers(groupType, gid, gname); }
+}
+
+async function removeFromGroup(btn, groupType) {
+  var mid = btn.dataset.mid, gfield = btn.dataset.gfield, rfield = btn.dataset.rfield;
+  setSyncStatus('syncing');
+  await Cloud.update('members', mid, {[gfield]: null, [rfield]: null});
+  toast('Member removed');
+  var panel = document.getElementById('gm-panel');
+  if(panel){ var title = panel.querySelector('[style*="font-size:18px"]'); if(title) title.click && title.click(); }
+  // Re-render panel by finding groupId from remaining rows
+  var firstBtn = document.querySelector('#gm-panel [data-gid]');
+  if(firstBtn){ await openGroupMembers(groupType, firstBtn.dataset.gid || firstBtn.dataset['gid'], ''); }
+}
+
+async function updateGroupRole(sel) {
+  var mid = sel.dataset.mid, rfield = sel.dataset.rfield, role = sel.value;
+  setSyncStatus('syncing');
+  await Cloud.update('members', mid, {[rfield]: role});
+  toast('Role updated');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHANGE 3 — STAFF: Full/Part-time, Profile Photo, Member Search
+// ═══════════════════════════════════════════════════════════════
+function staffModal2() {
+  // Override staffModal with enhanced version
+  return '<div class="mo" id="mo-staff"><div class="modal lg">' +
+    '<div class="mh"><span class="mt" id="mo-staff-title"><i class="ti ti-id-badge-2"></i>Add Staff</span>' +
+    '<button class="cx" onclick="closeMo(\'mo-staff\')"><i class="ti ti-x"></i></button></div>' +
+    '<div class="mb"><div class="fg">' +
+    // Profile photo
+    '<div class="frow full" style="display:flex;align-items:center;gap:16px">' +
+      '<div id="sf-photo-prev" style="width:80px;height:80px;border-radius:50%;background:var(--g100);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex-shrink:0" onclick="document.getElementById(\'sf-photo-inp\').click()">' +
+        '<i class="ti ti-user" style="font-size:32px;color:var(--g300)"></i>' +
+      '</div>' +
+      '<div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Profile Photo</div>' +
+        '<button type="button" class="btn btn-s sm" onclick="document.getElementById(\'sf-photo-inp\').click()"><i class="ti ti-upload"></i>Upload Photo</button>' +
+        '<input type="file" id="sf-photo-inp" accept="image/*" style="display:none" onchange="prevStaffPhoto(this)">' +
+        '<input type="hidden" id="sf-photo-data">' +
+        '<div style="font-size:11px;color:var(--g400);margin-top:4px">Or pick from members:</div>' +
+        '<div style="position:relative;margin-top:4px">' +
+          '<input type="text" id="sf-member-search" placeholder="Type member name to link..." style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px" oninput="searchStaffMember(this.value)">' +
+          '<div id="sf-member-results" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:10;max-height:160px;overflow-y:auto;display:none"></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="frow"><label>English Name *</label><input type="text" id="sf-name-en" placeholder="Full name"></div>' +
+    '<div class="frow"><label>Chinese Name</label><input type="text" id="sf-name-zh"></div>' +
+    '<div class="frow"><label>Post/Title</label><input type="text" id="sf-post" placeholder="e.g. Senior Pastor"></div>' +
+    '<div class="frow"><label>Staff Type</label><select id="sf-type"><option>Pastoral</option><option>Administrative</option><option>Support</option><option>Volunteer</option></select></div>' +
+    '<div class="frow"><label>Phone</label><input type="tel" id="sf-phone"></div>' +
+    '<div class="frow"><label>Email</label><input type="email" id="sf-email"></div>' +
+    '<div class="frow"><label>Date of Birth</label><input type="date" id="sf-dob"></div>' +
+    '<div class="frow"><label>Gender</label><select id="sf-gender"><option value="">Select</option><option>Male</option><option>Female</option></select></div>' +
+    '<div class="frow"><label>IC Number</label><input type="text" id="sf-ic"></div>' +
+    '<div class="frow"><label>Start Date</label><input type="date" id="sf-start"></div>' +
+    '<div class="frow"><label>Employment</label><select id="sf-comp-type"><option>Full Time</option><option>Part Time</option><option>Honorarium</option><option>Volunteer</option></select></div>' +
+    '<div class="frow"><label>Monthly Amount (RM)</label><input type="number" id="sf-comp-amt" step="0.01" placeholder="0.00"></div>' +
+    '<div class="frow"><label>Part Time Hours/Week</label><input type="number" id="sf-pt-hours" placeholder="e.g. 20" min="1" max="40"></div>' +
+    '<div class="frow"><label>EPF Number</label><input type="text" id="sf-epf"></div>' +
+    '<div class="frow"><label>SOCSO Number</label><input type="text" id="sf-socso"></div>' +
+    '<div class="frow full"><label>Qualifications</label><textarea id="sf-qual" rows="2"></textarea></div>' +
+    '<div class="frow full"><label>Address</label><textarea id="sf-addr" rows="2"></textarea></div>' +
+    '<div class="frow full"><label>Notes</label><textarea id="sf-notes" rows="2"></textarea></div>' +
+    '</div><input type="hidden" id="sf-id"></div>' +
+    '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-staff\')">Cancel</button>' +
+    '<button class="btn btn-p" onclick="saveStaff()"><i class="ti ti-check"></i>Save</button></div>' +
+    '</div></div>';
+}
+
+function prevStaffPhoto(inp) {
+  var file = inp.files[0]; if(!file) return;
+  compressImage(file, 200, 200, 0.7, function(b64){
+    document.getElementById('sf-photo-data').value = b64;
+    var prev = document.getElementById('sf-photo-prev');
+    prev.innerHTML = '<img src="'+b64+'" style="width:100%;height:100%;object-fit:cover">';
+  });
+}
+
+async function searchStaffMember(q) {
+  var res = document.getElementById('sf-member-results'); if(!res) return;
+  if(!q || q.length < 2){ res.style.display='none'; return; }
+  var all = await Cloud.get('members');
+  var matches = all.filter(function(m){ return (m.name_en||'').toLowerCase().includes(q.toLowerCase()) || (m.name_zh||'').includes(q); }).slice(0,8);
+  if(!matches.length){ res.style.display='none'; return; }
+  res.innerHTML = matches.map(function(m){
+    return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)" ' +
+      'data-name="'+esc(m.name_en)+'" data-namezh="'+esc(m.name_zh||'')+'" data-photo="'+esc(m.photo||'')+'" ' +
+      'onmousedown="pickStaffMember(this)">' +
+      '<b>'+esc(m.name_en)+'</b>'+(m.name_zh?' <span style="color:var(--g400)">'+esc(m.name_zh)+'</span>':'')+
+    '</div>';
+  }).join('');
+  res.style.display = 'block';
+}
+
+function pickStaffMember(el) {
+  sv('sf-name-en', el.dataset.name);
+  sv('sf-name-zh', el.dataset.namezh||'');
+  if(el.dataset.photo) {
+    document.getElementById('sf-photo-data').value = el.dataset.photo;
+    document.getElementById('sf-photo-prev').innerHTML = '<img src="'+el.dataset.photo+'" style="width:100%;height:100%;object-fit:cover">';
+  }
+  document.getElementById('sf-member-search').value = el.dataset.name;
+  document.getElementById('sf-member-results').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHANGE 6 — EDITABLE OFFERING TYPES
+// ═══════════════════════════════════════════════════════════════
+const DEFAULT_OFFERING_TYPES = ['Tithe','Offering','Building Fund','Mission Fund','Thanksgiving','Special','First Fruit','Pledge'];
+
+function getOfferingTypes() {
+  try { return JSON.parse(localStorage.getItem('gs_offering_types') || 'null') || DEFAULT_OFFERING_TYPES.slice(); }
+  catch(e){ return DEFAULT_OFFERING_TYPES.slice(); }
+}
+function saveOfferingTypes(arr) { localStorage.setItem('gs_offering_types', JSON.stringify(arr)); }
+
+function buildOfferingTypeSelect(selId, selectedVal) {
+  var types = getOfferingTypes();
+  return types.map(function(t){ return '<option'+(t===selectedVal?' selected':'')+'>'+esc(t)+'</option>'; }).join('');
+}
+
+function openManageOfferingTypes() {
+  var types = getOfferingTypes();
+  var rows = types.map(function(t,i){
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px" id="ot-row-'+i+'">' +
+      '<input type="text" value="'+esc(t)+'" id="ot-val-'+i+'" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-size:13px">' +
+      '<button class="btn btn-x xs" onclick="document.getElementById(\'ot-row-'+i+'\').remove()"><i class="ti ti-trash"></i></button>' +
+    '</div>';
+  }).join('');
+  var mo = document.getElementById('mo-offering-types');
+  if(!mo){
+    mo = document.createElement('div'); mo.id='mo-offering-types'; mo.className='mo';
+    mo.innerHTML = '<div class="modal sm"><div class="mh"><span class="mt"><i class="ti ti-list"></i>Manage Offering Types</span>' +
+      '<button class="cx" onclick="closeMo(\'mo-offering-types\')"><i class="ti ti-x"></i></button></div>' +
+      '<div class="mb" id="ot-body"></div>' +
+      '<div class="mf"><button class="btn btn-s sm" onclick="addOfferingTypeRow()"><i class="ti ti-plus"></i>Add Type</button>' +
+        '<button class="btn btn-s" onclick="closeMo(\'mo-offering-types\')">Cancel</button>' +
+        '<button class="btn btn-p" onclick="saveOfferingTypesList()"><i class="ti ti-check"></i>Save</button></div>' +
+      '</div>';
+    document.body.appendChild(mo);
+  }
+  document.getElementById('ot-body').innerHTML = '<div id="ot-rows">'+rows+'</div>';
+  openMo('mo-offering-types');
+}
+
+function addOfferingTypeRow() {
+  var cont = document.getElementById('ot-rows');
+  var i = cont.children.length;
+  var div = document.createElement('div');
+  div.id='ot-row-'+i; div.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px';
+  div.innerHTML = '<input type="text" id="ot-val-'+i+'" placeholder="New type..." style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-size:13px">' +
+    '<button class="btn btn-x xs" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>';
+  cont.appendChild(div);
+}
+
+function saveOfferingTypesList() {
+  var arr = [];
+  document.querySelectorAll('#ot-rows input[type=text]').forEach(function(inp){
+    var v2 = inp.value.trim(); if(v2) arr.push(v2);
+  });
+  if(!arr.length){ toast('At least one type required','x'); return; }
+  saveOfferingTypes(arr);
+  closeMo('mo-offering-types');
+  toast('Offering types saved');
+  // Refresh type dropdown if open
+  var sel = document.getElementById('d-type');
+  if(sel) sel.innerHTML = buildOfferingTypeSelect('d-type', sel.value);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHANGE 7 — RECEIPT / INVOICE SCAN → AUTO-FILL TRANSACTION
+// ═══════════════════════════════════════════════════════════════
+async function scanReceipt() {
+  var inp = document.getElementById('receipt-scan-inp');
+  if(!inp){ inp = document.createElement('input'); inp.type='file'; inp.id='receipt-scan-inp'; inp.accept='image/*,application/pdf'; inp.style.display='none'; document.body.appendChild(inp); }
+  inp.onchange = async function() {
+    var file = inp.files[0]; if(!file) return;
+    toast('Scanning receipt...','ok');
+    var reader = new FileReader();
+    reader.onload = async function(e) {
+      var b64 = e.target.result.split(',')[1];
+      var mtype = file.type.includes('pdf') ? 'application/pdf' : (file.type || 'image/jpeg');
+      try {
+        var resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            model:'claude-sonnet-4-6', max_tokens:400,
+            messages:[{role:'user', content:[
+              {type: mtype==='application/pdf'?'document':'image',
+               source:{type:'base64', media_type:mtype, data:b64}},
+              {type:'text', text:'Extract transaction data from this receipt/invoice. Reply ONLY with valid JSON (no markdown): {"date":"YYYY-MM-DD","amount":0.00,"description":"","category":"","reference":"","type":"Expense"}. For type use Income or Expense. Guess category from context (e.g. Utilities, Maintenance, Supplies, Food, Transport). If date unclear use today. Amount must be a number.'}
+            ]}]
+          })
+        });
+        var data = await resp.json();
+        var text = (data.content||[]).map(function(c){return c.text||'';}).join('');
+        var clean = text.replace(/```json|```/g,'').trim();
+        var parsed = JSON.parse(clean);
+        // Pre-fill the transaction modal
+        sv('tx-date', parsed.date || new Date().toISOString().split('T')[0]);
+        sv('tx-amount', parsed.amount || '');
+        sv('tx-desc', parsed.description || '');
+        sv('tx-cat', parsed.category || '');
+        sv('tx-ref', parsed.reference || '');
+        sv('tx-type', parsed.type || 'Expense');
+        openMo('mo-tx');
+        toast('Receipt scanned — please verify and save');
+      } catch(err) {
+        toast('Could not read receipt. Please fill in manually.','x');
+        openMo('mo-tx');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHANGE 9 — CHURCH FINANCE / FUND TRACKER PAGE
+// ═══════════════════════════════════════════════════════════════
+async function renderFinance() {
+  const page = document.getElementById('page-finance');
+  page.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;padding:60px"><div class="spinner"></div></div>';
+  let ministries=[], donations=[], transactions=[];
+  try {
+    [ministries, donations, transactions] = await Promise.all([
+      Cloud.get('ministries'), Cloud.get('donations'), Cloud.get('transactions')
+    ]);
+  } catch(e) {
+    page.innerHTML = '<div style="padding:40px;text-align:center;color:var(--g400)">Could not load data.</div>'; return;
+  }
+
+  const thisYear = new Date().getFullYear().toString();
+  const thisMonth = new Date().toISOString().slice(0,7);
+  const totalIncome = transactions.filter(t=>t.type==='Income').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  const totalExpense = transactions.filter(t=>t.type==='Expense').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  const monthDon = donations.filter(d=>d.donation_date?.startsWith(thisMonth)).reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
+
+  // Fund breakdown from donations
+  var fundMap = {};
+  donations.forEach(function(d){ var k=d.type||'General'; fundMap[k]=(fundMap[k]||0)+(parseFloat(d.amount)||0); });
+  var fundRows = Object.keys(fundMap).sort().map(function(k){
+    return '<tr><td>'+esc(k)+'</td><td style="text-align:right">'+fmt(fundMap[k])+'</td></tr>';
+  }).join('');
+
+  // Ministry budget vs spending
+  var minRows = ministries.map(function(m){
+    var spent = transactions.filter(t=>(t.category||'').toLowerCase().includes((m.name||'').toLowerCase())).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    var yearBudget = parseFloat(m.yearly_budget)||0;
+    var monthBudget = parseFloat(m.monthly_budget)||0;
+    var pct = yearBudget>0 ? Math.min(Math.round(spent/yearBudget*100),100) : 0;
+    var barColor = pct>90?'var(--danger)':pct>70?'var(--warning)':'var(--success)';
+    return '<tr>' +
+      '<td style="font-weight:600">'+esc(m.name)+'</td>' +
+      '<td style="text-align:right">'+fmt(monthBudget)+'/mo</td>' +
+      '<td style="text-align:right">'+fmt(yearBudget)+'/yr</td>' +
+      '<td><div style="background:var(--g100);border-radius:4px;height:8px;width:100%;min-width:80px">' +
+        '<div style="width:'+pct+'%;height:100%;background:'+barColor+';border-radius:4px"></div></div>' +
+        '<div style="font-size:10px;color:var(--g400);margin-top:2px">'+fmt(spent)+' spent ('+pct+'%)</div>' +
+      '</td>' +
+    '</tr>';
+  }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--g300);padding:16px">No ministries yet</td></tr>';
+
+  // Export CSV
+  page.innerHTML = `
+    <div class="ph">
+      <div><div class="pt">Church Finance</div><div class="ps">Fund tracking &amp; ministry budgets</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-s" onclick="exportFinanceCSV()"><i class="ti ti-download"></i>Export CSV</button>
+      </div>
+    </div>
+    <div class="sg">
+      <div class="sc green"><div class="sc-ico"><i class="ti ti-trending-up"></i></div><div class="sl">Total Income</div><div class="sv">${fmt(totalIncome)}</div></div>
+      <div class="sc red"><div class="sc-ico"><i class="ti ti-trending-down"></i></div><div class="sl">Total Expense</div><div class="sv">${fmt(totalExpense)}</div></div>
+      <div class="sc blue"><div class="sc-ico"><i class="ti ti-scale"></i></div><div class="sl">Net Balance</div><div class="sv">${fmt(totalIncome-totalExpense)}</div></div>
+      <div class="sc amber"><div class="sc-ico"><i class="ti ti-heart"></i></div><div class="sl">This Month Offerings</div><div class="sv">${fmt(monthDon)}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px"><i class="ti ti-chart-pie" style="color:var(--primary)"></i> Offerings by Fund</div>
+        <table class="dt"><thead><tr><th>Fund</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody>${fundRows||'<tr><td colspan="2" style="text-align:center;color:var(--g300);padding:12px">No offering records</td></tr>'}</tbody></table>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px"><i class="ti ti-crown" style="color:var(--warning)"></i> Ministry Budget Tracker</div>
+        <table class="dt"><thead><tr><th>Ministry</th><th style="text-align:right">Monthly</th><th style="text-align:right">Yearly</th><th>Spending</th></tr></thead>
+        <tbody>${minRows}</tbody></table>
+      </div>
+    </div>`;
+}
+
+async function exportFinanceCSV() {
+  const [donations, transactions] = await Promise.all([Cloud.get('donations'), Cloud.get('transactions')]);
+  var rows = [['Date','Module','Type','Category/Fund','Description','Amount (RM)','Reference']];
+  donations.forEach(function(d){
+    rows.push([d.donation_date||'',  'Offering', d.type||'', '', d.donor_name||'Anonymous', (parseFloat(d.amount)||0).toFixed(2), d.reference_no||'']);
+  });
+  transactions.forEach(function(t){
+    rows.push([t.transaction_date||'', 'Transaction', t.type||'', t.category||'', t.description||'', (parseFloat(t.amount)||0).toFixed(2), t.reference_no||'']);
+  });
+  var csv = rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+  var blob = new Blob([csv], {type:'text/csv'});
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'church-finance-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+  toast('CSV exported');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHANGE 10 — LEADER REPORTS (PIN-based, real-time to Supabase)
+// ═══════════════════════════════════════════════════════════════
+let _leaderSession = null; // {type, groupId, groupName, pin}
+
+async function renderLeaderReports() {
+  const page = document.getElementById('page-reports');
+  page.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;padding:60px"><div class="spinner"></div></div>';
+
+  // Check if user is admin (SESSION exists) or leader
+  if(SESSION && SESSION.admin) {
+    await renderLeaderReportsAdmin(page);
+  } else {
+    renderLeaderPortalLogin(page);
+  }
+}
+
+function renderLeaderPortalLogin(page) {
+  page.innerHTML = `
+    <div style="max-width:400px;margin:60px auto">
+      <div class="card" style="padding:32px;text-align:center">
+        <i class="ti ti-clipboard-list" style="font-size:48px;color:var(--primary)"></i>
+        <div style="font-size:20px;font-weight:700;margin:12px 0 4px">Leader Portal</div>
+        <div style="font-size:13px;color:var(--g400);margin-bottom:24px">Submit your group report</div>
+        <select id="lp-group-type" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;font-size:13px" onchange="loadLeaderGroups()">
+          <option value="">Select group type</option>
+          <option value="cell_groups">Cell Group</option>
+          <option value="fellowships">Fellowship</option>
+          <option value="ministries">Ministry</option>
+        </select>
+        <select id="lp-group" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;font-size:13px">
+          <option value="">— Select your group —</option>
+        </select>
+        <input type="password" id="lp-pin" placeholder="Enter group PIN" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;margin-bottom:16px;font-size:14px;text-align:center;letter-spacing:4px">
+        <button class="btn btn-p" style="width:100%" onclick="leaderLogin()"><i class="ti ti-login"></i>Login</button>
+        <div id="lp-err" style="color:var(--danger);font-size:12px;margin-top:8px"></div>
+        <div style="margin-top:20px;font-size:11px;color:var(--g300)">PIN is set by your church admin in group settings</div>
+      </div>
+    </div>`;
+}
+
+async function loadLeaderGroups() {
+  var type = document.getElementById('lp-group-type')?.value;
+  var sel = document.getElementById('lp-group'); if(!sel||!type) return;
+  var table = type === 'cell_groups' ? 'cell_groups' : type === 'fellowships' ? 'fellowships' : 'ministries';
+  var groups = await Cloud.get(table);
+  sel.innerHTML = '<option value="">— Select your group —</option>' +
+    groups.map(function(g){ return '<option value="'+g.id+'" data-name="'+esc(g.name)+'">'+esc(g.name)+'</option>'; }).join('');
+}
+
+async function leaderLogin() {
+  var type = document.getElementById('lp-group-type')?.value;
+  var gSel = document.getElementById('lp-group');
+  var gid = gSel?.value;
+  var pin = document.getElementById('lp-pin')?.value?.trim();
+  var err = document.getElementById('lp-err');
+  if(!type||!gid||!pin){ if(err) err.textContent='Please select group and enter PIN'; return; }
+  var table = type === 'cell_groups' ? 'cell_groups' : type === 'fellowships' ? 'fellowships' : 'ministries';
+  var groups = await Cloud.get(table);
+  var group = groups.find(function(g){ return g.id===gid; });
+  if(!group){ if(err) err.textContent='Group not found'; return; }
+  if(!group.report_pin || group.report_pin !== pin){ if(err) err.textContent='Incorrect PIN'; return; }
+  var gname = gSel.options[gSel.selectedIndex]?.dataset?.name || group.name;
+  _leaderSession = {type:table, groupId:gid, groupName:gname, pin};
+  renderLeaderSubmitForm(document.getElementById('page-reports'));
+}
+
+function renderLeaderSubmitForm(page) {
+  var ls = _leaderSession; if(!ls) return;
+  var today = new Date().toISOString().split('T')[0];
+  page.innerHTML = `
+    <div style="max-width:600px;margin:0 auto;padding:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <button class="btn btn-s sm" onclick="_leaderSession=null;renderLeaderReports()"><i class="ti ti-arrow-left"></i>Back</button>
+        <div>
+          <div style="font-size:16px;font-weight:700">${esc(ls.groupName)}</div>
+          <div style="font-size:12px;color:var(--g400)">Submit Weekly Report</div>
+        </div>
+      </div>
+      <div class="card" style="padding:20px">
+        <div class="fg">
+          <div class="frow"><label>Report Date *</label><input type="date" id="lr-date" value="${today}"></div>
+          <div class="frow"><label>Week Ending</label><input type="date" id="lr-week-end"></div>
+          <div class="frow"><label>Attendance</label><input type="number" id="lr-attendance" placeholder="0" min="0"></div>
+          <div class="frow"><label>Offering Collected (RM)</label><input type="number" id="lr-offering" placeholder="0.00" step="0.01"></div>
+          <div class="frow full"><label>Gathering Summary</label><textarea id="lr-summary" rows="3" placeholder="What happened this week? Key topics, activities..."></textarea></div>
+          <div class="frow full"><label>Prayer Requests</label><textarea id="lr-prayer" rows="2" placeholder="Prayer items for the church..."></textarea></div>
+          <div class="frow full"><label>Challenges / Needs</label><textarea id="lr-challenges" rows="2" placeholder="Any challenges, resources needed..."></textarea></div>
+          <div class="frow full"><label>Next Week Plan</label><textarea id="lr-next" rows="2" placeholder="Plans for next gathering..."></textarea></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+          <button class="btn btn-p" onclick="submitLeaderReport()"><i class="ti ti-send"></i>Submit Report</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function submitLeaderReport() {
+  var ls = _leaderSession; if(!ls) return;
+  var date = document.getElementById('lr-date')?.value;
+  var summary = document.getElementById('lr-summary')?.value?.trim();
+  if(!date){ toast('Date required','x'); return; }
+  if(!summary){ toast('Please add a summary','x'); return; }
+  setSyncStatus('syncing');
+  try {
+    await Cloud.insert('leader_reports', {
+      report_date: date,
+      week_ending: document.getElementById('lr-week-end')?.value || null,
+      group_type: ls.type,
+      group_id: ls.groupId,
+      group_name: ls.groupName,
+      attendance: parseInt(document.getElementById('lr-attendance')?.value)||0,
+      offering_collected: parseFloat(document.getElementById('lr-offering')?.value)||0,
+      summary: summary,
+      prayer_requests: document.getElementById('lr-prayer')?.value||'',
+      challenges: document.getElementById('lr-challenges')?.value||'',
+      next_week_plan: document.getElementById('lr-next')?.value||''
+    });
+    toast('Report submitted successfully!');
+    _leaderSession = null;
+    renderLeaderReports();
+  } catch(e) {
+    toast('Submit failed — check connection','x');
+  }
+}
+
+async function renderLeaderReportsAdmin(page) {
+  var reports = [];
+  try { reports = await Cloud.get('leader_reports'); } catch(e) {}
+  reports.sort(function(a,b){ return (b.report_date||'').localeCompare(a.report_date||''); });
+
+  var TYPES = {'cell_groups':'Cell Group','fellowships':'Fellowship','ministries':'Ministry'};
+  var rows = reports.map(function(r){
+    return '<tr>' +
+      '<td>'+esc(r.report_date||'')+'</td>' +
+      '<td><span class="bx bb">'+esc(TYPES[r.group_type]||r.group_type)+'</span></td>' +
+      '<td style="font-weight:600">'+esc(r.group_name||'')+'</td>' +
+      '<td style="text-align:right">'+esc(r.attendance||0)+'</td>' +
+      '<td style="text-align:right">'+fmt(r.offering_collected||0)+'</td>' +
+      '<td style="max-width:200px;font-size:12px;color:var(--g500)">'+esc((r.summary||'').slice(0,80))+(r.summary&&r.summary.length>80?'…':'')+'</td>' +
+      '<td><button class="btn btn-s xs" data-rid="'+r.id+'" onclick="viewLeaderReport(this.dataset.rid)"><i class="ti ti-eye"></i></button></td>' +
+    '</tr>';
+  }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--g300);padding:20px">No reports submitted yet</td></tr>';
+
+  page.innerHTML = `
+    <div class="ph">
+      <div><div class="pt">Leader Reports</div><div class="ps">${reports.length} reports submitted</div></div>
+      <button class="btn btn-s" onclick="openLeaderPinManager()"><i class="ti ti-key"></i>Manage PINs</button>
+    </div>
+    <div class="card">
+      <div class="tw"><table class="dt">
+        <thead><tr><th>Date</th><th>Type</th><th>Group</th><th style="text-align:right">Attendance</th><th style="text-align:right">Offering</th><th>Summary</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>
+    <div id="mo-report-view" class="mo"><div class="modal lg">
+      <div class="mh"><span class="mt"><i class="ti ti-clipboard-list"></i>Report Details</span>
+        <button class="cx" onclick="closeMo('mo-report-view')"><i class="ti ti-x"></i></button></div>
+      <div class="mb" id="report-view-body"></div>
+    </div></div>
+    <div id="mo-pin-mgr" class="mo"><div class="modal sm">
+      <div class="mh"><span class="mt"><i class="ti ti-key"></i>Group Report PINs</span>
+        <button class="cx" onclick="closeMo('mo-pin-mgr')"><i class="ti ti-x"></i></button></div>
+      <div class="mb" id="pin-mgr-body" style="max-height:400px;overflow-y:auto"></div>
+      <div class="mf"><button class="btn btn-s" onclick="closeMo('mo-pin-mgr')">Close</button></div>
+    </div></div>`;
+
+  window._leaderReports = reports;
+}
+
+async function viewLeaderReport(rid) {
+  var r = (window._leaderReports||[]).find(function(x){ return x.id===rid; });
+  if(!r) return;
+  var body = document.getElementById('report-view-body');
+  if(!body) return;
+  body.innerHTML = `
+    <div class="fg">
+      <div class="frow"><label>Group</label><div style="padding:8px;font-weight:600">${esc(r.group_name||'')}</div></div>
+      <div class="frow"><label>Date</label><div style="padding:8px">${esc(r.report_date||'')}</div></div>
+      <div class="frow"><label>Attendance</label><div style="padding:8px">${esc(r.attendance||0)}</div></div>
+      <div class="frow"><label>Offering</label><div style="padding:8px">${fmt(r.offering_collected||0)}</div></div>
+      <div class="frow full"><label>Summary</label><div style="padding:8px;white-space:pre-wrap;font-size:13px">${esc(r.summary||'—')}</div></div>
+      <div class="frow full"><label>Prayer Requests</label><div style="padding:8px;white-space:pre-wrap;font-size:13px">${esc(r.prayer_requests||'—')}</div></div>
+      <div class="frow full"><label>Challenges</label><div style="padding:8px;white-space:pre-wrap;font-size:13px">${esc(r.challenges||'—')}</div></div>
+      <div class="frow full"><label>Next Week Plan</label><div style="padding:8px;white-space:pre-wrap;font-size:13px">${esc(r.next_week_plan||'—')}</div></div>
+    </div>`;
+  openMo('mo-report-view');
+}
+
+async function openLeaderPinManager() {
+  var body = document.getElementById('pin-mgr-body'); if(!body) return;
+  var [cgs, fls, mins] = await Promise.all([Cloud.get('cell_groups'), Cloud.get('fellowships'), Cloud.get('ministries')]);
+  function groupSection(title, groups, gtype) {
+    if(!groups.length) return '';
+    return '<div style="font-size:12px;font-weight:700;color:var(--primary);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.5px">'+title+'</div>' +
+      groups.map(function(g){
+        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+          '<div style="flex:1;font-size:13px">'+esc(g.name)+'</div>' +
+          '<input type="text" value="'+esc(g.report_pin||'')+'" placeholder="Set PIN..." maxlength="8" ' +
+            'style="width:90px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:13px;text-align:center;letter-spacing:2px" ' +
+            'id="pin-'+gtype+'-'+g.id+'">' +
+          '<button class="btn btn-p xs" data-gtype="'+gtype+'" data-gid="'+g.id+'" onclick="saveGroupPin(this)"><i class="ti ti-check"></i></button>' +
+        '</div>';
+      }).join('');
+  }
+  body.innerHTML = groupSection('Cell Groups', cgs, 'cell_groups') + groupSection('Fellowships', fls, 'fellowships') + groupSection('Ministries', mins, 'ministries');
+  openMo('mo-pin-mgr');
+}
+
+async function saveGroupPin(btn) {
+  var gtype = btn.dataset.gtype, gid = btn.dataset.gid;
+  var table = gtype === 'cell_groups' ? 'cell_groups' : gtype === 'fellowships' ? 'fellowships' : 'ministries';
+  var pin = document.getElementById('pin-'+gtype+'-'+gid)?.value?.trim();
+  if(!pin){ toast('Enter a PIN','x'); return; }
+  setSyncStatus('syncing');
+  await Cloud.update(table, gid, {report_pin: pin});
+  toast('PIN saved for group');
+}
+
+</script>
