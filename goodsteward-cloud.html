@@ -1278,7 +1278,7 @@ async function renderAccounting() {
   page.innerHTML = `
     <div class="ph">
       <div><div class="pt">Church Fund</div><div class="ps">Transactions &amp; ministry spending</div></div>
-      <div style="display:flex;gap:8px"><button class="btn btn-s" onclick="scanReceipt()"><i class="ti ti-scan"></i>Scan Receipt</button><button class="btn btn-p" onclick="openAddTx()"><i class="ti ti-plus"></i>Add Transaction</button></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-s" onclick="openSmartEntry()"><i class="ti ti-bolt"></i>Smart Entry</button><button class="btn btn-p" onclick="openAddTx()"><i class="ti ti-plus"></i>Add Transaction</button></div>
     </div>
     <div class="sg">
       <div class="sc green"><div class="sc-ico"><i class="ti ti-trending-up"></i></div><div class="sl">Total Income</div><div class="sv">${fmt(income)}</div></div>
@@ -1340,6 +1340,7 @@ async function deleteTx(id){
 async function renderSettings() {
   const page = document.getElementById('page-settings');
   const { data: church } = await db.from('churches').select('*').eq('id', SESSION.churchId).single();
+  const _aiEnabled = SESSION?.admin?.role==='superadmin';
 
   page.innerHTML = `
     <div class="ph"><div><div class="pt">Church Settings</div><div class="ps">Manage your church profile</div></div></div>
@@ -1366,9 +1367,59 @@ async function renderSettings() {
       <div style="margin-top:16px">
         <button class="btn btn-p" onclick="saveSettings()"><i class="ti ti-check"></i>Save Settings</button>
       </div>
+    </div>
+    <div id="ai-settings-panel" style="display:none">
+      <div class="card" style="margin-top:16px;border:2px dashed var(--border)">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:var(--g400)"><i class="ti ti-robot"></i> AI Receipt Scan <span style="font-size:11px;font-weight:400;background:var(--g100);padding:2px 8px;border-radius:4px;margin-left:6px">Admin Only</span></div>
+        <div style="font-size:12px;color:var(--g400);margin-bottom:16px">Optional. Paste an API key to enable one-click receipt scanning. Clients without a key use Smart Manual Entry (free).</div>
+        <div class="fg">
+          <div class="frow"><label>AI Provider</label>
+            <select id="st-ai-provider">
+              <option value="anthropic">Anthropic (Claude)</option>
+              <option value="openai">OpenAI (GPT-4o)</option>
+              <option value="google">Google (Gemini)</option>
+              <option value="groq">Groq (Llama — Free tier)</option>
+            </select>
+          </div>
+          <div class="frow"><label>API Key</label>
+            <input type="password" id="st-ai-key" placeholder="Paste API key here..." autocomplete="off">
+          </div>
+          <div class="frow"><label>Enable AI Scan</label>
+            <select id="st-ai-enabled"><option value="0">Disabled (use Smart Entry)</option><option value="1">Enabled</option></select>
+          </div>
+        </div>
+        <button class="btn btn-s" style="margin-top:8px" onclick="saveAiSettings()"><i class="ti ti-check"></i>Save AI Settings</button>
+      </div>
     </div>`;
 }
 
+function loadAiSettingsUI() {
+  var panel = document.getElementById('ai-settings-panel');
+  if(!panel) return;
+  // Only visible to superadmin
+  if(SESSION?.admin?.role === 'superadmin') {
+    panel.style.display = 'block';
+    var stored = JSON.parse(localStorage.getItem('gs_ai_cfg')||'{}');
+    var provEl = document.getElementById('st-ai-provider');
+    var keyEl = document.getElementById('st-ai-key');
+    var enEl = document.getElementById('st-ai-enabled');
+    if(provEl && stored.provider) provEl.value = stored.provider;
+    if(keyEl && stored.key) keyEl.value = stored.key;
+    if(enEl) enEl.value = stored.enabled ? '1' : '0';
+  }
+}
+function saveAiSettings() {
+  var cfg = {
+    provider: document.getElementById('st-ai-provider')?.value || 'anthropic',
+    key: document.getElementById('st-ai-key')?.value?.trim() || '',
+    enabled: document.getElementById('st-ai-enabled')?.value === '1'
+  };
+  localStorage.setItem('gs_ai_cfg', JSON.stringify(cfg));
+  toast('AI settings saved');
+}
+function getAiCfg() {
+  try { return JSON.parse(localStorage.getItem('gs_ai_cfg')||'{}'); } catch(e) { return {}; }
+}
 async function saveSettings() {
   const name = v('st-name').trim();
   if(!name) { toast('Church name is required','x'); return; }
@@ -3087,5 +3138,272 @@ async function renderAuditLog() {
     '<div class="card"><div class="tw"><table class="dt"><thead><tr><th>Date/Time</th><th>Action</th><th>Table</th><th>Changed By</th><th>Before</th><th>After</th></tr></thead>' +
     '<tbody>'+rows+'</tbody></table></div></div>';
 }
+
+</script>
+
+<script>
+
+// ═══════════════════════════════════════════════════════════════
+// SMART MANUAL ENTRY — Zero cost, no AI required
+// ═══════════════════════════════════════════════════════════════
+
+// Common transaction templates for quick fill
+var TX_TEMPLATES = [
+  {label:'Astro / TV', type:'Expense', cat:'Utilities', desc:'Astro subscription'},
+  {label:'TNB Electric', type:'Expense', cat:'Utilities', desc:'TNB electricity bill'},
+  {label:'Water Bill', type:'Expense', cat:'Utilities', desc:'Water bill'},
+  {label:'Internet', type:'Expense', cat:'Utilities', desc:'Internet subscription'},
+  {label:'Building Rental', type:'Expense', cat:'Rental', desc:'Building rental'},
+  {label:'Cleaning', type:'Expense', cat:'Maintenance', desc:'Cleaning services'},
+  {label:'Printing', type:'Expense', cat:'Supplies', desc:'Printing & stationery'},
+  {label:'Sound System', type:'Expense', cat:'Equipment', desc:'Sound system maintenance'},
+  {label:'Flowers/Deco', type:'Expense', cat:'Supplies', desc:'Flowers and decoration'},
+  {label:'Meals', type:'Expense', cat:'Food & Beverage', desc:'Meals & refreshments'},
+  {label:'Transport', type:'Expense', cat:'Transport', desc:'Transport expenses'},
+  {label:'Offering Income', type:'Income', cat:'Offering', desc:'Weekly offering'},
+  {label:'Tithe Income', type:'Income', cat:'Tithe', desc:'Tithe received'},
+  {label:'Donation', type:'Income', cat:'Donation', desc:'Special donation'},
+  {label:'Building Fund', type:'Income', cat:'Building Fund', desc:'Building fund contribution'},
+];
+
+var TX_CATEGORIES = [
+  'Utilities','Rental','Maintenance','Supplies','Equipment','Food & Beverage',
+  'Transport','Salary','Honorarium','Ministry','Outreach','Missions',
+  'Offering','Tithe','Donation','Building Fund','Mission Fund','Others'
+];
+
+function openSmartEntry() {
+  var mo = document.getElementById('mo-smart-entry');
+  if(!mo) {
+    mo = document.createElement('div'); mo.id='mo-smart-entry'; mo.className='mo';
+    document.body.appendChild(mo);
+  }
+
+  var aiCfg = getAiCfg();
+  var aiEnabled = aiCfg.enabled && aiCfg.key;
+  var today = new Date().toISOString().split('T')[0];
+
+  // Build category datalist
+  var catList = TX_CATEGORIES.map(function(c){ return '<option value="'+c+'">'; }).join('');
+
+  // Build templates
+  var tplHtml = TX_TEMPLATES.map(function(t){
+    var color = t.type==='Income' ? '#dcfce7' : '#fee2e2';
+    var textColor = t.type==='Income' ? '#166534' : '#991b1b';
+    return '<button onclick="applyTxTemplate('+JSON.stringify(t)+')" style="background:'+color+';color:'+textColor+';border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500">'+t.label+'</button>';
+  }).join('');
+
+  mo.innerHTML = '<div class="modal lg"><div class="mh">' +
+    '<span class="mt"><i class="ti ti-bolt"></i>Smart Transaction Entry</span>' +
+    '<button class="cx" onclick="closeMo(\'mo-smart-entry\')"><i class="ti ti-x"></i></button></div>' +
+    '<div class="mb">' +
+      // Quick templates
+      '<div style="margin-bottom:16px">' +
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--g400);margin-bottom:8px">Quick Templates</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:6px">'+tplHtml+'</div>' +
+      '</div>' +
+      '<hr style="border:none;border-top:1px solid var(--border);margin:0 0 16px">' +
+      // Form
+      '<div class="fg">' +
+        '<div class="frow"><label>Date *</label><input type="date" id="se-date" value="'+today+'"></div>' +
+        '<div class="frow"><label>Type *</label><select id="se-type"><option>Income</option><option>Expense</option></select></div>' +
+        '<div class="frow" style="position:relative"><label>Category</label>' +
+          '<input type="text" id="se-cat" list="se-cat-list" placeholder="Select or type..." autocomplete="off">' +
+          '<datalist id="se-cat-list">'+catList+'</datalist>' +
+        '</div>' +
+        '<div class="frow"><label>Amount (RM) *</label><input type="number" id="se-amount" step="0.01" placeholder="0.00" oninput="seCheckDuplicate()"></div>' +
+        '<div class="frow full"><label>Description *</label><input type="text" id="se-desc" placeholder="What is this for?" oninput="seAutocompleteDesc(this.value)"></div>' +
+        '<div id="se-desc-suggestions" style="display:none;flex-wrap:wrap;gap:4px;margin-top:-8px;margin-bottom:4px"></div>' +
+        '<div class="frow"><label>Reference No</label><input type="text" id="se-ref" placeholder="Invoice / receipt no."></div>' +
+        '<div class="frow full"><label>Attach Receipt Photo <span style="font-size:10px;color:var(--g400)">(optional — for your records)</span></label>' +
+          '<input type="file" id="se-receipt-file" accept="image/*" onchange="previewReceiptAttach(this)" style="font-size:12px">' +
+          '<div id="se-receipt-preview" style="margin-top:6px"></div>' +
+          '<input type="hidden" id="se-receipt-data">' +
+        '</div>' +
+      '</div>' +
+      // Duplicate warning
+      '<div id="se-dup-warn" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px;font-size:12px;color:#92400e;margin-top:4px">' +
+        '<i class="ti ti-alert-triangle"></i> <b>Possible duplicate</b> — a similar transaction exists for this date and amount.' +
+      '</div>' +
+      // AI scan option (hidden, only shown if AI enabled)
+      (aiEnabled ? '<div style="margin-top:12px;padding:10px;background:var(--g100);border-radius:8px;font-size:12px"><i class="ti ti-robot"></i> <b>AI Scan available</b> — <button onclick="triggerAiScan()" class="btn btn-s xs"><i class="ti ti-scan"></i>Scan Receipt with AI</button></div>' : '') +
+    '</div>' +
+    '<div class="mf">' +
+      '<button class="btn btn-s" onclick="closeMo(\'mo-smart-entry\')">Cancel</button>' +
+      '<button class="btn btn-p" onclick="saveSmartEntry()"><i class="ti ti-check"></i>Save Transaction</button>' +
+    '</div></div>';
+
+  openMo('mo-smart-entry');
+}
+
+function applyTxTemplate(t) {
+  document.getElementById('se-type').value = t.type;
+  document.getElementById('se-cat').value = t.cat;
+  document.getElementById('se-desc').value = t.desc;
+  document.getElementById('se-amount').focus();
+}
+
+function seAutocompleteDesc(val) {
+  var sug = document.getElementById('se-desc-suggestions');
+  if(!val || val.length < 2 || !_transactions) { sug.style.display='none'; return; }
+  var past = Array.from(new Set(_transactions
+    .filter(function(t){ return (t.description||'').toLowerCase().includes(val.toLowerCase()); })
+    .map(function(t){ return t.description; })
+  )).slice(0,5);
+  if(!past.length) { sug.style.display='none'; return; }
+  sug.style.display='flex';
+  sug.innerHTML = past.map(function(p){
+    return '<button onclick="document.getElementById(\'se-desc\').value=\''+p.replace(/'/g,"\\'")+'\';" style="background:var(--g100);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit">'+esc(p)+'</button>';
+  }).join('');
+}
+
+function seCheckDuplicate() {
+  var warn = document.getElementById('se-dup-warn');
+  if(!_transactions || !warn) return;
+  var amt = parseFloat(document.getElementById('se-amount').value)||0;
+  var date = document.getElementById('se-date').value;
+  if(!amt || !date) { warn.style.display='none'; return; }
+  var dup = _transactions.find(function(t){
+    return t.transaction_date===date && Math.abs((parseFloat(t.amount)||0)-amt)<0.01;
+  });
+  warn.style.display = dup ? 'block' : 'none';
+}
+
+function previewReceiptAttach(inp) {
+  var file = inp.files[0]; if(!file) return;
+  var prev = document.getElementById('se-receipt-preview');
+  compressImage(file, 800, 600, 0.7, function(b64){
+    document.getElementById('se-receipt-data').value = b64;
+    prev.innerHTML = '<img src="'+b64+'" style="max-width:100%;max-height:140px;border-radius:6px;border:1px solid var(--border)">';
+  });
+}
+
+async function saveSmartEntry() {
+  var date = document.getElementById('se-date').value;
+  var type = document.getElementById('se-type').value;
+  var cat  = document.getElementById('se-cat').value.trim();
+  var amt  = parseFloat(document.getElementById('se-amount').value);
+  var desc = document.getElementById('se-desc').value.trim();
+  var ref  = document.getElementById('se-ref').value.trim();
+  var receipt = document.getElementById('se-receipt-data').value || null;
+  if(!amt||amt<=0){ toast('Enter a valid amount','x'); return; }
+  if(!desc){ toast('Description required','x'); return; }
+  setSyncStatus('syncing');
+  await Cloud.insert('transactions', {
+    transaction_date: date, type, category: cat,
+    amount: amt, description: desc, reference_no: ref,
+    receipt_image: receipt
+  });
+  closeMo('mo-smart-entry');
+  toast('Transaction saved');
+  await renderAccounting();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HIDDEN AI SCAN — only activates when admin enables + sets API key
+// Supports: Anthropic, OpenAI, Google Gemini, Groq
+// ═══════════════════════════════════════════════════════════════
+function triggerAiScan() {
+  var inp = document.getElementById('ai-receipt-inp');
+  if(!inp) {
+    inp = document.createElement('input'); inp.type='file'; inp.id='ai-receipt-inp';
+    inp.accept='image/*'; inp.style.display='none';
+    document.body.appendChild(inp);
+  }
+  inp.onchange = async function() {
+    var file = inp.files[0]; if(!file) return;
+    var aiCfg = getAiCfg();
+    if(!aiCfg.enabled || !aiCfg.key) { toast('AI scan not configured','x'); return; }
+    toast('AI scanning receipt...','ok');
+    var reader = new FileReader();
+    reader.onload = async function(e) {
+      var b64 = e.target.result.split(',')[1];
+      var mtype = file.type || 'image/jpeg';
+      var result = null;
+      try {
+        if(aiCfg.provider === 'anthropic') {
+          result = await scanWithAnthropic(b64, mtype, aiCfg.key);
+        } else if(aiCfg.provider === 'openai') {
+          result = await scanWithOpenAI(b64, mtype, aiCfg.key);
+        } else if(aiCfg.provider === 'google') {
+          result = await scanWithGemini(b64, mtype, aiCfg.key);
+        } else if(aiCfg.provider === 'groq') {
+          result = await scanWithGroq(b64, mtype, aiCfg.key);
+        }
+        if(result) {
+          if(result.date) document.getElementById('se-date').value = result.date;
+          if(result.amount) document.getElementById('se-amount').value = result.amount;
+          if(result.description) document.getElementById('se-desc').value = result.description;
+          if(result.category) document.getElementById('se-cat').value = result.category;
+          if(result.reference) document.getElementById('se-ref').value = result.reference;
+          if(result.type) document.getElementById('se-type').value = result.type;
+          toast('Receipt scanned — please verify before saving');
+        }
+      } catch(err) {
+        console.error('AI scan error:', err);
+        toast('AI scan failed — fill in manually','x');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+var AI_PROMPT = 'Extract transaction data from this receipt/invoice. Reply ONLY with valid JSON, no markdown: {"date":"YYYY-MM-DD","amount":0.00,"description":"","category":"","reference":"","type":"Expense"}. type=Income or Expense. Guess category from: Utilities,Rental,Maintenance,Supplies,Equipment,Food & Beverage,Transport,Salary,Others. If date unclear use today '+new Date().toISOString().split('T')[0]+'. Amount must be a number.';
+
+async function scanWithAnthropic(b64, mtype, key) {
+  var resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+    body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:300,
+      messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mtype,data:b64}},{type:'text',text:AI_PROMPT}]}]})
+  });
+  var d = await resp.json();
+  return JSON.parse((d.content||[]).map(function(c){return c.text||'';}).join('').replace(/```json|```/g,'').trim());
+}
+
+async function scanWithOpenAI(b64, mtype, key) {
+  var resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body: JSON.stringify({model:'gpt-4o-mini', max_tokens:300,
+      messages:[{role:'user',content:[{type:'image_url',image_url:{url:'data:'+mtype+';base64,'+b64}},{type:'text',text:AI_PROMPT}]}]})
+  });
+  var d = await resp.json();
+  return JSON.parse(d.choices[0].message.content.replace(/```json|```/g,'').trim());
+}
+
+async function scanWithGemini(b64, mtype, key) {
+  var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mtype,data:b64}},{text:AI_PROMPT}]}]})
+  });
+  var d = await resp.json();
+  return JSON.parse(d.candidates[0].content.parts[0].text.replace(/```json|```/g,'').trim());
+}
+
+async function scanWithGroq(b64, mtype, key) {
+  // Groq vision uses llama models with image support
+  var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body: JSON.stringify({model:'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens:300,
+      messages:[{role:'user',content:[{type:'image_url',image_url:{url:'data:'+mtype+';base64,'+b64}},{type:'text',text:AI_PROMPT}]}]})
+  });
+  var d = await resp.json();
+  return JSON.parse(d.choices[0].message.content.replace(/```json|```/g,'').trim());
+}
+
+// Load AI settings UI when settings page renders
+var _origRenderSettings = null;
+(function(){
+  var _orig = window.renderSettings;
+  if(!_orig) return;
+  window.renderSettings = async function() {
+    await _orig();
+    loadAiSettingsUI();
+  };
+})();
 
 </script>
