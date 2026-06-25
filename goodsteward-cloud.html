@@ -542,8 +542,8 @@ const pageRenderers = {
   events: renderEvents,
   donations: renderDonations,
   accounting: renderAccounting,
-  finance: renderFinance,
-  reports: renderLeaderReports,
+  finance: (...a) => renderFinance(...a),
+  reports: (...a) => renderLeaderReports(...a),
   notices: renderNotices,
   settings: renderSettings
 };
