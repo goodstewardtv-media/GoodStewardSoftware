@@ -298,10 +298,11 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
         <div class="ni" onclick="go('events')"><i class="ti ti-calendar-event"></i>Events</div>
         <div class="ns">Finance</div>
         <div class="ni" onclick="go('donations')"><i class="ti ti-heart"></i>Offerings</div>
-        <div class="ni" onclick="go('accounting')"><i class="ti ti-report-money"></i>Church Finance</div>
-        <div class="ni" onclick="go('finance')"><i class="ti ti-chart-pie"></i>Fund Tracker</div>
+        <div class="ni" onclick="go('accounting')"><i class="ti ti-report-money"></i>Church Fund</div>
+        <div class="ni" onclick="go('finance')"><i class="ti ti-chart-pie"></i>Fund Summary</div>
         <div class="ns">Reports</div>
         <div class="ni" onclick="go('reports')"><i class="ti ti-clipboard-list"></i>Leader Reports</div>
+        <div class="ni" onclick="go('audit')"><i class="ti ti-shield-check"></i>Audit Log</div>
         <div class="ns">System</div>
         <div class="ni" onclick="go('notices')"><i class="ti ti-speakerphone"></i>Admin Notes</div>
         <div class="ni" onclick="go('settings')"><i class="ti ti-settings"></i>Settings</div>
@@ -339,6 +340,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
         <div class="page" id="page-settings"></div>
         <div class="page" id="page-finance"></div>
         <div class="page" id="page-reports"></div>
+        <div class="page" id="page-audit"></div>
       </div>
     </div>
   </div>
@@ -405,14 +407,14 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 let SESSION = null;  // { licenseKey, churchId, churchName, admin, plan }
 
 function getSession() {
-  try { return JSON.parse(sessionStorage.getItem('gs_cloud_sess') || 'null') } catch { return null }
+  try { const s=JSON.parse(localStorage.getItem('gs_cloud_sess')||'null'); if(!s) return null; if(s.expiry && Date.now()>s.expiry) { localStorage.removeItem('gs_cloud_sess'); return null; } return s; } catch { return null }
 }
 function setSession(s) {
-  sessionStorage.setItem('gs_cloud_sess', JSON.stringify(s));
+  s.expiry = Date.now() + 8*60*60*1000; localStorage.setItem('gs_cloud_sess', JSON.stringify(s));
   SESSION = s;
 }
 function clearSession() {
-  sessionStorage.removeItem('gs_cloud_sess');
+  localStorage.removeItem('gs_cloud_sess');
   SESSION = null;
 }
 
@@ -528,7 +530,7 @@ const pageTitles = {
   dash:'Dashboard', members:'Members', staff:'Pastoral & Staff',
   cellgroups:'Cell Groups', fellowships:'Fellowships', ministries:'Ministries',
   services:'Services', events:'Events', donations:'Offerings',
-  accounting:'Church Finance', notices:'Admin Notes', settings:'Settings'
+  accounting:'Church Fund', notices:'Admin Notes', settings:'Settings'
 };
 
 const pageRenderers = {
@@ -544,6 +546,7 @@ const pageRenderers = {
   accounting: renderAccounting,
   finance: (...a) => renderFinance(...a),
   reports: (...a) => renderLeaderReports(...a),
+  audit: (...a) => renderAuditLog(...a),
   notices: renderNotices,
   settings: renderSettings
 };
@@ -1170,7 +1173,7 @@ async function renderDonations() {
   page.innerHTML = `
     <div class="ph">
       <div><div class="pt">Offerings</div><div class="ps">${_donations.length} records · Total: ${fmt(total)}</div></div>
-      <div style="display:flex;gap:8px"><button class="btn btn-s" onclick="openManageOfferingTypes()"><i class="ti ti-list"></i>Types</button><button class="btn btn-p" onclick="openAddDonation()"><i class="ti ti-plus"></i>Record Offering</button></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-s" onclick="openManageOfferingTypes()"><i class="ti ti-list"></i>Funds</button><button class="btn btn-p" onclick="openAddDonation()"><i class="ti ti-plus"></i>Record Offering</button></div>
     </div>
     <div class="sg">
       <div class="sc green"><div class="sc-ico"><i class="ti ti-heart"></i></div><div class="sl">This Month</div><div class="sv">${fmt(monthTotal)}</div></div>
@@ -1274,7 +1277,7 @@ async function renderAccounting() {
 
   page.innerHTML = `
     <div class="ph">
-      <div><div class="pt">Church Finance</div><div class="ps">Fund tracking, transactions &amp; ministry budgets</div></div>
+      <div><div class="pt">Church Fund</div><div class="ps">Transactions &amp; ministry spending</div></div>
       <div style="display:flex;gap:8px"><button class="btn btn-s" onclick="scanReceipt()"><i class="ti ti-scan"></i>Scan Receipt</button><button class="btn btn-p" onclick="openAddTx()"><i class="ti ti-plus"></i>Add Transaction</button></div>
     </div>
     <div class="sg">
@@ -1688,7 +1691,7 @@ function minModal() {
     '<div class="mb"><div class="fg">' +
     '<div class="frow"><label>Ministry Name *</label><input type="text" id="mn-name" placeholder="e.g. Worship Ministry"></div>' +
     '<div class="frow"><label>Chinese Name</label><input type="text" id="mn-name-zh"></div>' +
-    '<div class="frow"><label>Ministry Leader</label><input type="text" id="mn-leader"></div>' +
+    '<div class="frow" style="position:relative"><label>Ministry Leader <span style="font-size:10px;color:var(--g400)">(type to search members)</span></label><input type="text" id="mn-leader" autocomplete="off" placeholder="Type name..." oninput="dynMemberSearch(this,\'mn-leader-results\')"><div id="mn-leader-results" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:50;max-height:160px;overflow-y:auto;display:none"></div></div>' +
     '<div class="frow"><label>Monthly Budget (RM)</label><input type="number" id="mn-budget" step="0.01" placeholder="0.00"></div>' +
     '<div class="frow"><label>Yearly Budget (RM)</label><input type="number" id="mn-yearly-budget" step="0.01" placeholder="0.00"></div>' +
     '<div class="frow full"><label>Description</label><textarea id="mn-desc" rows="3"></textarea></div>' +
@@ -1719,7 +1722,7 @@ async function saveMin() {
   const id = v('mn-id');
   if(id){await Cloud.update('ministries',id,row);toast('Ministry updated');}
   else{await Cloud.insert('ministries',row);toast('Ministry added');}
-  closeMo('mo-min'); await renderMinistries();
+  closeMo('mo-min'); setTimeout(async()=>{ await renderMinistries(); }, 100);
 }
 async function deleteMin(id){
   confirm2('Delete Ministry','Cannot be undone.',async()=>{
@@ -1734,7 +1737,7 @@ async function renderServices() {
   const totalOffering = svcs.reduce((s,sv)=>s+(parseFloat(sv.offering_amount)||0),0);
   page.innerHTML =
     '<div class="ph"><div><div class="pt">Services</div><div class="ps">' + svcs.length + ' service records</div></div>' +
-    '<button class="btn btn-p" onclick="openAddSvc()"><i class="ti ti-plus"></i>Add Service</button></div>' +
+    '<div style="display:flex;gap:8px"><button class="btn btn-s" onclick="openRecurringModal()"><i class="ti ti-repeat"></i>Recurring</button><button class="btn btn-p" onclick="openAddSvc()"><i class="ti ti-plus"></i>Add Service</button></div></div>' +
     '<div class="sg">' +
     '<div class="sc blue"><div class="sc-ico"><i class="ti ti-microphone"></i></div><div class="sl">Total Services</div><div class="sv">' + svcs.length + '</div></div>' +
     '<div class="sc green"><div class="sc-ico"><i class="ti ti-heart"></i></div><div class="sl">Total Service Offerings</div><div class="sv">' + fmt(totalOffering) + '</div></div>' +
@@ -2104,7 +2107,25 @@ function sendBotMsg(){
 }
 
 function botAnswer(question){
-  var q=question.toLowerCase();
+  var q=question.toLowerCase().trim();
+  // Greeting detection
+  var greetings=['hi','hello','hey','helo','hai','good morning','good afternoon','good evening','selamat','apa khabar','how are you','morning','afternoon','evening'];
+  if(greetings.some(function(g){return q===g||q.startsWith(g+' ')||q.startsWith(g+'!')||q.startsWith(g+',')})){
+    var name=SESSION&&SESSION.admin?(SESSION.admin.fullName||SESSION.admin.username):'there';
+    addBotMsg('bot','Hi '+name+'! 😊 Great to see you. How can I help you today? You can ask me about members, offerings, cell groups, settings, or anything about Good Steward.');
+    renderQuickBtns();
+    return;
+  }
+  // Thank you
+  if(q.includes('thank')||q.includes('terima kasih')||q.includes('tq')||q.includes('thx')){
+    addBotMsg('bot','You are welcome! 😊 Is there anything else I can help you with?');
+    return;
+  }
+  // Goodbye
+  if(q==='bye'||q==='goodbye'||q==='ok bye'||q==='ok thanks'){
+    addBotMsg('bot','Take care! 👋 Feel free to come back anytime you need help.');
+    return;
+  }
   var answer=null;
   for(var i=0;i<BOT_KB.length;i++){
     var entry=BOT_KB[i];
@@ -2367,7 +2388,7 @@ function openManageOfferingTypes() {
   var mo = document.getElementById('mo-offering-types');
   if(!mo){
     mo = document.createElement('div'); mo.id='mo-offering-types'; mo.className='mo';
-    mo.innerHTML = '<div class="modal sm"><div class="mh"><span class="mt"><i class="ti ti-list"></i>Manage Offering Types</span>' +
+    mo.innerHTML = '<div class="modal sm"><div class="mh"><span class="mt"><i class="ti ti-list"></i>Manage Offering Funds</span>' +
       '<button class="cx" onclick="closeMo(\'mo-offering-types\')"><i class="ti ti-x"></i></button></div>' +
       '<div class="mb" id="ot-body"></div>' +
       '<div class="mf"><button class="btn btn-s sm" onclick="addOfferingTypeRow()"><i class="ti ti-plus"></i>Add Type</button>' +
@@ -2457,6 +2478,7 @@ async function scanReceipt() {
 // CHANGE 9 — CHURCH FINANCE / FUND TRACKER PAGE
 // ═══════════════════════════════════════════════════════════════
 async function renderFinance() {
+  await loadFunds();
   const page = document.getElementById('page-finance');
   page.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;padding:60px"><div class="spinner"></div></div>';
   let ministries=[], donations=[], transactions=[];
@@ -2502,7 +2524,7 @@ async function renderFinance() {
   // Export CSV
   page.innerHTML = `
     <div class="ph">
-      <div><div class="pt">Church Finance</div><div class="ps">Fund tracking &amp; ministry budgets</div></div>
+      <div><div class="pt">Fund Summary</div><div class="ps">Fund overview &amp; ministry budgets</div></div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-s" onclick="exportFinanceCSV()"><i class="ti ti-download"></i>Export CSV</button>
       </div>
@@ -2760,6 +2782,310 @@ async function saveGroupPin(btn) {
   setSyncStatus('syncing');
   await Cloud.update(table, gid, {report_pin: pin});
   toast('PIN saved for group');
+}
+
+</script>
+
+<script>
+
+// ═══════════════════════════════════════════════════════════════
+// FIX #2 — Apply fmtDate to offering/service/event date displays
+// ═══════════════════════════════════════════════════════════════
+// (fmtDate is defined in main block — used throughout below)
+
+// ═══════════════════════════════════════════════════════════════
+// FEATURE #7 — RECURRING SERVICES SCHEDULER
+// ═══════════════════════════════════════════════════════════════
+function openRecurringModal() {
+  var mo = document.getElementById('mo-recurring');
+  if(!mo) {
+    mo = document.createElement('div'); mo.id='mo-recurring'; mo.className='mo';
+    mo.innerHTML = '<div class="modal lg"><div class="mh">' +
+      '<span class="mt"><i class="ti ti-repeat"></i>Recurring Service Setup</span>' +
+      '<button class="cx" onclick="closeMo(\'mo-recurring\')"><i class="ti ti-x"></i></button></div>' +
+      '<div class="mb"><div class="fg">' +
+        '<div class="frow"><label>Service Name / Theme</label><input type="text" id="rc-name" placeholder="e.g. Sunday Worship Service (English)"></div>' +
+        '<div class="frow"><label>Service Type</label><select id="rc-type"><option>Sunday Service</option><option>Friday Service</option><option>Youth Service</option><option>Prayer Meeting</option><option>Special Service</option></select></div>' +
+        '<div class="frow"><label>Repeats Every</label><select id="rc-day"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></div>' +
+        '<div class="frow"><label>Start Time</label><input type="time" id="rc-start-time" value="08:30"></div>' +
+        '<div class="frow"><label>Speaker (default)</label><input type="text" id="rc-speaker" placeholder="e.g. Pastor James"></div>' +
+        '<div class="frow"><label>Worship Leader (default)</label><input type="text" id="rc-worship"></div>' +
+        '<div class="frow"><label>From Date</label><input type="date" id="rc-from"></div>' +
+        '<div class="frow"><label>Generate how many weeks?</label><select id="rc-weeks"><option value="4">4 weeks</option><option value="8">8 weeks</option><option value="12">12 weeks</option><option value="26">26 weeks (6 months)</option><option value="52">52 weeks (1 year)</option></select></div>' +
+      '</div>' +
+      '<div id="rc-preview" style="margin-top:16px"></div>' +
+      '</div>' +
+      '<div class="mf">' +
+        '<button class="btn btn-s" onclick="closeMo(\'mo-recurring\')">Cancel</button>' +
+        '<button class="btn btn-s" onclick="previewRecurring()"><i class="ti ti-eye"></i>Preview</button>' +
+        '<button class="btn btn-p" onclick="saveRecurring()"><i class="ti ti-check"></i>Create Services</button>' +
+      '</div></div>';
+    document.body.appendChild(mo);
+  }
+  // Set default from date to next occurrence of selected day
+  var today = new Date();
+  document.getElementById('rc-from').value = today.toISOString().split('T')[0];
+  openMo('mo-recurring');
+}
+
+function getRecurringDates() {
+  var dayOfWeek = parseInt(document.getElementById('rc-day').value);
+  var fromDate = new Date(document.getElementById('rc-from').value + 'T00:00:00');
+  var weeks = parseInt(document.getElementById('rc-weeks').value);
+  var dates = [];
+  // Find first occurrence of the selected day on or after fromDate
+  var d = new Date(fromDate);
+  while(d.getDay() !== dayOfWeek) { d.setDate(d.getDate()+1); }
+  for(var i=0; i<weeks; i++) {
+    dates.push(new Date(d));
+    d.setDate(d.getDate()+7);
+  }
+  return dates;
+}
+
+function previewRecurring() {
+  var dates = getRecurringDates();
+  var preview = document.getElementById('rc-preview');
+  var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var html = '<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px">Preview — '+dates.length+' services will be created:</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;">' +
+    dates.map(function(d){
+      var dd = d.toISOString().split('T')[0];
+      var parts = dd.split('-');
+      return '<span style="background:var(--g100);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px">'+dayNames[d.getDay()]+' '+parts[2]+'/'+parts[1]+'/'+parts[0]+'</span>';
+    }).join('') + '</div>';
+  preview.innerHTML = html;
+}
+
+async function saveRecurring() {
+  var dates = getRecurringDates();
+  var name = document.getElementById('rc-name').value.trim();
+  var type = document.getElementById('rc-type').value;
+  var time = document.getElementById('rc-start-time').value;
+  var speaker = document.getElementById('rc-speaker').value.trim();
+  var worship = document.getElementById('rc-worship').value.trim();
+  if(!dates.length){ toast('No dates to create','x'); return; }
+  setSyncStatus('syncing');
+  var created = 0;
+  for(var i=0; i<dates.length; i++) {
+    var dd = dates[i].toISOString().split('T')[0];
+    await Cloud.insert('services', {
+      service_date: dd,
+      service_time: time,
+      service_type: type,
+      sermon_theme: name,
+      speaker: speaker,
+      worship_leader: worship,
+      offering_amount: 0,
+      estimated_attendance: 0,
+      actual_attendance: 0
+    });
+    created++;
+  }
+  closeMo('mo-recurring');
+  toast(created + ' services created!');
+  await renderServices();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FEATURE #8 — MEMBER SEARCH AUTOCOMPLETE FOR FELLOWSHIP/MINISTRY/STAFF
+// ═══════════════════════════════════════════════════════════════
+async function buildMemberSearch(inputId, resultsId, onPick) {
+  var inp = document.getElementById(inputId);
+  var res = document.getElementById(resultsId);
+  if(!inp || !res) return;
+  inp.oninput = async function() {
+    var q = inp.value.trim();
+    if(q.length < 2) { res.style.display='none'; return; }
+    var all = await Cloud.get('members');
+    var matches = all.filter(function(m){
+      return (m.name_en||'').toLowerCase().includes(q.toLowerCase()) || (m.name_zh||'').includes(q);
+    }).slice(0,8);
+    if(!matches.length) { res.style.display='none'; return; }
+    res.innerHTML = matches.map(function(m){
+      return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)" ' +
+        'data-name="'+esc(m.name_en)+'" data-namezh="'+esc(m.name_zh||'')+'" data-photo="'+esc(m.photo||'')+'" ' +
+        'onmousedown="pickMemberSearch(this,\''+inputId+'\',\''+resultsId+'\')">'+
+        '<b>'+esc(m.name_en)+'</b>'+(m.name_zh?' <span style="color:var(--g400)">'+esc(m.name_zh)+'</span>':'')+
+      '</div>';
+    }).join('');
+    res.style.display='block';
+  };
+}
+
+function pickMemberSearch(el, inputId, resultsId) {
+  document.getElementById(inputId).value = el.dataset.name;
+  document.getElementById(resultsId).style.display = 'none';
+}
+
+function memberSearchField(inputId, label) {
+  return '<div class="frow" style="position:relative">' +
+    '<label>'+label+' <span style="font-size:10px;color:var(--g400)">(type to search members)</span></label>' +
+    '<input type="text" id="'+inputId+'" placeholder="Type name..." autocomplete="off" oninput="dynMemberSearch(this,\''+inputId+'-results\')">' +
+    '<div id="'+inputId+'-results" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:50;max-height:180px;overflow-y:auto;display:none"></div>' +
+  '</div>';
+}
+
+var _memberCache = null;
+async function dynMemberSearch(inp, resultsId) {
+  var q = inp.value.trim();
+  var res = document.getElementById(resultsId);
+  if(!res) return;
+  if(q.length < 2) { res.style.display='none'; return; }
+  if(!_memberCache) { _memberCache = await Cloud.get('members'); }
+  var matches = _memberCache.filter(function(m){
+    return (m.name_en||'').toLowerCase().includes(q.toLowerCase()) || (m.name_zh||'').includes(q);
+  }).slice(0,8);
+  if(!matches.length) { res.style.display='none'; return; }
+  res.innerHTML = matches.map(function(m){
+    return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);hover:background:#f9fafb" ' +
+      'onmousedown="document.getElementById(\''+inp.id+'\').value=\''+esc(m.name_en)+'\';document.getElementById(\''+resultsId+'\').style.display=\'none\'">' +
+      '<b>'+esc(m.name_en)+'</b>'+(m.name_zh?' <span style="color:var(--g400)">'+esc(m.name_zh)+'</span>':'')+
+    '</div>';
+  }).join('');
+  res.style.display='block';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FEATURE #9 — FILTERS FOR OFFERINGS + FUND SUMMARY
+// ═══════════════════════════════════════════════════════════════
+var _donFilter = {type:'', month:'', search:''};
+
+function renderDonationFilters(donations) {
+  var types = Array.from(new Set(donations.map(function(d){return d.type||'General';}))).sort();
+  var months = Array.from(new Set(donations.map(function(d){return (d.donation_date||'').slice(0,7);}).filter(Boolean))).sort().reverse();
+  return '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">' +
+    '<select id="don-filter-type" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px" onchange="applyDonFilter()">' +
+      '<option value="">All Funds</option>' +
+      types.map(function(t){return '<option value="'+esc(t)+'">'+esc(t)+'</option>';}).join('') +
+    '</select>' +
+    '<select id="don-filter-month" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px" onchange="applyDonFilter()">' +
+      '<option value="">All Months</option>' +
+      months.map(function(m){var p=m.split('-');return '<option value="'+m+'">'+p[1]+'/'+p[0]+'</option>';}).join('') +
+    '</select>' +
+    '<input type="text" id="don-filter-search" placeholder="Search donor..." style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;min-width:140px" oninput="applyDonFilter()">' +
+    '<button class="btn btn-s xs" onclick="clearDonFilters()"><i class="ti ti-x"></i>Clear</button>' +
+  '</div>';
+}
+
+function applyDonFilter() {
+  var type = document.getElementById('don-filter-type')?.value || '';
+  var month = document.getElementById('don-filter-month')?.value || '';
+  var search = (document.getElementById('don-filter-search')?.value || '').toLowerCase();
+  var rows = document.querySelectorAll('#don-tbody tr[data-date]');
+  var shown = 0;
+  rows.forEach(function(tr) {
+    var trType = tr.dataset.type || '';
+    var trDate = tr.dataset.date || '';
+    var trDonor = (tr.dataset.donor || '').toLowerCase();
+    var show = (!type || trType===type) && (!month || trDate.startsWith(month)) && (!search || trDonor.includes(search));
+    tr.style.display = show ? '' : 'none';
+    if(show) shown++;
+  });
+  var counter = document.getElementById('don-filter-count');
+  if(counter) counter.textContent = shown + ' records';
+}
+
+function clearDonFilters() {
+  var t=document.getElementById('don-filter-type'); if(t) t.value='';
+  var m=document.getElementById('don-filter-month'); if(m) m.value='';
+  var s=document.getElementById('don-filter-search'); if(s) s.value='';
+  applyDonFilter();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FEATURE #10 — FUND SUBPAGE (click fund → details modal)
+// ═══════════════════════════════════════════════════════════════
+var _funds = [];
+
+async function loadFunds() {
+  try {
+    var stored = localStorage.getItem('gs_funds_'+SESSION?.churchId);
+    _funds = stored ? JSON.parse(stored) : [];
+  } catch(e) { _funds = []; }
+}
+
+function saveFunds() {
+  localStorage.setItem('gs_funds_'+SESSION?.churchId, JSON.stringify(_funds));
+}
+
+function openFundDetail(fundName) {
+  var fund = _funds.find(function(f){return f.name===fundName;}) || {name:fundName, purpose:'', goal:0, period:'', description:'', bank_name:'', bank_acc:''};
+  var mo = document.getElementById('mo-fund-detail');
+  if(!mo) {
+    mo = document.createElement('div'); mo.id='mo-fund-detail'; mo.className='mo';
+    mo.innerHTML = '<div class="modal sm"><div class="mh">' +
+      '<span class="mt"><i class="ti ti-wallet"></i>Fund Details</span>' +
+      '<button class="cx" onclick="closeMo(\'mo-fund-detail\')"><i class="ti ti-x"></i></button></div>' +
+      '<div class="mb"><div class="fg">' +
+        '<div class="frow full"><label>Fund Name</label><input type="text" id="fd-name" readonly style="background:var(--g100)"></div>' +
+        '<div class="frow full"><label>Funding Purpose</label><input type="text" id="fd-purpose" placeholder="What is this fund for?"></div>' +
+        '<div class="frow"><label>Funding Goal (RM)</label><input type="number" id="fd-goal" step="0.01" placeholder="0.00"></div>' +
+        '<div class="frow"><label>Funding Period</label><input type="text" id="fd-period" placeholder="e.g. Jan 2025 – Dec 2025"></div>' +
+        '<div class="frow full"><label>Description</label><textarea id="fd-desc" rows="3" placeholder="Additional details..."></textarea></div>' +
+        '<div class="frow"><label>Bank Name</label><input type="text" id="fd-bank" placeholder="e.g. Maybank"></div>' +
+        '<div class="frow"><label>Account Number</label><input type="text" id="fd-acc" placeholder="e.g. 1234-5678-9012"></div>' +
+        '<div id="fd-progress-area" style="margin-top:8px"></div>' +
+      '</div></div>' +
+      '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-fund-detail\')">Cancel</button>' +
+        '<button class="btn btn-p" onclick="saveFundDetail()"><i class="ti ti-check"></i>Save</button></div>' +
+      '</div>';
+    document.body.appendChild(mo);
+  }
+  document.getElementById('fd-name').value = fund.name||fundName;
+  document.getElementById('fd-purpose').value = fund.purpose||'';
+  document.getElementById('fd-goal').value = fund.goal||'';
+  document.getElementById('fd-period').value = fund.period||'';
+  document.getElementById('fd-desc').value = fund.description||'';
+  document.getElementById('fd-bank').value = fund.bank_name||'';
+  document.getElementById('fd-acc').value = fund.bank_acc||'';
+  openMo('mo-fund-detail');
+}
+
+function saveFundDetail() {
+  var name = document.getElementById('fd-name').value;
+  var idx = _funds.findIndex(function(f){return f.name===name;});
+  var fund = { name, purpose:document.getElementById('fd-purpose').value, goal:parseFloat(document.getElementById('fd-goal').value)||0, period:document.getElementById('fd-period').value, description:document.getElementById('fd-desc').value, bank_name:document.getElementById('fd-bank').value, bank_acc:document.getElementById('fd-acc').value };
+  if(idx>=0) _funds[idx]=fund; else _funds.push(fund);
+  saveFunds();
+  closeMo('mo-fund-detail');
+  toast('Fund details saved');
+  if(typeof renderFinance === 'function') renderFinance();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FEATURE #11 — AUDIT LOG PAGE
+// ═══════════════════════════════════════════════════════════════
+async function renderAuditLog() {
+  var page = document.getElementById('page-audit');
+  if(!page) return;
+  page.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;padding:60px"><div class="spinner"></div></div>';
+  var logs = [];
+  try {
+    var { data } = await db.from('audit_log').select('*').eq('church_id', SESSION.churchId).order('changed_at', {ascending:false}).limit(200);
+    logs = data || [];
+  } catch(e) {
+    page.innerHTML = '<div style="padding:32px;text-align:center;color:var(--g400)"><i class="ti ti-lock" style="font-size:36px"></i><p style="margin-top:8px">Audit log not set up yet.<br>Run the SQL setup in your Supabase dashboard.</p></div>';
+    return;
+  }
+  var rows = logs.map(function(l){
+    var oldVal = l.old_values ? JSON.stringify(l.old_values).slice(0,60) : '—';
+    var newVal = l.new_values ? JSON.stringify(l.new_values).slice(0,60) : '—';
+    var actionColor = l.action==='DELETE'?'var(--danger)':l.action==='UPDATE'?'var(--warning)':'var(--success)';
+    return '<tr>' +
+      '<td style="font-size:11px;color:var(--g400)">'+fmtDate((l.changed_at||'').split('T')[0])+'<br>'+(l.changed_at||'').split('T')[1]?.slice(0,5)+' '+((l.changed_at||'').includes('+')?(l.changed_at.split('+')[1]?'GMT+'+l.changed_at.split('+')[1].slice(0,2):''):'')+'</td>' +
+      '<td><span style="font-size:11px;font-weight:700;color:'+actionColor+'">'+esc(l.action||'')+'</span></td>' +
+      '<td style="font-size:12px">'+esc(l.table_name||'')+'</td>' +
+      '<td style="font-size:12px;font-weight:600">'+esc(l.changed_by||'—')+'</td>' +
+      '<td style="font-size:11px;color:var(--g400);max-width:150px;word-break:break-all">'+esc(oldVal)+'</td>' +
+      '<td style="font-size:11px;color:var(--g600);max-width:150px;word-break:break-all">'+esc(newVal)+'</td>' +
+    '</tr>';
+  }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--g300);padding:20px">No audit records yet</td></tr>';
+
+  page.innerHTML = '<div class="ph"><div><div class="pt">Audit Log</div><div class="ps">Read-only record of all data changes</div></div></div>' +
+    '<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:16px"><i class="ti ti-shield-check"></i> This log is <b>read-only</b> and cannot be altered by anyone — including admins. All changes to financial and member data are recorded here permanently.</div>' +
+    '<div class="card"><div class="tw"><table class="dt"><thead><tr><th>Date/Time</th><th>Action</th><th>Table</th><th>Changed By</th><th>Before</th><th>After</th></tr></thead>' +
+    '<tbody>'+rows+'</tbody></table></div></div>';
 }
 
 </script>
