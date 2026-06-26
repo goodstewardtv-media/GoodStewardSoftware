@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Member Portal — Good Steward</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0f2444;--navy2:#1a3a6b;--gold:#c9a84c;--gold2:#f0d080;
+  --success:#22c55e;--danger:#ef4444;--warning:#f59e0b;
+  --white:#fff;--g50:#f9fafb;--g100:#f3f4f6;--g200:#e5e7eb;
+  --g400:#9ca3af;--g600:#4b5563;--g900:#111827;
+  --radius:14px;--shadow:0 4px 24px rgba(15,36,68,.10);
+}
+html,body{min-height:100vh;font-family:'Inter',sans-serif;background:var(--g50);color:var(--g900);-webkit-font-smoothing:antialiased}
+.app-header{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);
+  padding:28px 20px 24px;text-align:center;
+  border-radius:0 0 28px 28px;
+  box-shadow:0 8px 32px rgba(15,36,68,.18);
+  position:relative;
+}
+.church-logo{width:88px;height:88px;border-radius:50%;background:rgba(255,255,255,.12);border:3px solid rgba(201,168,76,.5);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;overflow:hidden;box-shadow:0 0 0 6px rgba(201,168,76,.12)}
+.church-logo img{width:100%;height:100%;object-fit:cover}
+.church-name{font-size:20px;font-weight:700;color:var(--white);margin-bottom:3px}
+.portal-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(201,168,76,.2);border:1px solid rgba(201,168,76,.4);color:var(--gold2);font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:3px 12px;border-radius:20px;margin-bottom:8px}
+.member-avatar{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:20px;font-weight:700;color:var(--white);overflow:hidden}
+.member-avatar img{width:100%;height:100%;object-fit:cover}
+.gs-credit{position:absolute;bottom:10px;right:14px;font-size:10px;color:rgba(255,255,255,.35)}
+.main{padding:20px 16px 100px;max-width:480px;margin:0 auto}
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title i{color:var(--gold);font-size:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--g600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1.5px solid var(--g200);border-radius:10px;font-size:15px;font-family:inherit;color:var(--g900);background:var(--white);transition:border .15s;-webkit-appearance:none}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--navy)}
+.field input[readonly]{background:var(--g50);color:var(--g400)}
+.field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.btn-primary{width:100%;padding:15px;background:var(--navy);color:var(--white);border:none;border-radius:12px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.btn-secondary{width:100%;padding:12px;background:var(--g100);color:var(--g600);border:1.5px solid var(--g200);border-radius:10px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#b8942e);color:var(--navy);border:none}
+.step{display:none}.step.active{display:block}
+.alert{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.alert-error{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+.alert-success{background:#f0fdf4;border:1px solid #86efac;color:#166534}
+.alert-info{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af}
+.alert-warning{background:#fffbeb;border:1px solid #fcd34d;color:#92400e}
+.spinner{width:32px;height:32px;border:3px solid var(--g200);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;margin:32px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--g200);display:none;grid-template-columns:repeat(3,1fr);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.bottom-nav.visible{display:grid}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px;cursor:pointer;border:none;background:none;font-family:inherit;color:var(--g400);transition:color .15s}
+.nav-tab.active{color:var(--navy)}
+.nav-tab i{font-size:22px}
+.nav-tab span{font-size:10px;font-weight:600;letter-spacing:.3px}
+
+/* Giving statement */
+.giving-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--g100);font-size:13px}
+.giving-row:last-child{border-bottom:none}
+.giving-amt{font-weight:700;color:var(--navy)}
+.giving-type{font-size:11px;color:var(--g400)}
+.total-bar{background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.total-bar-lbl{font-size:12px;color:rgba(255,255,255,.7)}
+.total-bar-val{font-size:20px;font-weight:700;color:var(--white)}
+
+/* Event RSVP */
+.event-card{border:1.5px solid var(--g200);border-radius:12px;padding:14px;margin-bottom:10px;transition:border .2s}
+.event-card.going{border-color:var(--success);background:#f0fdf4}
+.event-card.not-going{border-color:var(--danger);background:#fef2f2}
+.event-date-badge{display:inline-block;background:var(--navy);color:var(--white);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;margin-bottom:8px}
+.rsvp-btns{display:flex;gap:8px;margin-top:10px}
+.rsvp-btn{flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--g200);background:var(--white);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s}
+.rsvp-btn.going-btn.selected{background:var(--success);color:var(--white);border-color:var(--success)}
+.rsvp-btn.no-btn.selected{background:var(--danger);color:var(--white);border-color:var(--danger)}
+
+/* Pending badge */
+.pending-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:#fef3c7;color:#92400e;margin-left:6px}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="portal-badge"><i class="ti ti-user"></i>Member Portal</div>
+  <div class="church-logo" id="church-logo-wrap">
+    <i class="ti ti-building-church" style="font-size:36px;color:rgba(255,255,255,.6)"></i>
+  </div>
+  <div class="church-name" id="church-name-display">Good Steward</div>
+  <div id="member-name-header" style="font-size:13px;color:rgba(255,255,255,.65);margin-top:3px"></div>
+  <div class="gs-credit">Powered by Good Steward</div>
+</div>
+
+<div class="main">
+
+  <!-- STEP 1: LICENSE KEY -->
+  <div class="step active" id="step-key">
+    <div style="height:24px"></div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-building-church"></i>Find Your Church</div>
+      <div id="key-err" class="alert alert-error" style="display:none"><i class="ti ti-alert-circle"></i><span id="key-err-msg"></span></div>
+      <div class="field">
+        <label>Church License Key</label>
+        <input type="text" id="inp-lic" placeholder="GS-XXXX-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase;letter-spacing:1px;font-family:monospace;font-size:14px" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <button class="btn-primary" onclick="findChurch()"><i class="ti ti-search"></i>Find Church</button>
+      <div style="font-size:11px;color:var(--g400);text-align:center;margin-top:12px">Ask your church admin for the license key</div>
+    </div>
+  </div>
+
+  <!-- STEP 2: MEMBER LOGIN -->
+  <div class="step" id="step-login">
+    <div style="height:24px"></div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-login"></i>Member Login</div>
+      <div id="login-err" class="alert alert-error" style="display:none"><i class="ti ti-alert-circle"></i><span id="login-err-msg"></span></div>
+      <div class="field">
+        <label>Search Your Name</label>
+        <input type="text" id="inp-name-search" placeholder="Type your name..." autocomplete="off" oninput="searchMember(this.value)">
+      </div>
+      <div id="member-results" style="margin-bottom:12px;max-height:200px;overflow-y:auto;display:none;border:1.5px solid var(--g200);border-radius:10px"></div>
+      <div id="selected-member-display" style="display:none;background:var(--g50);border:1.5px solid var(--g200);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px"></div>
+      <div class="field">
+        <label>Your PIN <span style="font-size:10px;font-weight:400;color:var(--g400)">(default: last 4 digits of your IC)</span></label>
+        <input type="password" id="inp-mpin" placeholder="Enter PIN" maxlength="8" style="letter-spacing:4px;font-size:20px;text-align:center">
+      </div>
+      <button class="btn-primary btn-gold" id="login-btn" onclick="doMemberLogin()"><i class="ti ti-login"></i>Login</button>
+      <button class="btn-secondary" onclick="showStep('step-key')"><i class="ti ti-arrow-left"></i>Back</button>
+      <div style="font-size:11px;color:var(--g400);text-align:center;margin-top:12px">Forgot PIN? Contact your church admin to reset it</div>
+    </div>
+  </div>
+
+  <!-- STEP 3: MEMBER APP -->
+  <div class="step" id="step-app">
+    <!-- TAB: GIVING -->
+    <div id="tab-giving" class="tab-page">
+      <div style="height:20px"></div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0"><i class="ti ti-receipt"></i>My Giving</div>
+          <select id="giving-year" onchange="loadGiving()" style="padding:6px 10px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:inherit"></select>
+        </div>
+        <div id="giving-content"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- TAB: MY INFO -->
+    <div id="tab-info" class="tab-page" style="display:none">
+      <div style="height:20px"></div>
+      <div class="alert alert-warning" style="margin-bottom:12px">
+        <i class="ti ti-info-circle"></i>
+        <div>Changes go to your admin for approval before updating your record. Name and IC cannot be changed here.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-user-edit"></i>Update My Info</div>
+        <div id="info-msg"></div>
+        <div class="field"><label>Full Name</label><input type="text" id="mi-name" readonly></div>
+        <div class="field"><label>Phone Number</label><input type="tel" id="mi-phone" placeholder="01X-XXXXXXX" inputmode="tel"></div>
+        <div class="field"><label>Email</label><input type="email" id="mi-email" placeholder="your@email.com" inputmode="email"></div>
+        <div class="field"><label>Address</label><textarea id="mi-address" placeholder="Current address..."></textarea></div>
+        <div class="field"><label>Emergency Contact</label><input type="text" id="mi-emergency" placeholder="Name & phone number"></div>
+        <div class="field"><label>Occupation</label><input type="text" id="mi-occupation" placeholder="e.g. Teacher, Engineer..."></div>
+        <button class="btn-primary btn-gold" onclick="submitInfoUpdate()"><i class="ti ti-send"></i>Submit for Approval</button>
+        <div style="font-size:11px;color:var(--g400);text-align:center;margin-top:10px">Your admin will review and approve this update</div>
+      </div>
+    </div>
+
+    <!-- TAB: EVENTS -->
+    <div id="tab-events" class="tab-page" style="display:none">
+      <div style="height:20px"></div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-calendar-event"></i>Upcoming Events</div>
+        <div id="events-list"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="bottom-nav">
+  <button class="nav-tab active" id="nav-giving" onclick="switchTab('giving')">
+    <i class="ti ti-receipt"></i><span>Giving</span>
+  </button>
+  <button class="nav-tab" id="nav-info" onclick="switchTab('info')">
+    <i class="ti ti-user-edit"></i><span>My Info</span>
+  </button>
+  <button class="nav-tab" id="nav-events" onclick="switchTab('events')">
+    <i class="ti ti-calendar-event"></i><span>Events</span>
+  </button>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://cqbhlmdwlcwskeetrcqk.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_z10sU9OEPBVw1ER0gJUktQ_NarJrvSL';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let _church = null;
+let _member = null;
+let _allMembers = [];
+let _selectedMemberId = null;
+let _rsvps = {};
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function fmtDate(d){ if(!d)return'—'; var p=(d||'').split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d; }
+function fmt(v){ return 'RM '+(parseFloat(v)||0).toFixed(2); }
+function showStep(id){ document.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function setErr(id,msg){ document.getElementById(id+'-msg').textContent=msg; document.getElementById(id).style.display='flex'; }
+
+// ── RESTORE SESSION ──
+window.addEventListener('DOMContentLoaded', function(){
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('gs_member_sess')||'null'); } catch(e){}
+  if(saved && saved.memberId && Date.now() < (saved.expiry||0)) {
+    restoreMemberSession(saved);
+  }
+});
+
+async function restoreMemberSession(saved) {
+  try {
+    var [churchRes, memberRes] = await Promise.all([
+      db.from('churches').select('*').eq('id', saved.churchId).single(),
+      db.from('members').select('*').eq('id', saved.memberId).single()
+    ]);
+    if(!churchRes.data || !memberRes.data) { localStorage.removeItem('gs_member_sess'); return; }
+    _church = churchRes.data; _member = memberRes.data;
+    loadChurchUI(_church);
+    loadMemberHeader(_member);
+    loadInfoForm(_member);
+    showStep('step-app');
+    document.getElementById('bottom-nav').classList.add('visible');
+    switchTab('giving');
+  } catch(e){}
+}
+
+// ── STEP 1: FIND CHURCH ──
+async function findChurch() {
+  var key = document.getElementById('inp-lic').value.trim().toUpperCase();
+  if(!key){ setErr('key-err','Please enter the license key'); return; }
+  try {
+    var { data: church } = await db.from('churches').select('*').eq('license_key', key).single();
+    if(!church){ setErr('key-err','Church not found. Check the key and try again.'); return; }
+    _church = church;
+    loadChurchUI(church);
+    // Load all members for search
+    var { data: members } = await db.from('members').select('id,name_en,name_zh,ic_number,member_pin,photo').eq('church_id', church.id).eq('status','Active');
+    _allMembers = members || [];
+    showStep('step-login');
+  } catch(e) {
+    setErr('key-err','Connection error. Check internet and try again.');
+  }
+}
+
+function loadChurchUI(church) {
+  document.getElementById('church-name-display').textContent = church.name||'My Church';
+  if(church.logo_url) document.getElementById('church-logo-wrap').innerHTML = '<img src="'+church.logo_url+'" alt="Logo">';
+}
+
+// ── STEP 2: MEMBER SEARCH + LOGIN ──
+function searchMember(q) {
+  var res = document.getElementById('member-results');
+  if(q.length < 2){ res.style.display='none'; return; }
+  var matches = _allMembers.filter(function(m){
+    return (m.name_en||'').toLowerCase().includes(q.toLowerCase()) || (m.name_zh||'').includes(q);
+  }).slice(0,8);
+  if(!matches.length){ res.style.display='none'; return; }
+  res.style.display='block';
+  res.innerHTML = matches.map(function(m){
+    var initials = (m.name_en||'?').split(' ').map(function(w){return w[0];}).join('').substr(0,2).toUpperCase();
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--g100)" ' +
+      'onclick="selectMember(\''+m.id+'\')">' +
+      (m.photo ? '<img src="'+m.photo+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0">' :
+        '<div style="width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">'+initials+'</div>') +
+      '<div><div style="font-weight:600;font-size:14px">'+esc(m.name_en)+'</div>' +
+        (m.name_zh?'<div style="font-size:12px;color:var(--g400)">'+esc(m.name_zh)+'</div>':'') +
+      '</div></div>';
+  }).join('');
+}
+
+function selectMember(id) {
+  _selectedMemberId = id;
+  var m = _allMembers.find(function(x){return x.id===id;});
+  document.getElementById('member-results').style.display='none';
+  document.getElementById('inp-name-search').value = m.name_en||'';
+  var disp = document.getElementById('selected-member-display');
+  var initials = (m.name_en||'?').split(' ').map(function(w){return w[0];}).join('').substr(0,2).toUpperCase();
+  disp.style.display='flex';
+  disp.style.cssText='display:flex;align-items:center;gap:10px;background:var(--g50);border:1.5px solid var(--g200);border-radius:10px;padding:12px;margin-bottom:14px';
+  disp.innerHTML = (m.photo ? '<img src="'+m.photo+'" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0">' :
+    '<div style="width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">'+initials+'</div>') +
+    '<div><div style="font-weight:700">'+esc(m.name_en)+'</div>' +
+    (m.name_zh?'<div style="font-size:12px;color:var(--g400)">'+esc(m.name_zh)+'</div>':'')+'</div>';
+}
+
+async function doMemberLogin() {
+  if(!_selectedMemberId){ setErr('login-err','Select your name from the list'); return; }
+  var pin = document.getElementById('inp-mpin').value.trim();
+  if(!pin){ setErr('login-err','Enter your PIN'); return; }
+  var m = _allMembers.find(function(x){return x.id===_selectedMemberId;});
+  if(!m){ setErr('login-err','Member not found'); return; }
+  // Check PIN: member_pin if set, else last 4 digits of IC
+  var validPin = m.member_pin || (m.ic_number||'').replace(/\D/g,'').slice(-4);
+  if(!validPin){ setErr('login-err','No PIN set. Contact admin.'); return; }
+  if(pin !== validPin){ setErr('login-err','Incorrect PIN. Try the last 4 digits of your IC.'); return; }
+  // Load full member record
+  var { data: fullMember } = await db.from('members').select('*').eq('id', m.id).single();
+  _member = fullMember;
+  var sess = {churchId:_church.id, memberId:m.id, expiry:Date.now()+8*60*60*1000};
+  localStorage.setItem('gs_member_sess', JSON.stringify(sess));
+  loadMemberHeader(_member);
+  loadInfoForm(_member);
+  showStep('step-app');
+  document.getElementById('bottom-nav').classList.add('visible');
+  switchTab('giving');
+}
+
+function loadMemberHeader(m) {
+  document.getElementById('member-name-header').textContent = m.name_en||(m.name_zh||'');
+}
+
+// ── TAB SWITCHING ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab-page').forEach(function(p){p.style.display='none';});
+  document.querySelectorAll('.nav-tab').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+tab).style.display='block';
+  document.getElementById('nav-'+tab).classList.add('active');
+  if(tab==='giving') loadGiving();
+  if(tab==='events') loadEvents();
+}
+
+// ── TAB: GIVING ──
+async function loadGiving() {
+  var content = document.getElementById('giving-content');
+  content.innerHTML = '<div class="spinner"></div>';
+  // Build year selector
+  var yearSel = document.getElementById('giving-year');
+  var thisYear = new Date().getFullYear();
+  if(!yearSel.innerHTML) {
+    for(var y=thisYear; y>=thisYear-5; y--) yearSel.innerHTML += '<option value="'+y+'">'+y+'</option>';
+  }
+  var year = yearSel.value || String(thisYear);
+  try {
+    // Match by donor name (same as how offerings are recorded)
+    var memberName = _member.name_en || _member.name_zh || '';
+    var { data: giving } = await db.from('donations')
+      .select('*').eq('church_id', _church.id)
+      .ilike('donor_name', memberName)
+      .gte('donation_date', year+'-01-01')
+      .lte('donation_date', year+'-12-31')
+      .order('donation_date', {ascending:false});
+    giving = giving || [];
+    var total = giving.reduce(function(s,d){return s+(parseFloat(d.amount)||0);},0);
+    // Fund summary
+    var funds = {};
+    giving.forEach(function(d){ var k=d.type||'Offering'; funds[k]=(funds[k]||0)+(parseFloat(d.amount)||0); });
+    var fundRows = Object.keys(funds).map(function(k){
+      return '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px"><span style="color:var(--g600)">'+esc(k)+'</span><span style="font-weight:600">'+fmt(funds[k])+'</span></div>';
+    }).join('');
+    var detailRows = giving.map(function(d){
+      return '<div class="giving-row"><div><div style="font-weight:600">'+fmtDate(d.donation_date)+'</div><div class="giving-type">'+esc(d.type||'Offering')+'</div></div><div class="giving-amt">'+fmt(d.amount)+'</div></div>';
+    }).join('');
+    content.innerHTML = (Object.keys(funds).length ? '<div style="margin-bottom:12px">'+fundRows+'</div><div style="height:1px;background:var(--g100);margin:10px 0"></div>' : '') +
+      (detailRows || '<div style="text-align:center;color:var(--g400);padding:20px;font-size:13px"><i class="ti ti-heart" style="font-size:28px;display:block;margin-bottom:8px"></i>No giving records for '+year+'</div>') +
+      (giving.length ? '<div class="total-bar"><div><div class="total-bar-lbl">Total '+year+'</div></div><div class="total-bar-val">'+fmt(total)+'</div></div>' : '');
+  } catch(e) {
+    content.innerHTML = '<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Could not load giving records.</div>';
+  }
+}
+
+// ── TAB: MY INFO ──
+function loadInfoForm(m) {
+  var set = function(id, val){ var el=document.getElementById(id); if(el) el.value=val||''; };
+  set('mi-name', m.name_en||(m.name_zh||''));
+  set('mi-phone', m.phone);
+  set('mi-email', m.email);
+  set('mi-address', m.address);
+  set('mi-emergency', m.emergency_contact);
+  set('mi-occupation', m.occupation);
+}
+
+async function submitInfoUpdate() {
+  var msg = document.getElementById('info-msg');
+  var updates = {
+    phone: document.getElementById('mi-phone').value.trim(),
+    email: document.getElementById('mi-email').value.trim(),
+    address: document.getElementById('mi-address').value.trim(),
+    emergency_contact: document.getElementById('mi-emergency').value.trim(),
+    occupation: document.getElementById('mi-occupation').value.trim()
+  };
+  var hasChange = Object.values(updates).some(function(v){return v;});
+  if(!hasChange){ msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>No changes to submit.</div>'; return; }
+  try {
+    // Insert into pending_updates table — admin approves before overwriting member record
+    await db.from('member_update_requests').insert({
+      church_id: _church.id,
+      member_id: _member.id,
+      member_name: _member.name_en||_member.name_zh||'',
+      requested_updates: JSON.stringify(updates),
+      status: 'pending',
+      submitted_at: new Date().toISOString()
+    });
+    msg.innerHTML = '<div class="alert alert-success"><i class="ti ti-check"></i>Update submitted! Your admin will review and approve it shortly.</div>';
+  } catch(e) {
+    msg.innerHTML = '<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Submit failed. Try again.</div>';
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── TAB: EVENTS ──
+async function loadEvents() {
+  var list = document.getElementById('events-list');
+  list.innerHTML = '<div class="spinner"></div>';
+  var today = new Date().toISOString().split('T')[0];
+  try {
+    var { data: events } = await db.from('events')
+      .select('*').eq('church_id', _church.id)
+      .gte('event_date', today)
+      .order('event_date', {ascending:true}).limit(15);
+    // Load this member's RSVPs
+    var { data: myRsvps } = await db.from('event_rsvps')
+      .select('*').eq('church_id', _church.id).eq('member_id', _member.id);
+    _rsvps = {};
+    (myRsvps||[]).forEach(function(r){ _rsvps[r.event_id]=r.status; });
+    if(!events||!events.length){
+      list.innerHTML = '<div style="text-align:center;color:var(--g400);padding:20px;font-size:13px"><i class="ti ti-calendar-x" style="font-size:28px;display:block;margin-bottom:8px"></i>No upcoming events</div>';
+      return;
+    }
+    list.innerHTML = events.map(function(ev){
+      var rsvp = _rsvps[ev.id]||null;
+      var dateParts = (ev.event_date||'').split('-');
+      var dateStr = dateParts.length===3?dateParts[2]+'/'+dateParts[1]+'/'+dateParts[0]:ev.event_date;
+      return '<div class="event-card'+(rsvp==='going'?' going':rsvp==='not-going'?' not-going':'')+'" id="ev-'+ev.id+'">' +
+        '<div class="event-date-badge"><i class="ti ti-calendar"></i> '+dateStr+'</div>' +
+        '<div style="font-weight:700;font-size:15px;margin-bottom:3px">'+esc(ev.name||ev.title||'')+'</div>' +
+        (ev.location?'<div style="font-size:12px;color:var(--g400)"><i class="ti ti-map-pin"></i> '+esc(ev.location)+'</div>':'') +
+        (ev.description?'<div style="font-size:13px;color:var(--g600);margin-top:6px;line-height:1.4">'+esc((ev.description||'').slice(0,100))+'</div>':'') +
+        '<div class="rsvp-btns">' +
+          '<button class="rsvp-btn going-btn'+(rsvp==='going'?' selected':'')+'" onclick="rsvp(\''+ev.id+'\',\'going\')"><i class="ti ti-check"></i> Going</button>' +
+          '<button class="rsvp-btn no-btn'+(rsvp==='not-going'?' selected':'')+'" onclick="rsvp(\''+ev.id+'\',\'not-going\')"><i class="ti ti-x"></i> Not Going</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Could not load events.</div>';
+  }
+}
+
+async function rsvp(eventId, status) {
+  _rsvps[eventId] = status;
+  // Update card UI immediately
+  var card = document.getElementById('ev-'+eventId);
+  if(card){
+    card.className = 'event-card '+(status==='going'?'going':'not-going');
+    card.querySelectorAll('.rsvp-btn').forEach(function(b){ b.classList.remove('selected'); });
+    var btn = card.querySelector(status==='going'?'.going-btn':'.no-btn');
+    if(btn) btn.classList.add('selected');
+  }
+  try {
+    // Upsert RSVP
+    var existing = await db.from('event_rsvps').select('id').eq('church_id',_church.id).eq('event_id',eventId).eq('member_id',_member.id).single();
+    if(existing.data) {
+      await db.from('event_rsvps').update({status, updated_at:new Date().toISOString()}).eq('id', existing.data.id);
+    } else {
+      await db.from('event_rsvps').insert({church_id:_church.id, event_id:eventId, member_id:_member.id, member_name:_member.name_en||'', status, created_at:new Date().toISOString()});
+    }
+  } catch(e) { console.error('RSVP error', e); }
+}
+</script>
+</body>
+</html>
