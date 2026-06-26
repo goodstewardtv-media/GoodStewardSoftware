@@ -299,7 +299,22 @@ function selectMember(id) {
 }
 
 async function doMemberLogin() {
-  if(!_selectedMemberId){ setErr('login-err','Select your name from the list'); return; }
+  // If no selection from dropdown, try to match by typed name
+  if(!_selectedMemberId) {
+    var typed = document.getElementById('inp-name-search').value.trim().toLowerCase();
+    if(!typed){ setErr('login-err','Type your name to search'); return; }
+    var match = _allMembers.find(function(m){
+      return (m.name_en||'').toLowerCase() === typed || (m.name_zh||'') === typed;
+    });
+    if(!match) {
+      // Try partial match
+      match = _allMembers.find(function(m){
+        return (m.name_en||'').toLowerCase().startsWith(typed) || (m.name_zh||'').startsWith(typed);
+      });
+    }
+    if(!match){ setErr('login-err','Name not found. Try typing more or select from the dropdown.'); return; }
+    _selectedMemberId = match.id;
+  }
   var pin = document.getElementById('inp-mpin').value.trim();
   if(!pin){ setErr('login-err','Enter your PIN'); return; }
   var m = _allMembers.find(function(x){return x.id===_selectedMemberId;});
