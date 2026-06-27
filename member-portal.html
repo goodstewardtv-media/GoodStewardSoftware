@@ -249,7 +249,7 @@ async function findChurch() {
     _church = church;
     loadChurchUI(church);
     // Load all members for search
-    var { data: members } = await db.from('members').select('id,name_en,name_zh,ic_number,member_pin,photo').eq('church_id', church.id).eq('status','Active');
+    var { data: members } = await db.from('members').select('id,name_en,name_zh,ic_number,member_pin,photo').eq('church_id', church.id).order('name_en');
     _allMembers = members || [];
     showStep('step-login');
   } catch(e) {
@@ -265,7 +265,7 @@ function loadChurchUI(church) {
 // ── STEP 2: MEMBER SEARCH + LOGIN ──
 function searchMember(q) {
   var res = document.getElementById('member-results');
-  if(q.length < 2){ res.style.display='none'; return; }
+  if(q.length < 1){ res.style.display='none'; return; }
   var matches = _allMembers.filter(function(m){
     return (m.name_en||'').toLowerCase().includes(q.toLowerCase()) || (m.name_zh||'').includes(q);
   }).slice(0,8);
@@ -303,17 +303,25 @@ async function doMemberLogin() {
   if(!_selectedMemberId) {
     var typed = document.getElementById('inp-name-search').value.trim().toLowerCase();
     if(!typed){ setErr('login-err','Type your name to search'); return; }
+    // Try exact match first
     var match = _allMembers.find(function(m){
       return (m.name_en||'').toLowerCase() === typed || (m.name_zh||'') === typed;
     });
+    // Try includes match
     if(!match) {
-      // Try partial match
-      match = _allMembers.find(function(m){
-        return (m.name_en||'').toLowerCase().startsWith(typed) || (m.name_zh||'').startsWith(typed);
+      var candidates = _allMembers.filter(function(m){
+        return (m.name_en||'').toLowerCase().includes(typed) || (m.name_zh||'').includes(typed);
       });
+      if(candidates.length === 1) match = candidates[0];
+      else if(candidates.length > 1) {
+        setErr('login-err','Multiple matches found — please select your name from the dropdown list.');
+        return;
+      }
     }
-    if(!match){ setErr('login-err','Name not found. Try typing more or select from the dropdown.'); return; }
+    if(!match){ setErr('login-err','Name not found. Please type and select your name from the dropdown.'); return; }
     _selectedMemberId = match.id;
+    // Show selected member
+    selectMember(match.id);
   }
   var pin = document.getElementById('inp-mpin').value.trim();
   if(!pin){ setErr('login-err','Enter your PIN'); return; }
