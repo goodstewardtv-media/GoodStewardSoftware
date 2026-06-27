@@ -559,6 +559,7 @@ async function go(page) {
   document.querySelector(`.ni[onclick="go('${page}')"]`)?.classList.add('active');
   document.getElementById('tb-title').textContent = pageTitles[page] || page;
   currentPage = page;
+  try { localStorage.setItem('gs_current_page', page); } catch(e){}
   if(pageRenderers[page]) {
     showLoading();
     try { await pageRenderers[page](); } finally { hideLoading(); }
@@ -799,6 +800,7 @@ async function completeLogin(church, admin) {
 
 // ── LOGOUT ────────────────────────────────────────────────────
 function doLogout() {
+  try { localStorage.removeItem('gs_current_page'); } catch(e){}
   clearSession();
   window._pendingChurch = null;
   window._pendingLicKey = null;
@@ -3422,4 +3424,35 @@ var _origRenderSettings = null;
   };
 })();
 
+</script>
+
+<script>
+// ── ROBUST SESSION + PAGE RESTORE ON REFRESH ──
+window.addEventListener('load', async function() {
+  var saved = getSession();
+  if(!saved || !saved.churchId) return; // No session — stay on login
+
+  SESSION = saved;
+
+  // Restore UI chrome
+  document.getElementById('auth-gate').classList.add('hidden');
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('sb-church-name').textContent = saved.churchName || '';
+
+  var initials = ((saved.admin && (saved.admin.fullName || saved.admin.username)) || 'A')
+    .split(' ').map(function(w){ return w[0]; }).join('').substr(0,2).toUpperCase();
+  document.getElementById('tb-av').textContent = initials;
+  document.getElementById('um-username').textContent = (saved.admin && (saved.admin.fullName || saved.admin.username)) || '';
+
+  try { await loadChurchPhoto(); } catch(e){}
+
+  // Restore last visited page, default to dash
+  var lastPage = 'dash';
+  try { lastPage = localStorage.getItem('gs_current_page') || 'dash'; } catch(e){}
+  
+  // Validate page exists
+  if(!document.getElementById('page-' + lastPage)) lastPage = 'dash';
+
+  await go(lastPage);
+});
 </script>
