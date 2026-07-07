@@ -1564,7 +1564,12 @@ async function renderSettings() {
         </div>
         <button class="btn btn-s" style="margin-top:8px" onclick="saveAiSettings()"><i class="ti ti-check"></i>Save AI Settings</button>
       </div>
+
     </div>`;
+  // Set PIN method AFTER innerHTML is fully rendered
+  var _pm = (church && church.member_pin_method) ? church.member_pin_method : 'auto';
+  var _pmEl = document.getElementById('pm-' + _pm);
+  if (_pmEl) { _pmEl.checked = true; highlightPinMethod(_pm); previewPinMethod(); }
 }
 
 function loadAiSettingsUI() {
