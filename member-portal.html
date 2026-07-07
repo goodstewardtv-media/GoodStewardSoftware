@@ -100,7 +100,7 @@ body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--g900);min-
   </div>
   <div class="hero-body">
     <div class="portal-chip"><i class="ti ti-user"></i>Member Portal</div>
-    <div class="church-logo-wrap" id="church-logo-wrap"><i class="ti ti-building-church"></i></div>
+    <div class="church-logo-wrap" id="church-logo-wrap"><i class="ti ti-building-church" style="font-size:44px;color:rgba(255,255,255,.7)"></i></div>
     <div class="church-name" id="church-name-display">Good Steward</div>
     <div id="member-avatar-area"></div>
     <div class="gs-powered">Powered by Good Steward Church Management</div>
@@ -129,7 +129,7 @@ body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--g900);min-
       <div class="field"><label>Search Your Name</label>
         <input type="text" id="inp-name-search" placeholder="Type your name..." autocomplete="off" oninput="searchMember(this.value)">
       </div>
-      <div id="member-results" style="display:none;border:1.5px solid var(--g200);border-radius:12px;margin-bottom:12px;overflow:hidden;max-height:220px;overflow-y:auto"></div>
+      <div id="member-results" style="display:none;border:1.5px solid var(--navy);border-radius:12px;margin-bottom:12px;overflow:hidden;max-height:240px;overflow-y:auto;box-shadow:0 4px 16px rgba(15,36,68,.12)"></div>
       <div id="selected-member-display" style="display:none;background:var(--g50);border:1.5px solid var(--g200);border-radius:12px;padding:12px;margin-bottom:12px;display:none;align-items:center;gap:10px"></div>
       <div class="field"><label>Your PIN <span id="pin-hint-text" style="font-size:10px;font-weight:400;color:var(--g400)">(last 4 digits of IC)</span></label>
         <input type="password" id="inp-mpin" placeholder="••••" maxlength="8" style="letter-spacing:6px;font-size:22px;text-align:center">
@@ -252,9 +252,14 @@ window.addEventListener('DOMContentLoaded',function(){
 });
 async function restoreMemberSession(saved){
   try{
-    var[churchRes,memberRes]=await Promise.all([db.from('churches').select('*').eq('id',saved.churchId).single(),db.from('members').select('*').eq('id',saved.memberId).single()]);
+    var[churchRes,memberRes,membersRes]=await Promise.all([
+      db.from('churches').select('*').eq('id',saved.churchId).single(),
+      db.from('members').select('*').eq('id',saved.memberId).single(),
+      db.from('members').select('id,name_en,name_zh,ic_number,member_pin,phone,date_of_birth,dob,photo').eq('church_id',saved.churchId).order('name_en')
+    ]);
     if(!churchRes.data||!memberRes.data){localStorage.removeItem('gs_member_sess');return;}
     _church=churchRes.data;_member=memberRes.data;
+    _allMembers=membersRes.data||[];
     loadChurchUI(_church);loadMemberHero(_member);loadInfoForm(_member);
     showStep('step-app');document.getElementById('bottom-nav').classList.add('visible');
     document.getElementById('logout-btn').style.display='flex';
@@ -290,6 +295,7 @@ function loadMemberHero(m){
 function searchMember(q){
   var res=document.getElementById('member-results');
   if(!q||q.length<1){res.style.display='none';return;}
+  if(!_allMembers||!_allMembers.length){res.style.display='none';return;}
   var matches=_allMembers.filter(function(m){return(m.name_en||'').toLowerCase().includes(q.toLowerCase())||(m.name_zh||'').includes(q);}).slice(0,8);
   if(!matches.length){res.style.display='none';return;}
   res.style.display='block';

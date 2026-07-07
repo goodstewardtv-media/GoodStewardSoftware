@@ -87,7 +87,7 @@ body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--g900);min-
   </div>
   <div class="hero-body">
     <div class="portal-chip"><i class="ti ti-users-group"></i>Leader Portal</div>
-    <div class="church-logo-wrap" id="church-logo-wrap"><i class="ti ti-building-church"></i></div>
+    <div class="church-logo-wrap" id="church-logo-wrap"><i class="ti ti-building-church" style="font-size:44px;color:rgba(255,255,255,.7)"></i></div>
     <div class="church-name" id="church-name-display">Good Steward</div>
     <div id="group-chip-wrap"></div>
     <div class="gs-powered">Powered by Good Steward Church Management</div>
@@ -294,10 +294,7 @@ function renderReportForm(){
   document.getElementById('report-form-wrap').innerHTML=
     '<div class="card"><div class="card-title"><i class="ti ti-clipboard-list" style="color:var(--navy)"></i>Weekly Report</div>' +
     '<div id="report-msg"></div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">' +
-      '<div><div class="field"><label>Report Date</label><input type="date" id="r-date" value="'+today+'"></div></div>' +
-      '<div><div class="field"><label>Week Ending</label><input type="date" id="r-week-end"></div></div>' +
-    '</div>' +
+    '<div class="field"><label>Report Date</label><input type="date" id="r-date" value="'+today+'"></div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">' +
       '<div class="stat-input-box"><label>Attendance</label><input type="number" id="r-att" min="0" inputmode="numeric" placeholder="0" style="border:none;background:transparent;font-size:26px;font-weight:800;text-align:center;width:100%;font-family:inherit;outline:none;color:var(--navy)"></div>' +
       '<div class="stat-input-box"><label>Offering (RM)</label><input type="number" id="r-off" min="0" step="0.01" inputmode="decimal" placeholder="0.00" style="border:none;background:transparent;font-size:22px;font-weight:800;text-align:center;width:100%;font-family:inherit;outline:none;color:var(--success)"></div>' +
@@ -306,6 +303,16 @@ function renderReportForm(){
     '<div class="field"><label>Prayer Requests</label><textarea id="r-pray" placeholder="Prayer items for leadership..." maxlength="300"></textarea></div>' +
     '<div class="field"><label>Challenges / Needs</label><textarea id="r-chal" placeholder="Any challenges or resources needed..."></textarea></div>' +
     '<div class="field"><label>Next Week Plan</label><textarea id="r-next" placeholder="Plans for next gathering..."></textarea></div>' +
+    '<div class="field"><label>Photos (optional, max 2)</label>' +
+      '<div style="display:flex;gap:10px;margin-top:4px">' +
+        '<div class="img-slot" id="rpt-img1-prev" onclick="document.getElementById(\'rpt-img1-inp\').click()"><i class="ti ti-photo"></i></div>' +
+        '<div class="img-slot" id="rpt-img2-prev" onclick="document.getElementById(\'rpt-img2-inp\').click()"><i class="ti ti-camera-plus"></i></div>' +
+        '<input type="file" id="rpt-img1-inp" accept="image/*" style="display:none" onchange="prevRptImg(this,\'rpt-img1-prev\',\'rpt-img1-data\')">' +
+        '<input type="file" id="rpt-img2-inp" accept="image/*" style="display:none" onchange="prevRptImg(this,\'rpt-img2-prev\',\'rpt-img2-data\')">' +
+        '<input type="hidden" id="rpt-img1-data"><input type="hidden" id="rpt-img2-data">' +
+        '<div style="font-size:11px;color:var(--g400);align-self:center">Tap to attach gathering photo</div>' +
+      '</div>' +
+    '</div>' +
     '<button class="btn btn-gold" id="r-submit-btn" onclick="submitReport()"><i class="ti ti-send"></i>Submit Report</button>' +
     '<div style="text-align:center;font-size:11px;color:var(--g400);margin-top:10px"><i class="ti ti-lock"></i> Locked after midnight — edit same day only</div></div>';
 }
@@ -319,7 +326,7 @@ async function submitReport(){
   var btn=document.getElementById('r-submit-btn');
   btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Submitting...';
   try{
-    var payload={attendance:parseInt(document.getElementById('r-att')?.value)||0,offering_collected:parseFloat(document.getElementById('r-off')?.value)||0,summary,prayer_requests:document.getElementById('r-pray')?.value||'',challenges:document.getElementById('r-chal')?.value||'',next_week_plan:document.getElementById('r-next')?.value||''};
+    var payload={attendance:parseInt(document.getElementById('r-att')?.value)||0,offering_collected:parseFloat(document.getElementById('r-off')?.value)||0,summary,prayer_requests:document.getElementById('r-pray')?.value||'',challenges:document.getElementById('r-chal')?.value||'',next_week_plan:document.getElementById('r-next')?.value||'',image1:document.getElementById('rpt-img1-data')?.value||null,image2:document.getElementById('rpt-img2-data')?.value||null};
     if(existing&&existing.length>0){
       var rec=existing[0];var recDate=(rec.created_at||'').split('T')[0];
       if(recDate===todayStr){await db.from('leader_reports').update(Object.assign({updated_at:new Date().toISOString()},payload)).eq('id',rec.id);msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Report updated!</div>';}
@@ -413,6 +420,13 @@ async function submitTestimonial(){
     document.getElementById('ts-img1-prev').innerHTML='<i class="ti ti-photo"></i>';
     document.getElementById('ts-img2-prev').innerHTML='<i class="ti ti-photo-plus"></i>';
   }catch(e){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Submit failed.</div>';}
+}
+function prevRptImg(inp,prevId,dataId){
+  var file=inp.files[0];if(!file)return;
+  if(file.size>2*1024*1024){alert('Image too large. Use under 2MB.');return;}
+  var r=new FileReader();
+  r.onload=function(e){document.getElementById(dataId).value=e.target.result;document.getElementById(prevId).innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover">';};
+  r.readAsDataURL(file);
 }
 function prevTestImg(inp,prevId,dataId){
   var file=inp.files[0];if(!file)return;
