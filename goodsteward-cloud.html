@@ -3584,22 +3584,33 @@ async function scanWithGroq(b64, mtype, key) {
 }
 
 
-function loadPinMethodUI() {
+async function loadPinMethodUI() {
   var method = 'auto';
-  // First try from Supabase churches table (source of truth)
-  db.from('churches').select('member_pin_method').eq('id', SESSION.churchId).single().then(function(res){
-    if(res.data && res.data.member_pin_method) {
+  // Try localStorage first for instant UI response
+  try { 
+    var stored = localStorage.getItem('gs_pin_method_'+SESSION?.churchId);
+    if(stored) method = JSON.parse(stored);
+  } catch(e){}
+  // Apply immediately
+  applyPinMethodUI(method);
+  // Then fetch from Supabase (source of truth) and update if different
+  try {
+    var res = await db.from('churches').select('member_pin_method').eq('id', SESSION.churchId).single();
+    if(res.data && res.data.member_pin_method && res.data.member_pin_method !== method) {
       method = res.data.member_pin_method;
       localStorage.setItem('gs_pin_method_'+SESSION.churchId, JSON.stringify(method));
-      var el = document.getElementById('pm-'+method);
-      if(el) el.checked = true;
-      highlightPinMethod(method);
-      previewPinMethod();
+      applyPinMethodUI(method);
     }
-  }).catch(function(){});
-  try { method = JSON.parse(localStorage.getItem('gs_pin_method_'+SESSION?.churchId)||'"auto"'); } catch(e){}
+  } catch(e) {}
+}
+
+function applyPinMethodUI(method) {
+  // Wait for DOM elements to exist
   var el = document.getElementById('pm-'+method);
-  if(el) el.checked = true;
+  if(!el) return; // Elements not in DOM yet — will be called again after render
+  // Uncheck all first
+  document.querySelectorAll('input[name="pin-method"]').forEach(function(r){ r.checked = false; });
+  el.checked = true;
   highlightPinMethod(method);
   previewPinMethod();
 }
@@ -3628,14 +3639,21 @@ function highlightPinMethod(method) {
   });
 }
 
-function savePinMethod() {
+async function savePinMethod() {
   var method = document.querySelector('input[name="pin-method"]:checked')?.value;
-  if(!method) { toast('Select a PIN method first','x'); return; }
+  if(!method) { toast('Select a PIN method first — click one of the options above','x'); return; }
+  setSyncStatus('syncing');
+  // Save to localStorage immediately
   localStorage.setItem('gs_pin_method_'+SESSION?.churchId, JSON.stringify(method));
-  // Also save to church record in Supabase so portals can read it
-  db.from('churches').update({member_pin_method: method}).eq('id', SESSION.churchId).then(function(){
-    toast('PIN method saved — members will use this from now on');
-  });
+  // Save to Supabase
+  var { error } = await db.from('churches').update({member_pin_method: method}).eq('id', SESSION.churchId);
+  if(error) {
+    toast('Saved locally — Supabase update failed: '+error.message,'x');
+  } else {
+    toast('PIN method saved! Members will now use: '+method.toUpperCase());
+  }
+  setSyncStatus('synced');
+  highlightPinMethod(method);
 }
 
 function getPinMethod() {
@@ -4123,6 +4141,7 @@ function buildWAWelcome(memberName) {
   window.renderSettings = async function() {
     await _orig();
     loadEmailSettingsUI();
+    setTimeout(function(){ loadPinMethodUI(); }, 150);
   };
 })();
 
