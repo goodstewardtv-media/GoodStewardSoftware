@@ -2,539 +2,423 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Leader Portal — Good Steward</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --navy:#0f2444;--navy2:#1a3a6b;--gold:#c9a84c;--gold2:#f0d080;
-  --success:#22c55e;--danger:#ef4444;--warning:#f59e0b;
-  --white:#fff;--g50:#f9fafb;--g100:#f3f4f6;--g200:#e5e7eb;
-  --g400:#9ca3af;--g600:#4b5563;--g900:#111827;
-  --radius:14px;--card-shadow:0 4px 24px rgba(15,36,68,.10);
+  --success:#22c55e;--danger:#ef4444;--warning:#f59e0b;--purple:#8b5cf6;
+  --white:#fff;--g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;
+  --g400:#94a3b8;--g600:#475569;--g900:#0f172a;
+  --radius:16px;--shadow:0 2px 16px rgba(15,36,68,.10);
 }
-html,body{min-height:100vh;font-family:'Inter',sans-serif;background:var(--g50);color:var(--g900);-webkit-font-smoothing:antialiased}
-
-/* ── HEADER ── */
-.app-header{
-  background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);
-  padding:28px 20px 24px;text-align:center;position:relative;
-  border-radius:0 0 28px 28px;
-  box-shadow:0 8px 32px rgba(15,36,68,.18);
-}
-.church-logo{
-  width:88px;height:88px;border-radius:50%;
-  background:rgba(255,255,255,.12);
-  border:3px solid rgba(201,168,76,.5);
-  display:flex;align-items:center;justify-content:center;
-  margin:0 auto 14px;overflow:hidden;
-  box-shadow:0 0 0 6px rgba(201,168,76,.12);
-}
-.church-logo img{width:100%;height:100%;object-fit:cover}
-.church-logo-placeholder{font-size:36px;color:rgba(255,255,255,.6)}
-.church-name{font-size:20px;font-weight:700;color:var(--white);margin-bottom:3px;letter-spacing:.2px}
-.portal-badge{
-  display:inline-flex;align-items:center;gap:5px;
-  background:rgba(201,168,76,.2);border:1px solid rgba(201,168,76,.4);
-  color:var(--gold2);font-size:11px;font-weight:600;letter-spacing:.8px;
-  text-transform:uppercase;padding:3px 12px;border-radius:20px;margin-bottom:8px;
-}
-.gs-credit{
-  position:absolute;bottom:10px;right:14px;
-  font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.3px;
-}
-
-/* ── MAIN ── */
-.main{padding:20px 16px 40px;max-width:480px;margin:0 auto}
-
-/* ── CARDS ── */
-.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--card-shadow);padding:20px;margin-bottom:16px}
-.card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.card-title i{color:var(--gold);font-size:18px}
-
-/* ── FORM ── */
-.field{margin-bottom:14px}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--g600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
-.field input,.field select,.field textarea{
-  width:100%;padding:12px 14px;
-  border:1.5px solid var(--g200);border-radius:10px;
-  font-size:15px;font-family:inherit;color:var(--g900);
-  background:var(--white);transition:border .15s;
-  -webkit-appearance:none;
-}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--navy)}
-.field textarea{resize:vertical;min-height:80px;line-height:1.5}
-.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%236b7280' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
-
-/* ── BUTTONS ── */
-.btn-primary{
-  width:100%;padding:15px;background:var(--navy);color:var(--white);
-  border:none;border-radius:12px;font-size:16px;font-weight:700;
-  font-family:inherit;cursor:pointer;transition:all .2s;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.btn-primary:active{transform:scale(.98);background:var(--navy2)}
-.btn-primary:disabled{opacity:.6;cursor:not-allowed}
-.btn-secondary{
-  width:100%;padding:12px;background:var(--g100);color:var(--g600);
-  border:1.5px solid var(--g200);border-radius:10px;font-size:14px;
-  font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s;
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  margin-top:8px;
-}
-.btn-secondary:active{background:var(--g200)}
-.btn-gold{background:linear-gradient(135deg,var(--gold),#b8942e);color:var(--navy);border:none}
-.btn-gold:active{background:var(--gold2)}
-
-/* ── STEPS ── */
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--g900);min-height:100vh;-webkit-font-smoothing:antialiased}
+.hero{background:linear-gradient(160deg,var(--navy) 0%,#1e3a6e 60%,#0d2d5e 100%);padding:0 0 28px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.15) 0%,transparent 70%)}
+.hero-top{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 0;position:relative;z-index:1}
+.gs-brand{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;font-weight:600}
+.logout-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);font-size:11px;padding:5px 12px;border-radius:20px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .2s}
+.hero-body{text-align:center;padding:20px 20px 0;position:relative;z-index:1}
+.church-logo-wrap{width:84px;height:84px;border-radius:50%;background:rgba(255,255,255,.1);border:2.5px solid rgba(201,168,76,.45);box-shadow:0 0 0 8px rgba(201,168,76,.07),0 8px 32px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;overflow:hidden}
+.church-logo-wrap img{width:100%;height:100%;object-fit:cover}
+.church-logo-wrap i{font-size:34px;color:rgba(255,255,255,.45)}
+.portal-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.35);color:var(--gold2);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:10px}
+.church-name{font-size:21px;font-weight:800;color:#fff;letter-spacing:-.2px;margin-bottom:6px}
+.group-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.75);font-size:12px;font-weight:500;padding:5px 14px;border-radius:20px}
+.gs-powered{font-size:10px;color:rgba(255,255,255,.2);margin-top:14px;letter-spacing:.3px}
+.main{padding:16px 16px 100px;max-width:500px;margin:0 auto}
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:12px}
+.card-title{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .step{display:none}.step.active{display:block}
-
-/* ── ALERTS ── */
-.alert{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--g600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1.5px solid var(--g200);border-radius:12px;font-size:15px;font-family:inherit;color:var(--g900);background:#fff;transition:border .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(15,36,68,.07)}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%236b7280' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.field textarea{resize:vertical;min-height:85px;line-height:1.6}
+.char-count{font-size:11px;color:var(--g400);text-align:right;margin-top:3px}
+.btn{width:100%;padding:14px;border:none;border-radius:13px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(.97)}.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-navy{background:var(--navy);color:#fff}.btn-gold{background:linear-gradient(135deg,var(--gold),#b8942e);color:var(--navy)}
+.btn-ghost{background:var(--g100);color:var(--g600);border:1.5px solid var(--g200)}
+.alert{padding:12px 14px;border-radius:12px;font-size:13px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
 .alert-error{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
 .alert-success{background:#f0fdf4;border:1px solid #86efac;color:#166534}
 .alert-info{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af}
-
-/* ── STATS ROW ── */
-.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.stat-box{background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:12px;text-align:center}
-.stat-val{font-size:22px;font-weight:700;color:var(--navy)}
-.stat-lbl{font-size:11px;color:var(--g400);margin-top:2px}
-
-/* ── REPORT ITEM ── */
-.report-item{padding:12px 0;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:flex-start}
-.report-item:last-child{border-bottom:none}
-.report-date{font-size:12px;color:var(--g400)}
-.report-summary{font-size:13px;color:var(--g600);margin-top:2px;line-height:1.4}
-.report-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--g100);color:var(--g600);white-space:nowrap;margin-left:8px;flex-shrink:0}
-
-/* ── LOCKED BADGE ── */
-.locked-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--g400);background:var(--g100);padding:2px 8px;border-radius:6px;margin-left:8px}
-
-/* ── SPINNER ── */
-.spinner{width:32px;height:32px;border:3px solid var(--g200);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;margin:32px auto}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── DIVIDER ── */
-.divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--g400);font-size:12px}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--g200)}
-
-/* ── BOTTOM NAV (for logged-in state) ── */
-.bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;
-  background:var(--white);border-top:1px solid var(--g200);
-  display:none;grid-template-columns:repeat(3,1fr);
-  padding:8px 0 max(8px,env(safe-area-inset-bottom));
-  z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,.06);
-}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid rgba(0,0,0,.06);display:none;grid-template-columns:repeat(4,1fr);padding:8px 0 max(10px,env(safe-area-inset-bottom));z-index:100;box-shadow:0 -2px 20px rgba(0,0,0,.07)}
 .bottom-nav.visible{display:grid}
-.nav-tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px;cursor:pointer;border:none;background:none;font-family:inherit;color:var(--g400);transition:color .15s}
-.nav-tab.active{color:var(--navy)}
-.nav-tab i{font-size:22px}
-.nav-tab span{font-size:10px;font-weight:600;letter-spacing:.3px}
-.page-content{padding-bottom:80px}
-
-/* ── CHAR COUNTER ── */
-.char-count{font-size:11px;color:var(--g400);text-align:right;margin-top:3px}
-
-/* ── EDIT BADGE ── */
-.edit-btn{background:none;border:none;color:var(--navy);font-size:12px;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:6px;background:var(--g100)}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 4px;cursor:pointer;border:none;background:none;font-family:inherit;color:var(--g400);transition:color .15s}
+.nav-tab.active{color:var(--navy)}.nav-tab i{font-size:22px}.nav-tab span{font-size:10px;font-weight:600}
+.page-content{padding-bottom:90px}.tab-page{display:none}.tab-page.active{display:block}
+.stats-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-input-box{background:var(--g50);border:1.5px solid var(--g200);border-radius:12px;padding:12px;text-align:center}
+.stat-input-box label{display:block;font-size:10px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.stat-input-box input{border:none;background:transparent;font-size:24px;font-weight:800;text-align:center;width:100%;font-family:inherit;outline:none;color:var(--navy)}
+.rpt-item{padding:12px 0;border-bottom:1px solid var(--g100)}.rpt-item:last-child{border-bottom:none}
+.locked-tag{display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--g400);background:var(--g100);padding:2px 7px;border-radius:6px}
+.edit-tag{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--navy);background:#eff6ff;padding:3px 9px;border-radius:6px;cursor:pointer;border:none;font-family:inherit;font-weight:600}
+.notice-card{border-radius:12px;padding:14px;margin-bottom:10px}
+.notice-info{background:#eff6ff;border:1px solid #bfdbfe}
+.notice-warning{background:#fffbeb;border:1px solid #fde68a}
+.notice-urgent{background:#fef2f2;border:1px solid #fecaca}
+.comm-tabs{display:flex;gap:6px;margin-bottom:14px;background:var(--g100);padding:4px;border-radius:12px}
+.comm-tab{flex:1;padding:9px 4px;border-radius:9px;border:none;background:transparent;font-size:12px;font-weight:600;font-family:inherit;color:var(--g600);cursor:pointer;transition:all .15s;text-align:center}
+.comm-tab.active{background:#fff;color:var(--navy);box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.privacy-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--g600);margin-top:8px}
+.privacy-row input{width:18px;height:18px;accent-color:var(--navy)}
+.img-upload-row{display:flex;gap:10px;margin-top:8px;align-items:center}
+.img-slot{width:76px;height:76px;border-radius:12px;border:2px dashed var(--g200);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--g50);transition:border .15s;flex-shrink:0}
+.img-slot:hover{border-color:var(--navy)}.img-slot img{width:100%;height:100%;object-fit:cover}
+.img-slot i{font-size:22px;color:var(--g300)}
+.spinner{width:30px;height:30px;border:3px solid var(--g200);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;margin:36px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-
-<!-- HEADER -->
-<div class="app-header">
-  <div class="portal-badge"><i class="ti ti-users-group"></i>Leader Portal</div>
-  <div class="church-logo" id="church-logo-wrap">
-    <i class="ti ti-building-church church-logo-placeholder"></i>
+<div class="hero">
+  <div class="hero-top">
+    <div class="gs-brand">Good Steward</div>
+    <button class="logout-btn" id="logout-btn" style="display:none" onclick="leaderLogout()"><i class="ti ti-logout"></i>Logout</button>
   </div>
-  <div class="church-name" id="church-name-display">Good Steward</div>
-  <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px" id="group-name-display"></div>
-  <div class="gs-credit">Powered by Good Steward</div>
+  <div class="hero-body">
+    <div class="portal-chip"><i class="ti ti-users-group"></i>Leader Portal</div>
+    <div class="church-logo-wrap" id="church-logo-wrap"><i class="ti ti-building-church"></i></div>
+    <div class="church-name" id="church-name-display">Good Steward</div>
+    <div id="group-chip-wrap"></div>
+    <div class="gs-powered">Powered by Good Steward Church Management</div>
+  </div>
 </div>
-
-<!-- MAIN -->
 <div class="main">
-
-  <!-- STEP 1: LICENSE KEY -->
   <div class="step active" id="step-key">
-    <div style="height:24px"></div>
+    <div style="height:18px"></div>
     <div class="card">
-      <div class="card-title"><i class="ti ti-key"></i>Enter Church Access Code</div>
+      <div class="card-title"><i class="ti ti-key" style="color:var(--gold)"></i>Church Access</div>
       <div id="key-err" class="alert alert-error" style="display:none"><i class="ti ti-alert-circle"></i><span id="key-err-msg"></span></div>
-      <div class="field">
-        <label>License Key</label>
-        <input type="text" id="inp-lic" placeholder="GS-XXXX-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase;letter-spacing:1px;font-family:monospace;font-size:14px" oninput="this.value=this.value.toUpperCase()">
+      <div class="field"><label>License Key</label>
+        <input type="text" id="inp-lic" placeholder="GS-XXXX-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace;font-size:15px;text-align:center" oninput="this.value=this.value.toUpperCase()">
       </div>
-      <button class="btn-primary" onclick="loadChurchByKey()"><i class="ti ti-arrow-right"></i>Continue</button>
+      <button class="btn btn-gold" onclick="loadChurchByKey()"><i class="ti ti-arrow-right"></i>Continue</button>
     </div>
+    <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--g400)">Enter the license key provided by your church admin</div>
   </div>
-
-  <!-- STEP 2: GROUP + PIN LOGIN -->
   <div class="step" id="step-login">
-    <div style="height:24px"></div>
+    <div style="height:18px"></div>
     <div class="card">
-      <div class="card-title"><i class="ti ti-login"></i>Leader Login</div>
+      <div class="card-title"><i class="ti ti-login" style="color:var(--gold)"></i>Leader Login</div>
       <div id="login-err" class="alert alert-error" style="display:none"><i class="ti ti-alert-circle"></i><span id="login-err-msg"></span></div>
-      <div class="field">
-        <label>Group Type</label>
+      <div class="field"><label>Group Type</label>
         <select id="inp-gtype" onchange="loadGroups()">
-          <option value="">Select type</option>
+          <option value="">Select type...</option>
           <option value="cell_groups">Cell Group</option>
           <option value="fellowships">Fellowship</option>
           <option value="ministries">Ministry</option>
         </select>
       </div>
-      <div class="field">
-        <label>Your Group</label>
+      <div class="field"><label>Your Group</label>
         <select id="inp-group"><option value="">— Select your group —</option></select>
       </div>
-      <div class="field">
-        <label>Group PIN</label>
-        <input type="password" id="inp-pin" placeholder="Enter PIN" maxlength="8" style="letter-spacing:4px;font-size:20px;text-align:center" oninput="document.getElementById('login-err').style.display='none'">
+      <div class="field"><label>Group PIN</label>
+        <input type="password" id="inp-pin" placeholder="••••••" maxlength="8" style="letter-spacing:6px;font-size:22px;text-align:center" oninput="document.getElementById('login-err').style.display='none'">
       </div>
-      <button class="btn-primary btn-gold" onclick="doLeaderLogin()"><i class="ti ti-login"></i>Login</button>
-      <button class="btn-secondary" onclick="showStep('step-key')"><i class="ti ti-arrow-left"></i>Back</button>
-      <div style="font-size:11px;color:var(--g400);text-align:center;margin-top:12px">PIN is set by your church admin · Contact admin if you forgot your PIN</div>
+      <button class="btn btn-gold" onclick="doLeaderLogin()"><i class="ti ti-login"></i>Login</button>
+      <button class="btn btn-ghost" style="margin-top:10px" onclick="showStep('step-key')"><i class="ti ti-arrow-left"></i>Back</button>
+      <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--g400)">PIN set by church admin · Contact admin if forgotten</div>
     </div>
   </div>
-
-  <!-- STEP 3: MAIN APP (tabs) -->
   <div class="step page-content" id="step-app">
-    <!-- TAB: SUBMIT REPORT -->
-    <div id="tab-report" class="tab-page">
-      <div style="height:20px"></div>
+    <div class="tab-page active" id="tab-report">
+      <div style="height:14px"></div>
       <div id="report-form-wrap"></div>
     </div>
-    <!-- TAB: MY REPORTS -->
-    <div id="tab-history" class="tab-page" style="display:none">
-      <div style="height:20px"></div>
+    <div class="tab-page" id="tab-history">
+      <div style="height:14px"></div>
       <div class="card">
-        <div class="card-title"><i class="ti ti-history"></i>Past Reports</div>
+        <div class="card-title"><i class="ti ti-history" style="color:var(--navy)"></i>My Reports</div>
         <div id="history-list"><div class="spinner"></div></div>
       </div>
     </div>
-    <!-- TAB: NOTICES -->
-    <div id="tab-notices" class="tab-page" style="display:none">
-      <div style="height:20px"></div>
+    <div class="tab-page" id="tab-community">
+      <div style="height:14px"></div>
       <div class="card">
-        <div class="card-title"><i class="ti ti-speakerphone"></i>Church Announcements</div>
+        <div class="card-title"><i class="ti ti-heart-handshake" style="color:#8b5cf6"></i>Community</div>
+        <div class="comm-tabs">
+          <button class="comm-tab active" id="ctab-prayer" onclick="switchCommTab('prayer')">🙏 Prayer</button>
+          <button class="comm-tab" id="ctab-suggestion" onclick="switchCommTab('suggestion')">💡 Suggest</button>
+          <button class="comm-tab" id="ctab-testimonial" onclick="switchCommTab('testimonial')">✨ Testimony</button>
+        </div>
+        <div id="cform-prayer">
+          <div id="prayer-msg"></div>
+          <div class="field"><label>Prayer Request</label>
+            <textarea id="pr-request" placeholder="Share what you'd like the church to pray for..." maxlength="500" oninput="updateChar('pr-request',500,'pr-count')"></textarea>
+            <div class="char-count"><span id="pr-count">0</span>/500</div>
+          </div>
+          <label class="privacy-row"><input type="checkbox" id="pr-private">Keep private (admin only)</label>
+          <button class="btn btn-navy" style="margin-top:14px" onclick="submitPrayer()"><i class="ti ti-send"></i>Submit Prayer Request</button>
+        </div>
+        <div id="cform-suggestion" style="display:none">
+          <div id="sugg-msg"></div>
+          <div class="field"><label>Category</label>
+            <select id="sg-cat"><option value="">General</option><option>Worship &amp; Services</option><option>Cell Groups</option><option>Facilities</option><option>Events &amp; Programs</option><option>Youth &amp; Children</option><option>Others</option></select>
+          </div>
+          <div class="field"><label>Your Suggestion</label>
+            <textarea id="sg-suggestion" placeholder="Share your idea or feedback..." maxlength="500" oninput="updateChar('sg-suggestion',500,'sg-count')"></textarea>
+            <div class="char-count"><span id="sg-count">0</span>/500</div>
+          </div>
+          <button class="btn btn-navy" style="margin-top:14px" onclick="submitSuggestion()"><i class="ti ti-send"></i>Submit Suggestion</button>
+        </div>
+        <div id="cform-testimonial" style="display:none">
+          <div id="test-msg"></div>
+          <div class="field"><label>Your Testimony</label>
+            <textarea id="ts-testimonial" placeholder="Share what God has done in your life..." maxlength="800" oninput="updateChar('ts-testimonial',800,'ts-count')"></textarea>
+            <div class="char-count"><span id="ts-count">0</span>/800</div>
+          </div>
+          <div class="field"><label>Photos (optional, max 2)</label>
+            <div class="img-upload-row">
+              <div class="img-slot" id="ts-img1-prev" onclick="document.getElementById('ts-img1-inp').click()"><i class="ti ti-photo"></i></div>
+              <div class="img-slot" id="ts-img2-prev" onclick="document.getElementById('ts-img2-inp').click()"><i class="ti ti-photo-plus"></i></div>
+              <input type="file" id="ts-img1-inp" accept="image/*" style="display:none" onchange="prevTestImg(this,'ts-img1-prev','ts-img1-data')">
+              <input type="file" id="ts-img2-inp" accept="image/*" style="display:none" onchange="prevTestImg(this,'ts-img2-prev','ts-img2-data')">
+              <input type="hidden" id="ts-img1-data"><input type="hidden" id="ts-img2-data">
+              <div style="font-size:11px;color:var(--g400)">Tap to add photo</div>
+            </div>
+          </div>
+          <button class="btn btn-navy" style="margin-top:14px" onclick="submitTestimonial()"><i class="ti ti-send"></i>Submit Testimony</button>
+        </div>
+      </div>
+    </div>
+    <div class="tab-page" id="tab-notices">
+      <div style="height:14px"></div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-speakerphone" style="color:var(--warning)"></i>Church Notices</div>
         <div id="notices-list"><div class="spinner"></div></div>
       </div>
     </div>
   </div>
-
-</div><!-- /main -->
-
-<!-- BOTTOM NAV -->
-<div class="bottom-nav" id="bottom-nav">
-  <button class="nav-tab active" id="nav-report" onclick="switchTab('report')">
-    <i class="ti ti-edit"></i><span>Report</span>
-  </button>
-  <button class="nav-tab" id="nav-history" onclick="switchTab('history')">
-    <i class="ti ti-history"></i><span>History</span>
-  </button>
-  <button class="nav-tab" id="nav-notices" onclick="switchTab('notices')">
-    <i class="ti ti-speakerphone"></i><span>Notices</span>
-  </button>
 </div>
-
+<div class="bottom-nav" id="bottom-nav">
+  <button class="nav-tab active" id="nav-report" onclick="switchTab('report')"><i class="ti ti-clipboard-list"></i><span>Report</span></button>
+  <button class="nav-tab" id="nav-history" onclick="switchTab('history')"><i class="ti ti-history"></i><span>History</span></button>
+  <button class="nav-tab" id="nav-community" onclick="switchTab('community')"><i class="ti ti-heart-handshake"></i><span>Community</span></button>
+  <button class="nav-tab" id="nav-notices" onclick="switchTab('notices')"><i class="ti ti-speakerphone"></i><span>Notices</span></button>
+</div>
 <script>
-const SUPABASE_URL = 'https://cqbhlmdwlcwskeetrcqk.supabase.co';
-const SUPABASE_ANON = 'sb_publishable_z10sU9OEPBVw1ER0gJUktQ_NarJrvSL';
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON);
-
-let _church = null;    // church row
-let _group = null;     // group row
-let _gtype = null;     // 'cell_groups' | 'fellowships' | 'ministries'
-let _session = null;   // { churchId, groupId, groupName, gtype }
-
-// ── HELPERS ──
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function fmtDate(d){ if(!d)return'—'; var p=(d||'').split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d; }
-function fmt(v){ return 'RM '+(parseFloat(v)||0).toFixed(2); }
-function showStep(id){ document.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function setErr(id,msg){ var el=document.getElementById(id); document.getElementById(id+'-msg').textContent=msg; el.style.display='flex'; }
-
-// ── RESTORE SESSION ──
-window.addEventListener('DOMContentLoaded', function(){
-  var saved = null;
-  try { saved = JSON.parse(localStorage.getItem('gs_leader_sess')||'null'); } catch(e){}
-  if(saved && saved.churchId && Date.now() < (saved.expiry||0)) {
-    _session = saved;
-    restoreSession();
-  }
+const SUPABASE_URL='https://cqbhlmdwlcwskeetrcqk.supabase.co';
+const SUPABASE_ANON='sb_publishable_z10sU9OEPBVw1ER0gJUktQ_NarJrvSL';
+const {createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_ANON);
+let _church=null,_group=null,_gtype=null,_session=null;
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmtDate(d){if(!d)return'';var p=(d||'').split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;}
+function fmt(v){return'RM '+(parseFloat(v)||0).toFixed(2);}
+function showStep(id){document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function setErr(id,msg){document.getElementById(id+'-msg').textContent=msg;document.getElementById(id).style.display='flex';}
+function updateChar(id,max,cid){var v=document.getElementById(id)?.value.length||0;var el=document.getElementById(cid);if(el)el.textContent=v;}
+window.addEventListener('DOMContentLoaded',function(){
+  var saved=null;try{saved=JSON.parse(localStorage.getItem('gs_leader_sess')||'null');}catch(e){}
+  if(saved&&saved.churchId&&Date.now()<(saved.expiry||0)){_session=saved;restoreSession();}
 });
-
-async function restoreSession() {
-  try {
-    var { data: church } = await db.from('churches').select('*').eq('id', _session.churchId).single();
-    if(!church) { localStorage.removeItem('gs_leader_sess'); return; }
-    _church = church;
-    loadChurchUI(church);
-    document.getElementById('group-name-display').textContent = _session.groupName;
-    showStep('step-app');
-    document.getElementById('bottom-nav').classList.add('visible');
-    switchTab('report');
-  } catch(e) {}
+async function restoreSession(){
+  try{
+    var{data:church}=await db.from('churches').select('*').eq('id',_session.churchId).single();
+    if(!church){localStorage.removeItem('gs_leader_sess');return;}
+    _church=church;loadChurchUI(church);
+    document.getElementById('group-chip-wrap').innerHTML='<div class="group-chip"><i class="ti ti-users" style="font-size:11px"></i>'+esc(_session.groupName)+'</div>';
+    document.getElementById('logout-btn').style.display='flex';
+    showStep('step-app');document.getElementById('bottom-nav').classList.add('visible');switchTab('report');
+  }catch(e){}
 }
-
-// ── STEP 1: LOAD CHURCH BY LICENSE KEY ──
-async function loadChurchByKey() {
-  var key = document.getElementById('inp-lic').value.trim().toUpperCase();
-  if(!key) { setErr('key-err','Please enter your license key'); return; }
-  try {
-    // Validate license first
-    var res = await fetch('https://cqbhlmdwlcwskeetrcqk.supabase.co/functions/v1/validate-license', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({licenseKey:key, deviceId:'leader-portal', os:'web', appVersion:'2.0.0'})
-    });
-    var lic = await res.json();
-    if(!lic.allowed) { setErr('key-err', lic.message||'Invalid license key'); return; }
-    // Load church
-    var { data: church } = await db.from('churches').select('*').eq('license_key', key).single();
-    if(!church) { setErr('key-err','Church not found. Contact your admin.'); return; }
-    _church = church;
-    loadChurchUI(church);
-    showStep('step-login');
-  } catch(e) {
-    setErr('key-err','Connection error. Check internet and try again.');
-  }
+async function loadChurchByKey(){
+  var key=document.getElementById('inp-lic').value.trim().toUpperCase();
+  if(!key){setErr('key-err','Please enter your license key');return;}
+  var btn=document.querySelector('#step-key .btn');btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Checking...';
+  try{
+    var res=await fetch('https://cqbhlmdwlcwskeetrcqk.supabase.co/functions/v1/validate-license',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({licenseKey:key,deviceId:'leader-portal',os:'web',appVersion:'2.0.0'})});
+    var lic=await res.json();
+    if(!lic.allowed){setErr('key-err',lic.message||'Invalid license key');btn.disabled=false;btn.innerHTML='<i class="ti ti-arrow-right"></i>Continue';return;}
+    var{data:church}=await db.from('churches').select('*').eq('license_key',key).single();
+    if(!church){setErr('key-err','Church not found. Contact your admin.');btn.disabled=false;btn.innerHTML='<i class="ti ti-arrow-right"></i>Continue';return;}
+    _church=church;loadChurchUI(church);showStep('step-login');await loadGroups();
+  }catch(e){setErr('key-err','Connection error. Check internet and try again.');}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-arrow-right"></i>Continue';
 }
-
-function loadChurchUI(church) {
-  document.getElementById('church-name-display').textContent = church.name || 'My Church';
-  if(church.logo_url) {
-    document.getElementById('church-logo-wrap').innerHTML = '<img src="'+church.logo_url+'" alt="Church Logo">';
-  }
+function loadChurchUI(church){
+  document.getElementById('church-name-display').textContent=church.name||'My Church';
+  if(church.logo_url)document.getElementById('church-logo-wrap').innerHTML='<img src="'+church.logo_url+'" alt="Logo">';
 }
-
-// ── STEP 2: LOAD GROUPS ──
-async function loadGroups() {
-  var gtype = document.getElementById('inp-gtype').value;
-  var sel = document.getElementById('inp-group');
-  sel.innerHTML = '<option value="">— Select your group —</option>';
-  if(!gtype || !_church) return;
-  var table = gtype === 'cell_groups' ? 'cell_groups' : gtype === 'fellowships' ? 'fellowships' : 'ministries';
-  var { data: groups } = await db.from(table).select('id,name,report_pin').eq('church_id', _church.id).order('name');
-  if(groups) groups.forEach(function(g){
-    sel.innerHTML += '<option value="'+g.id+'">'+esc(g.name)+'</option>';
-  });
-  _gtype = gtype;
-  window._groupData = groups || [];
+async function loadGroups(){
+  var gtype=document.getElementById('inp-gtype').value;
+  var sel=document.getElementById('inp-group');
+  sel.innerHTML='<option value="">— Select your group —</option>';
+  if(!gtype||!_church)return;
+  var table=gtype==='cell_groups'?'cell_groups':gtype==='fellowships'?'fellowships':'ministries';
+  var{data:groups,error}=await db.from(table).select('id,name,report_pin').eq('church_id',_church.id).order('name');
+  if(error)console.error('loadGroups:',error);
+  window._groupData=groups||[];
+  if(!groups||!groups.length){sel.innerHTML='<option value="" disabled>No groups found</option>';return;}
+  groups.forEach(function(g){sel.innerHTML+='<option value="'+g.id+'">'+esc(g.name)+'</option>';});
+  _gtype=gtype;
 }
-
-async function doLeaderLogin() {
-  var gtype = document.getElementById('inp-gtype').value;
-  var gid   = document.getElementById('inp-group').value;
-  var pin   = document.getElementById('inp-pin').value.trim();
-  if(!gtype){ setErr('login-err','Select a group type'); return; }
-  if(!gid){ setErr('login-err','Select your group'); return; }
-  if(!pin){ setErr('login-err','Enter your PIN'); return; }
-  var group = (window._groupData||[]).find(function(g){ return g.id===gid; });
-  if(!group || !group.report_pin || group.report_pin !== pin){
-    setErr('login-err','Incorrect PIN. Contact your admin.'); return;
-  }
-  _group = group;
-  _gtype = gtype;
-  _session = { churchId:_church.id, groupId:gid, groupName:group.name, gtype, expiry: Date.now()+8*60*60*1000 };
-  localStorage.setItem('gs_leader_sess', JSON.stringify(_session));
-  document.getElementById('group-name-display').textContent = group.name;
-  showStep('step-app');
-  document.getElementById('bottom-nav').classList.add('visible');
-  switchTab('report');
+async function doLeaderLogin(){
+  var gtype=document.getElementById('inp-gtype').value;
+  var gid=document.getElementById('inp-group').value;
+  var pin=document.getElementById('inp-pin').value.trim();
+  if(!gtype){setErr('login-err','Select a group type');return;}
+  if(!gid){setErr('login-err','Select your group');return;}
+  if(!pin){setErr('login-err','Enter your PIN');return;}
+  var group=(window._groupData||[]).find(function(g){return g.id===gid;});
+  if(!group||!group.report_pin||group.report_pin!==pin){setErr('login-err','Incorrect PIN. Contact your admin.');return;}
+  _group=group;_gtype=gtype;
+  _session={churchId:_church.id,groupId:gid,groupName:group.name,gtype,expiry:Date.now()+8*60*60*1000};
+  localStorage.setItem('gs_leader_sess',JSON.stringify(_session));
+  document.getElementById('group-chip-wrap').innerHTML='<div class="group-chip"><i class="ti ti-users" style="font-size:11px"></i>'+esc(group.name)+'</div>';
+  document.getElementById('logout-btn').style.display='flex';
+  showStep('step-app');document.getElementById('bottom-nav').classList.add('visible');switchTab('report');
 }
-
-// ── TAB SWITCHING ──
-function switchTab(tab) {
-  document.querySelectorAll('.tab-page').forEach(function(p){ p.style.display='none'; });
-  document.querySelectorAll('.nav-tab').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById('tab-'+tab).style.display='block';
+function leaderLogout(){localStorage.removeItem('gs_leader_sess');location.reload();}
+function switchTab(tab){
+  document.querySelectorAll('.tab-page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-tab').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+tab).classList.add('active');
   document.getElementById('nav-'+tab).classList.add('active');
-  if(tab==='report') renderReportForm();
-  if(tab==='history') loadHistory();
-  if(tab==='notices') loadNotices();
+  if(tab==='report')renderReportForm();
+  if(tab==='history')loadHistory();
+  if(tab==='notices')loadNotices();
 }
-
-// ── TAB: SUBMIT REPORT ──
-function renderReportForm() {
-  var today = new Date().toISOString().split('T')[0];
-  var wrap = document.getElementById('report-form-wrap');
-  wrap.innerHTML = '<div class="card">' +
-    '<div class="card-title"><i class="ti ti-clipboard-list"></i>Weekly Report</div>' +
+function renderReportForm(){
+  var today=new Date().toISOString().split('T')[0];
+  document.getElementById('report-form-wrap').innerHTML=
+    '<div class="card"><div class="card-title"><i class="ti ti-clipboard-list" style="color:var(--navy)"></i>Weekly Report</div>' +
     '<div id="report-msg"></div>' +
-    '<div class="field"><label>Report Date</label><input type="date" id="r-date" value="'+today+'"></div>' +
-    '<div class="field"><label>Attendance</label><input type="number" id="r-att" placeholder="0" min="0" inputmode="numeric"></div>' +
-    '<div class="field"><label>Offering Collected (RM)</label><input type="number" id="r-off" placeholder="0.00" step="0.01" inputmode="decimal"></div>' +
-    '<div class="field"><label>Gathering Summary <span style="color:var(--danger)">*</span></label>' +
-      '<textarea id="r-sum" placeholder="What happened this gathering? Topics discussed, activities..." maxlength="500" oninput="updateChar(\'r-sum\',500)"></textarea>' +
-      '<div class="char-count"><span id="r-sum-count">0</span>/500</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">' +
+      '<div><div class="field"><label>Report Date</label><input type="date" id="r-date" value="'+today+'"></div></div>' +
+      '<div><div class="field"><label>Week Ending</label><input type="date" id="r-week-end"></div></div>' +
     '</div>' +
-    '<div class="field"><label>Prayer Requests</label>' +
-      '<textarea id="r-pray" placeholder="Prayer items to share with church leadership..." maxlength="300" oninput="updateChar(\'r-pray\',300)"></textarea>' +
-      '<div class="char-count"><span id="r-pray-count">0</span>/300</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">' +
+      '<div class="stat-input-box"><label>Attendance</label><input type="number" id="r-att" min="0" inputmode="numeric" placeholder="0" style="border:none;background:transparent;font-size:26px;font-weight:800;text-align:center;width:100%;font-family:inherit;outline:none;color:var(--navy)"></div>' +
+      '<div class="stat-input-box"><label>Offering (RM)</label><input type="number" id="r-off" min="0" step="0.01" inputmode="decimal" placeholder="0.00" style="border:none;background:transparent;font-size:22px;font-weight:800;text-align:center;width:100%;font-family:inherit;outline:none;color:var(--success)"></div>' +
     '</div>' +
-    '<div class="field"><label>Challenges / Needs</label>' +
-      '<textarea id="r-chal" placeholder="Any challenges, resources needed..." maxlength="300" oninput="updateChar(\'r-chal\',300)"></textarea>' +
-    '</div>' +
-    '<div class="field"><label>Next Gathering Plan</label>' +
-      '<textarea id="r-next" placeholder="Plans for next week..." maxlength="300" oninput="updateChar(\'r-next\',300)"></textarea>' +
-    '</div>' +
-    '<button class="btn-primary btn-gold" id="r-submit-btn" onclick="submitReport()"><i class="ti ti-send"></i>Submit Report</button>' +
-    '<div style="font-size:11px;color:var(--g400);text-align:center;margin-top:10px"><i class="ti ti-lock"></i> Reports submitted today can be edited until midnight. After that they are locked.</div>' +
-  '</div>';
+    '<div class="field"><label>Summary <span style="color:var(--danger)">*</span></label><textarea id="r-sum" placeholder="What happened this gathering?" maxlength="500" oninput="updateChar(\'r-sum\',500,\'r-sum-count\')"></textarea><div class="char-count"><span id="r-sum-count">0</span>/500</div></div>' +
+    '<div class="field"><label>Prayer Requests</label><textarea id="r-pray" placeholder="Prayer items for leadership..." maxlength="300"></textarea></div>' +
+    '<div class="field"><label>Challenges / Needs</label><textarea id="r-chal" placeholder="Any challenges or resources needed..."></textarea></div>' +
+    '<div class="field"><label>Next Week Plan</label><textarea id="r-next" placeholder="Plans for next gathering..."></textarea></div>' +
+    '<button class="btn btn-gold" id="r-submit-btn" onclick="submitReport()"><i class="ti ti-send"></i>Submit Report</button>' +
+    '<div style="text-align:center;font-size:11px;color:var(--g400);margin-top:10px"><i class="ti ti-lock"></i> Locked after midnight — edit same day only</div></div>';
 }
-
-function updateChar(id, max) {
-  var val = document.getElementById(id).value.length;
-  var el = document.getElementById(id+'-count');
-  if(el) el.textContent = val;
-}
-
-async function submitReport() {
-  var date    = document.getElementById('r-date').value;
-  var att     = parseInt(document.getElementById('r-att').value)||0;
-  var off     = parseFloat(document.getElementById('r-off').value)||0;
-  var summary = document.getElementById('r-sum').value.trim();
-  var prayer  = document.getElementById('r-pray').value.trim();
-  var chal    = document.getElementById('r-chal').value.trim();
-  var next    = document.getElementById('r-next').value.trim();
-  var msg     = document.getElementById('report-msg');
-
-  if(!summary){ msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>Gathering summary is required.</div>'; return; }
-
-  // Check if report already submitted today for this group
-  var todayStr = new Date().toISOString().split('T')[0];
-  var { data: existing } = await db.from('leader_reports')
-    .select('id,created_at')
-    .eq('church_id', _session.churchId)
-    .eq('group_id', _session.groupId)
-    .eq('report_date', date)
-    .limit(1);
-
-  var btn = document.getElementById('r-submit-btn');
-  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Submitting...';
-
-  try {
-    if(existing && existing.length > 0) {
-      // Update existing if submitted today
-      var rec = existing[0];
-      var recDate = (rec.created_at||'').split('T')[0];
-      if(recDate === todayStr) {
-        await db.from('leader_reports').update({attendance:att, offering_collected:off, summary, prayer_requests:prayer, challenges:chal, next_week_plan:next, updated_at:new Date().toISOString()}).eq('id', rec.id);
-        msg.innerHTML = '<div class="alert alert-success"><i class="ti ti-check"></i>Report updated successfully!</div>';
-      } else {
-        msg.innerHTML = '<div class="alert alert-error"><i class="ti ti-lock"></i>A report for this date was already submitted and is now locked. Contact admin to edit.</div>';
-        btn.disabled=false; btn.innerHTML='<i class="ti ti-send"></i>Submit Report'; return;
-      }
-    } else {
-      await db.from('leader_reports').insert({
-        church_id: _session.churchId,
-        group_id: _session.groupId,
-        group_name: _session.groupName,
-        group_type: _session.gtype,
-        report_date: date,
-        attendance: att,
-        offering_collected: off,
-        summary, prayer_requests:prayer,
-        challenges:chal,
-        next_week_plan:next,
-        created_at: new Date().toISOString()
-      });
-      msg.innerHTML = '<div class="alert alert-success"><i class="ti ti-check"></i>Report submitted! Your admin can see it now.</div>';
+async function submitReport(){
+  var date=document.getElementById('r-date').value;
+  var summary=document.getElementById('r-sum').value.trim();
+  var msg=document.getElementById('report-msg');
+  if(!summary){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>Summary is required.</div>';return;}
+  var todayStr=new Date().toISOString().split('T')[0];
+  var{data:existing}=await db.from('leader_reports').select('id,created_at').eq('church_id',_session.churchId).eq('group_id',_session.groupId).eq('report_date',date).limit(1);
+  var btn=document.getElementById('r-submit-btn');
+  btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Submitting...';
+  try{
+    var payload={attendance:parseInt(document.getElementById('r-att')?.value)||0,offering_collected:parseFloat(document.getElementById('r-off')?.value)||0,summary,prayer_requests:document.getElementById('r-pray')?.value||'',challenges:document.getElementById('r-chal')?.value||'',next_week_plan:document.getElementById('r-next')?.value||''};
+    if(existing&&existing.length>0){
+      var rec=existing[0];var recDate=(rec.created_at||'').split('T')[0];
+      if(recDate===todayStr){await db.from('leader_reports').update(Object.assign({updated_at:new Date().toISOString()},payload)).eq('id',rec.id);msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Report updated!</div>';}
+      else{msg.innerHTML='<div class="alert alert-error"><i class="ti ti-lock"></i>Report locked. Contact admin.</div>';btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i>Submit Report';return;}
+    }else{
+      await db.from('leader_reports').insert(Object.assign({church_id:_session.churchId,group_id:_session.groupId,group_name:_session.groupName,group_type:_session.gtype,report_date:date,created_at:new Date().toISOString()},payload));
+      msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Submitted! Admin can see it now.</div>';
     }
-    // Reset form fields except date
-    ['r-att','r-off','r-sum','r-pray','r-chal','r-next'].forEach(function(id){
-      var el = document.getElementById(id); if(el) el.value='';
-    });
-  } catch(e) {
-    msg.innerHTML = '<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Submit failed. Check internet and try again.</div>';
-  }
-  btn.disabled=false; btn.innerHTML='<i class="ti ti-send"></i>Submit Report';
+    ['r-att','r-off','r-sum','r-pray','r-chal','r-next'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  }catch(e){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Submit failed. Check internet.</div>';}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i>Submit Report';
   window.scrollTo({top:0,behavior:'smooth'});
 }
-
-// ── TAB: HISTORY ──
-async function loadHistory() {
-  var list = document.getElementById('history-list');
-  list.innerHTML = '<div class="spinner"></div>';
-  try {
-    var { data: reports } = await db.from('leader_reports')
-      .select('*').eq('church_id', _session.churchId)
-      .eq('group_id', _session.groupId)
-      .order('report_date', {ascending:false}).limit(20);
-    if(!reports || !reports.length){
-      list.innerHTML = '<div style="text-align:center;color:var(--g400);padding:20px;font-size:13px"><i class="ti ti-clipboard-x" style="font-size:32px;display:block;margin-bottom:8px"></i>No reports yet</div>';
-      return;
-    }
-    var todayStr = new Date().toISOString().split('T')[0];
-    list.innerHTML = reports.map(function(r){
-      var isToday = (r.created_at||'').split('T')[0] === todayStr;
-      var locked = !isToday;
-      return '<div class="report-item">' +
-        '<div style="flex:1">' +
-          '<div style="display:flex;align-items:center;gap:6px">' +
-            '<div style="font-weight:600;font-size:14px">'+fmtDate(r.report_date)+'</div>' +
-            (locked ? '<span class="locked-badge"><i class="ti ti-lock" style="font-size:10px"></i>Locked</span>' : '<button class="edit-btn" onclick="editReport(\''+r.id+'\')"><i class="ti ti-edit"></i> Edit</button>') +
-          '</div>' +
-          '<div class="report-date">Att: '+esc(r.attendance||0)+' · '+fmt(r.offering_collected||0)+'</div>' +
-          '<div class="report-summary">'+esc((r.summary||'').slice(0,80))+(r.summary&&r.summary.length>80?'…':'')+'</div>' +
-        '</div>' +
-      '</div>';
+async function loadHistory(){
+  var list=document.getElementById('history-list');list.innerHTML='<div class="spinner"></div>';
+  try{
+    var{data:reports}=await db.from('leader_reports').select('*').eq('church_id',_session.churchId).eq('group_id',_session.groupId).order('report_date',{ascending:false}).limit(20);
+    var today=new Date().toISOString().split('T')[0];
+    if(!reports||!reports.length){list.innerHTML='<div style="text-align:center;color:var(--g400);padding:24px"><i class="ti ti-clipboard-x" style="font-size:32px;display:block;margin-bottom:8px"></i>No reports yet</div>';return;}
+    list.innerHTML=reports.map(function(r){
+      var isToday=(r.created_at||'').split('T')[0]===today;
+      return '<div class="rpt-item"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
+        '<div style="font-weight:700;font-size:13px;color:var(--navy)">'+fmtDate(r.report_date)+'</div>' +
+        (isToday?'<button class="edit-tag" onclick="editReport(\''+r.id+'\')"><i class="ti ti-pencil" style="font-size:10px"></i>Edit</button>':'<span class="locked-tag"><i class="ti ti-lock" style="font-size:10px"></i>Locked</span>') +
+        '</div><div style="font-size:12px;color:var(--g400)">👥 '+esc(r.attendance||0)+' · '+fmt(r.offering_collected||0)+'</div>' +
+        '<div style="font-size:12px;color:var(--g600);margin-top:3px">'+esc((r.summary||'').slice(0,70))+(r.summary&&r.summary.length>70?'…':'')+'</div></div>';
     }).join('');
-  } catch(e) {
-    list.innerHTML = '<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Could not load history.</div>';
-  }
+  }catch(e){list.innerHTML='<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Could not load.</div>';}
 }
-
-async function editReport(id) {
-  var { data: r } = await db.from('leader_reports').select('*').eq('id',id).single();
-  if(!r) return;
+async function editReport(id){
+  var{data:r}=await db.from('leader_reports').select('*').eq('id',id).single();if(!r)return;
   renderReportForm();
   setTimeout(function(){
-    document.getElementById('r-date').value = r.report_date||'';
-    document.getElementById('r-att').value = r.attendance||'';
-    document.getElementById('r-off').value = r.offering_collected||'';
-    document.getElementById('r-sum').value = r.summary||'';
-    document.getElementById('r-pray').value = r.prayer_requests||'';
-    document.getElementById('r-chal').value = r.challenges||'';
-    document.getElementById('r-next').value = r.next_week_plan||'';
+    var flds=['r-date','r-att','r-off','r-sum','r-pray','r-chal','r-next'];
+    var vals=[r.report_date,r.attendance,r.offering_collected,r.summary,r.prayer_requests,r.challenges,r.next_week_plan];
+    flds.forEach(function(fid,i){var el=document.getElementById(fid);if(el)el.value=vals[i]||'';});
     switchTab('report');
-    document.getElementById('report-msg').innerHTML = '<div class="alert alert-info"><i class="ti ti-info-circle"></i>Editing today\'s report. Save to update.</div>';
-  }, 50);
+    document.getElementById('report-msg').innerHTML='<div class="alert alert-info"><i class="ti ti-info-circle"></i>Editing today\'s report.</div>';
+  },50);
 }
-
-// ── TAB: NOTICES ──
-async function loadNotices() {
-  var list = document.getElementById('notices-list');
-  list.innerHTML = '<div class="spinner"></div>';
-  try {
-    var { data: notices } = await db.from('notices')
-      .select('*').eq('church_id', _session.churchId)
-      .order('created_at', {ascending:false}).limit(10);
-    if(!notices || !notices.length){
-      list.innerHTML = '<div style="text-align:center;color:var(--g400);padding:20px;font-size:13px"><i class="ti ti-speakerphone" style="font-size:32px;display:block;margin-bottom:8px"></i>No announcements yet</div>';
-      return;
-    }
-    var colors = {info:'#eff6ff',warning:'#fffbeb',urgent:'#fef2f2'};
-    var borders = {info:'#93c5fd',warning:'#fcd34d',urgent:'#fca5a5'};
-    list.innerHTML = notices.map(function(n){
-      var bg = colors[n.priority]||colors.info;
-      var bd = borders[n.priority]||borders.info;
-      return '<div style="background:'+bg+';border:1px solid '+bd+';border-radius:10px;padding:14px;margin-bottom:10px">' +
-        '<div style="font-weight:700;font-size:14px;margin-bottom:4px">'+esc(n.title||'')+'</div>' +
+async function loadNotices(){
+  var list=document.getElementById('notices-list');list.innerHTML='<div class="spinner"></div>';
+  try{
+    var{data:notices}=await db.from('notices').select('*').eq('church_id',_session.churchId).order('created_at',{ascending:false}).limit(10);
+    if(!notices||!notices.length){list.innerHTML='<div style="text-align:center;color:var(--g400);padding:24px"><i class="ti ti-speakerphone" style="font-size:32px;display:block;margin-bottom:8px"></i>No notices yet</div>';return;}
+    list.innerHTML=notices.map(function(n){
+      var cls=n.priority==='urgent'?'notice-urgent':n.priority==='warning'?'notice-warning':'notice-info';
+      var icon=n.priority==='urgent'?'🚨':n.priority==='warning'?'⚠️':'📢';
+      return '<div class="notice-card '+cls+'"><div style="font-weight:700;font-size:14px;margin-bottom:4px">'+icon+' '+esc(n.title||'')+'</div>' +
         '<div style="font-size:13px;color:var(--g600);line-height:1.5">'+esc(n.message||'')+'</div>' +
-        '<div style="font-size:11px;color:var(--g400);margin-top:8px">'+fmtDate((n.created_at||'').split('T')[0])+(n.created_by?' · '+esc(n.created_by):'')+'</div>' +
-      '</div>';
+        '<div style="font-size:10px;color:var(--g400);margin-top:6px">'+fmtDate((n.created_at||'').split('T')[0])+'</div></div>';
     }).join('');
-  } catch(e) {
-    list.innerHTML = '<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Could not load announcements.</div>';
-  }
+  }catch(e){list.innerHTML='<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Could not load.</div>';}
+}
+function switchCommTab(tab){
+  ['prayer','suggestion','testimonial'].forEach(function(t){
+    document.getElementById('ctab-'+t).classList.remove('active');
+    document.getElementById('cform-'+t).style.display=t===tab?'block':'none';
+  });
+  document.getElementById('ctab-'+tab).classList.add('active');
+}
+async function submitPrayer(){
+  var req=document.getElementById('pr-request').value.trim();
+  var msg=document.getElementById('prayer-msg');
+  if(!req){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>Please enter your prayer request.</div>';return;}
+  try{
+    await db.from('prayer_requests').insert({church_id:_session.churchId,submitted_by:_session.groupName,request:req,is_private:document.getElementById('pr-private').checked,status:'pending',created_at:new Date().toISOString()});
+    msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Prayer request submitted!</div>';
+    document.getElementById('pr-request').value='';document.getElementById('pr-private').checked=false;
+  }catch(e){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Submit failed.</div>';}
+}
+async function submitSuggestion(){
+  var sug=document.getElementById('sg-suggestion').value.trim();
+  var msg=document.getElementById('sugg-msg');
+  if(!sug){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>Please enter your suggestion.</div>';return;}
+  try{
+    await db.from('suggestions').insert({church_id:_session.churchId,submitted_by:_session.groupName,suggestion:sug,category:document.getElementById('sg-cat').value||'General',status:'pending',created_at:new Date().toISOString()});
+    msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Suggestion submitted!</div>';
+    document.getElementById('sg-suggestion').value='';
+  }catch(e){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Submit failed.</div>';}
+}
+async function submitTestimonial(){
+  var ts=document.getElementById('ts-testimonial').value.trim();
+  var msg=document.getElementById('test-msg');
+  if(!ts){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>Please share your testimony.</div>';return;}
+  try{
+    await db.from('testimonials').insert({church_id:_session.churchId,submitted_by:_session.groupName,testimonial:ts,image1:document.getElementById('ts-img1-data').value||null,image2:document.getElementById('ts-img2-data').value||null,status:'pending',created_at:new Date().toISOString()});
+    msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Testimony submitted. Praise God!</div>';
+    document.getElementById('ts-testimonial').value='';
+    ['ts-img1-data','ts-img2-data'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('ts-img1-prev').innerHTML='<i class="ti ti-photo"></i>';
+    document.getElementById('ts-img2-prev').innerHTML='<i class="ti ti-photo-plus"></i>';
+  }catch(e){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Submit failed.</div>';}
+}
+function prevTestImg(inp,prevId,dataId){
+  var file=inp.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){document.getElementById(dataId).value=e.target.result;document.getElementById(prevId).innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover">';};
+  r.readAsDataURL(file);
 }
 </script>
 </body>

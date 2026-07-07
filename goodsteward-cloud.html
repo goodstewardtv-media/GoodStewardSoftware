@@ -306,6 +306,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
         <div class="ns">System</div>
         <div class="ni" onclick="go('notices')"><i class="ti ti-speakerphone"></i>Admin Notes</div>
         <div class="ni" onclick="go('comms')"><i class="ti ti-message-bolt"></i>Communications</div>
+        <div class="ni" onclick="go('occasions')" id="nav-occasions"><i class="ti ti-confetti"></i>Special Occasions</div>
+        <div class="ni" onclick="go('community')"><i class="ti ti-heart-handshake"></i>Community</div>
         <div class="ni" onclick="go('settings')"><i class="ti ti-settings"></i>Settings</div>
       </nav>
       <div id="sb-foot">Good Steward Cloud &copy; 2024</div>
@@ -343,6 +345,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
         <div class="page" id="page-reports"></div>
         <div class="page" id="page-audit"></div>
         <div class="page" id="page-comms"></div>
+        <div class="page" id="page-occasions"></div>
+        <div class="page" id="page-community"></div>
       </div>
     </div>
   </div>
@@ -550,6 +554,8 @@ const pageRenderers = {
   reports: (...a) => renderLeaderReports(...a),
   audit: (...a) => renderAuditLog(...a),
   comms: (...a) => renderComms(...a),
+  occasions: (...a) => renderOccasions(...a),
+  community: (...a) => renderCommunity(...a),
   notices: renderNotices,
   settings: renderSettings
 };
@@ -1468,23 +1474,72 @@ async function renderSettings() {
 
     <div class="card" style="margin-top:16px">
       <div style="font-size:14px;font-weight:700;margin-bottom:4px"><i class="ti ti-mail" style="color:var(--gold)"></i> Email Automation</div>
-      <div style="font-size:12px;color:var(--g400);margin-bottom:16px">Enable automated emails — event reminders, announcements, birthday greetings, giving statements. Uses EmailJS (free up to 200 emails/month).</div>
+      <div style="font-size:12px;color:var(--g400);margin-bottom:16px">Powered by Resend via Good Steward — no setup needed. Just enable and your church email is used as reply-to.</div>
       <div class="fg">
         <div class="frow"><label>Enable Email Automation</label>
-          <select id="st-email-enabled">
+          <select id="st-email-enabled" onchange="saveEmailSettings()">
             <option value="0">Disabled</option>
             <option value="1">Enabled</option>
           </select>
         </div>
-        <div class="frow"><label>EmailJS Service ID</label><input type="text" id="st-ejs-service" placeholder="service_xxxxxxx"></div>
-        <div class="frow"><label>EmailJS Public Key</label><input type="text" id="st-ejs-key" placeholder="Your EmailJS public key"></div>
-        <div class="frow"><label>Reply-To Email</label><input type="email" id="st-ejs-reply" placeholder="church@example.com"></div>
-        <div class="frow"><label>Event Reminder</label><select id="st-ejs-reminder"><option value="0">Disabled</option><option value="1">24 hours before</option><option value="2">48 hours before</option><option value="7">1 week before</option></select></div>
-        <div class="frow"><label>Birthday Greetings</label><select id="st-ejs-bday"><option value="0">Disabled</option><option value="1">On birthday</option></select></div>
-        <div class="frow"><label>Monthly Giving Statement</label><select id="st-ejs-stmt"><option value="0">Disabled</option><option value="1">1st of each month</option></select></div>
+        <div class="frow"><label>Reply-To Email <span style="font-size:10px;color:var(--g400)">(members reply to this)</span></label>
+          <input type="email" id="st-ejs-reply" placeholder="church@gmail.com or admin@church.com">
+        </div>
+        <div class="frow"><label>Event Reminder</label>
+          <select id="st-ejs-reminder">
+            <option value="0">Disabled</option>
+            <option value="1">24 hours before</option>
+            <option value="2">48 hours before</option>
+            <option value="7">1 week before</option>
+          </select>
+        </div>
+        <div class="frow"><label>Birthday Greetings</label>
+          <select id="st-ejs-bday">
+            <option value="0">Disabled</option>
+            <option value="1">Send on birthday</option>
+          </select>
+        </div>
+        <div class="frow"><label>Monthly Giving Statement</label>
+          <select id="st-ejs-stmt">
+            <option value="0">Disabled</option>
+            <option value="1">1st of each month</option>
+          </select>
+        </div>
       </div>
       <button class="btn btn-p sm" style="margin-top:8px" onclick="saveEmailSettings()"><i class="ti ti-check"></i>Save Email Settings</button>
-      <div style="font-size:11px;color:var(--g400);margin-top:8px">Get free EmailJS account at <a href="https://emailjs.com" target="_blank">emailjs.com</a> · Free plan: 200 emails/month</div>
+      <div style="font-size:11px;color:var(--g400);margin-top:8px;padding:8px;background:var(--g50);border-radius:6px"><i class="ti ti-info-circle"></i> Emails are sent via Good Steward's email system (Resend). Your church email is used as the reply-to address only. No separate account needed.</div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px"><i class="ti ti-brand-whatsapp" style="color:#25d366"></i> WhatsApp Business API <span style="font-size:11px;font-weight:400;background:#dcf8c6;color:#075e54;padding:2px 8px;border-radius:10px;margin-left:6px">Optional</span></div>
+      <div style="font-size:12px;color:var(--g400);margin-bottom:16px">Connect your WhatsApp Business API to send messages directly from Good Steward. Without this, Good Steward generates copy-paste templates for your existing WhatsApp broadcast group.</div>
+      <div class="fg">
+        <div class="frow"><label>Enable WhatsApp API</label>
+          <select id="st-wa-enabled" onchange="saveWASettings()">
+            <option value="0">Disabled (use copy-paste templates)</option>
+            <option value="1">Enabled (direct send via API)</option>
+          </select>
+        </div>
+        <div class="frow"><label>API Provider</label>
+          <select id="st-wa-provider">
+            <option value="wati">Wati.io</option>
+            <option value="360dialog">360Dialog</option>
+            <option value="twilio">Twilio</option>
+            <option value="aisensy">AiSensy</option>
+          </select>
+        </div>
+        <div class="frow"><label>API Endpoint URL</label>
+          <input type="text" id="st-wa-endpoint" placeholder="https://live-server.wati.io/api/...">
+        </div>
+        <div class="frow"><label>API Key / Token</label>
+          <input type="password" id="st-wa-key" placeholder="Your API key">
+        </div>
+        <div class="frow"><label>Phone Number ID</label>
+          <input type="text" id="st-wa-phone" placeholder="WhatsApp Business phone number">
+        </div>
+      </div>
+      <button class="btn btn-p sm" style="margin-top:8px;background:#25d366;border-color:#25d366" onclick="saveWASettings()"><i class="ti ti-check"></i>Save WhatsApp Settings</button>
+      <div style="font-size:11px;color:var(--g400);margin-top:8px">Requires a WhatsApp Business API subscription (~RM 150-300/month). Contact Wati.io, 360Dialog, or your preferred BSP to get started.</div>
     </div>
 
     <div id="ai-settings-panel" style="display:none">
@@ -4770,6 +4825,360 @@ function openCommsForAnnouncement(note) {
       }
     };
   }
+})();
+
+</script>
+
+<script>
+
+// ═══════════════════════════════════════════════════════════════
+// #2 — WHATSAPP BUSINESS API
+// ═══════════════════════════════════════════════════════════════
+function getWACfg() {
+  try { return JSON.parse(localStorage.getItem('gs_wa_cfg_'+SESSION?.churchId)||'{}'); } catch(e){ return {}; }
+}
+function saveWASettings() {
+  var cfg = {
+    enabled: document.getElementById('st-wa-enabled')?.value === '1',
+    provider: document.getElementById('st-wa-provider')?.value || 'wati',
+    endpoint: document.getElementById('st-wa-endpoint')?.value.trim() || '',
+    key: document.getElementById('st-wa-key')?.value.trim() || '',
+    phone: document.getElementById('st-wa-phone')?.value.trim() || ''
+  };
+  localStorage.setItem('gs_wa_cfg_'+SESSION?.churchId, JSON.stringify(cfg));
+  toast('WhatsApp API settings saved');
+}
+function loadWASettingsUI() {
+  var cfg = getWACfg();
+  var set = function(id,v){ var el=document.getElementById(id); if(el) el.value=v||''; };
+  set('st-wa-enabled', cfg.enabled?'1':'0');
+  set('st-wa-provider', cfg.provider||'wati');
+  set('st-wa-endpoint', cfg.endpoint);
+  set('st-wa-key', cfg.key);
+  set('st-wa-phone', cfg.phone);
+}
+async function sendWADirect(phone, message) {
+  var cfg = getWACfg();
+  if(!cfg.enabled || !cfg.key) return false;
+  try {
+    var url = cfg.endpoint;
+    var headers = {'Content-Type':'application/json','Authorization':'Bearer '+cfg.key};
+    var body = {};
+    if(cfg.provider==='wati') {
+      body = {whatsappNumber:phone.replace(/\D/g,''), message};
+    } else {
+      body = {to:phone.replace(/\D/g,''), body:message};
+    }
+    var resp = await fetch(url, {method:'POST', headers, body:JSON.stringify(body)});
+    return resp.ok;
+  } catch(e) { console.error('WA API error:', e); return false; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// #4 — SPECIAL OCCASIONS PAGE + DASHBOARD NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════
+function daysUntil(dateStr) {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var target = new Date(dateStr+'T00:00:00'); target.setHours(0,0,0,0);
+  return Math.round((target-today)/(1000*60*60*24));
+}
+function getMothersDayDate(year) {
+  var may1 = new Date(year,4,1);
+  var firstSun = 1+(7-may1.getDay())%7;
+  return new Date(year,4,firstSun+7);
+}
+function getFathersDayDate(year) {
+  var jun1 = new Date(year,5,1);
+  var firstSun = 1+(7-jun1.getDay())%7;
+  return new Date(year,5,firstSun+14);
+}
+
+async function renderOccasions() {
+  var page = document.getElementById('page-occasions');
+  page.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;padding:60px"><div class="spinner"></div></div>';
+  var members = await Cloud.get('members');
+  var today = new Date();
+  var year = today.getFullYear();
+  var thisMonth = today.toISOString().slice(5,7);
+
+  function getBdayInfo(m) {
+    var dob = m.date_of_birth||m.dob||'';
+    if(!dob) return null;
+    var parts = dob.split('-');
+    if(parts.length<3) return null;
+    var mm=parts[1], dd=parts[2].slice(0,2);
+    var bdStr = year+'-'+mm+'-'+dd;
+    var days = daysUntil(bdStr);
+    if(days<0){ bdStr=(year+1)+'-'+mm+'-'+dd; days=daysUntil(bdStr); }
+    return {date:bdStr, days, mm};
+  }
+
+  var bdayThisMonth = members.map(function(m){
+    var info = getBdayInfo(m); if(!info) return null;
+    return Object.assign({},m,{_bday:info});
+  }).filter(function(m){ return m&&m._bday.mm===thisMonth; })
+    .sort(function(a,b){ return a._bday.days-b._bday.days; });
+
+  var bdayNext7 = bdayThisMonth.filter(function(m){ return m._bday.days>=0&&m._bday.days<=7; });
+
+  var baptismMembers = members.filter(function(m){
+    var bd=m.baptism_date||m.baptized_date||'';
+    return bd&&bd.slice(5,7)===thisMonth;
+  }).map(function(m){
+    var bd=m.baptism_date||m.baptized_date||'';
+    return Object.assign({},m,{_yrs:year-parseInt(bd.slice(0,4)),_bd:bd});
+  });
+
+  var mothersDay = getMothersDayDate(year);
+  var fathersDay = getFathersDayDate(year);
+  var mothersDayStr = mothersDay.toISOString().split('T')[0];
+  var fathersDayStr = fathersDay.toISOString().split('T')[0];
+  var daysToMothers = daysUntil(mothersDayStr);
+  var daysToFathers = daysUntil(fathersDayStr);
+  var femaleCount = members.filter(function(m){return m.gender==='Female'||m.gender==='F';}).length;
+  var maleCount = members.filter(function(m){return m.gender==='Male'||m.gender==='M';}).length;
+
+  function memberRow(m, subtitle, emoji, onComm) {
+    var init=(m.name_en||m.name_zh||'?')[0].toUpperCase();
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--g100)">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        (m.photo?'<img src="'+esc(m.photo)+'" style="width:34px;height:34px;border-radius:50%;object-fit:cover">':
+          '<div style="width:34px;height:34px;border-radius:50%;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">'+init+'</div>') +
+        '<div><div style="font-weight:600;font-size:13px">'+esc(m.name_en||m.name_zh||'')+'</div>' +
+          '<div style="font-size:11px;color:var(--g400)">'+emoji+' '+subtitle+'</div></div>' +
+      '</div>' +
+      '<button class="btn btn-s xs" style="background:#dcf8c6;border-color:#25d366;color:#075e54" onclick="'+onComm+'"><i class="ti ti-brand-whatsapp"></i></button>' +
+    '</div>';
+  }
+
+  var bdayRows = bdayThisMonth.slice(0,20).map(function(m){
+    var d=m._bday.days;
+    var lbl=d===0?'Today! 🎉':d===1?'Tomorrow':('In '+d+' days');
+    return memberRow(m,lbl,'🎂','showOccPopup("Birthday — '+esc(m.name_en||m.name_zh||'')+'","'+buildWABirthday(m.name_en||m.name_zh||'').replace(/"/g,"&quot;").replace(/\n/g,"\\n")+'","","")');
+  }).join('')||'<div style="color:var(--g300);font-size:13px;padding:16px 0;text-align:center">No birthdays this month</div>';
+
+  var baptRows = baptismMembers.slice(0,10).map(function(m){
+    var church=SESSION?.churchName||'Church';
+    var waMsg='💧 *Happy Baptism Anniversary, '+(m.name_en||m.name_zh||'')+'!*\n\nCelebrating your '+(m._yrs>0?m._yrs+'th ':'')+'baptism anniversary today! 🙏\n\n"Therefore, if anyone is in Christ, the new creation has come." — 2 Cor 5:17\n\nWith love,\n— '+church;
+    return memberRow(m,m._yrs+' year anniversary','💧','showOccPopup("Baptism Anniversary","'+waMsg.replace(/"/g,"&quot;").replace(/\n/g,"\\n")+'","","")');
+  }).join('')||'<div style="color:var(--g300);font-size:13px;padding:16px 0;text-align:center">No baptism anniversaries this month</div>';
+
+  page.innerHTML =
+    '<div class="ph"><div><div class="pt">Special Occasions</div><div class="ps">Birthdays, baptisms &amp; celebrations</div></div>' +
+      '<button class="btn btn-s" onclick="go(\'comms\')"><i class="ti ti-message-bolt"></i>Open Communications</button>' +
+    '</div>' +
+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">' +
+      occCard('👩','Mother\'s Day',fmtDate(mothersDayStr),daysToMothers,femaleCount+' female members','commMothersFathers("mothers")') +
+      occCard('👨','Father\'s Day',fmtDate(fathersDayStr),daysToFathers,maleCount+' male members','commMothersFathers("fathers")') +
+      '<div class="card" style="text-align:center"><div style="font-size:32px;margin-bottom:6px">🎂</div>' +
+        '<div style="font-weight:700;color:var(--navy)">Birthdays This Month</div>' +
+        '<div style="font-size:28px;font-weight:700;color:var(--primary);margin:6px 0">'+bdayThisMonth.length+'</div>' +
+        (bdayNext7.length?'<div style="font-size:12px;color:var(--danger);font-weight:600">⚠️ '+bdayNext7.length+' in next 7 days</div>':'<div style="font-size:12px;color:var(--g400)">None in next 7 days</div>')+
+      '</div>' +
+    '</div>' +
+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">' +
+      '<div class="card"><div style="font-size:14px;font-weight:700;margin-bottom:12px">🎂 Birthdays This Month ('+bdayThisMonth.length+')</div>'+bdayRows+'</div>' +
+      '<div class="card"><div style="font-size:14px;font-weight:700;margin-bottom:12px">💧 Baptism Anniversaries ('+baptismMembers.length+')</div>'+baptRows+'</div>' +
+    '</div>' +
+
+    '<div id="mo-occ-popup" class="mo"></div>';
+}
+
+function occCard(emoji, title, dateStr, days, sub, onclick) {
+  var color = days<=14&&days>=0?'var(--danger)':'var(--g400)';
+  var daysLabel = days===0?'Today!':days<0?'Passed':(days+' days away');
+  return '<div class="card" style="text-align:center;cursor:pointer" onclick="'+onclick+'">' +
+    '<div style="font-size:32px;margin-bottom:6px">'+emoji+'</div>' +
+    '<div style="font-weight:700;color:var(--navy)">'+title+'</div>' +
+    '<div style="font-size:12px;color:var(--g400)">'+dateStr+'</div>' +
+    '<div style="font-size:12px;font-weight:600;color:'+color+'">'+daysLabel+'</div>' +
+    '<div style="font-size:11px;color:var(--g400);margin-top:4px">'+sub+'</div>' +
+  '</div>';
+}
+
+async function checkOccasionNotifications() {
+  try {
+    var members = await Cloud.get('members');
+    var today = new Date();
+    var year = today.getFullYear();
+    var next7 = [];
+    members.forEach(function(m){
+      var dob=m.date_of_birth||m.dob||''; if(!dob) return;
+      var parts=dob.split('-'); if(parts.length<3) return;
+      var mm=parts[1],dd=parts[2].slice(0,2);
+      var bdStr=year+'-'+mm+'-'+dd;
+      var days=daysUntil(bdStr);
+      if(days<0){bdStr=(year+1)+'-'+mm+'-'+dd; days=daysUntil(bdStr);}
+      if(days>=0&&days<=7) next7.push({name:m.name_en||m.name_zh||'',days});
+    });
+    if(!next7.length) return;
+    var dashPage=document.getElementById('page-dash'); if(!dashPage) return;
+    var existing=document.getElementById('occ-notif'); if(existing) existing.remove();
+    var notif=document.createElement('div');
+    notif.id='occ-notif';
+    notif.style.cssText='background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:0 0 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer';
+    notif.onclick=function(){go('occasions');};
+    notif.innerHTML='<div style="display:flex;align-items:center;gap:10px"><div style="font-size:28px">🎂</div>' +
+      '<div><div style="font-weight:700;font-size:14px;color:#92400e">'+next7.length+' Birthday'+(next7.length>1?'s':'')+' in the next 7 days</div>' +
+        '<div style="font-size:12px;color:#b45309">'+next7.slice(0,3).map(function(x){return x.name+(x.days===0?' (Today!)':x.days===1?' (Tomorrow)':' ('+x.days+'d)');}).join(' · ')+'</div>' +
+      '</div></div><div style="font-size:12px;color:#92400e;font-weight:600">View &rsaquo;</div>';
+    var ph=dashPage.querySelector('.ph');
+    if(ph&&ph.nextSibling) dashPage.insertBefore(notif,ph.nextSibling);
+    else dashPage.appendChild(notif);
+    var navOcc=document.getElementById('nav-occasions');
+    if(navOcc&&!navOcc.querySelector('.occ-badge')){
+      var badge=document.createElement('span');
+      badge.className='occ-badge';
+      badge.style.cssText='background:var(--danger);color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:6px';
+      badge.textContent=next7.length;
+      navOcc.appendChild(badge);
+    }
+  } catch(e){}
+}
+
+function commMothersFathers(type) {
+  var church=SESSION?.churchName||'Church';
+  var waMsg=type==='mothers'?
+    '👩 *Happy Mother\'s Day!*\n\nTo all the wonderful mothers in our church family — thank you for your love, sacrifice, and faith. You are a blessing beyond measure! 💕\n\n"Her children arise and call her blessed." — Proverbs 31:28\n\nWith love,\n— '+church:
+    '👨 *Happy Father\'s Day!*\n\nTo all the amazing fathers in our church family — thank you for your strength, guidance, and love. You are deeply appreciated! 🙏\n\n"A good man leaves an inheritance to his children\'s children." — Proverbs 13:22\n\nWith love,\n— '+church;
+  showOccPopup(type==='mothers'?"Mother's Day Greeting":"Father's Day Greeting",waMsg,'','');
+}
+
+function showOccPopup(title, waMsg, email, name) {
+  var mo=document.getElementById('mo-occ-popup');
+  if(!mo){mo=document.createElement('div');mo.id='mo-occ-popup';mo.className='mo';document.body.appendChild(mo);}
+  mo.innerHTML='<div class="modal sm"><div class="mh"><span class="mt">'+esc(title)+'</span>' +
+    '<button class="cx" onclick="closeMo(\'mo-occ-popup\')"><i class="ti ti-x"></i></button></div>' +
+    '<div class="mb">' +
+      '<div style="font-size:12px;color:var(--g400);margin-bottom:6px"><i class="ti ti-brand-whatsapp" style="color:#25d366"></i> WhatsApp Message — Copy &amp; Paste</div>' +
+      '<div id="occ-wa-prev" style="background:#dcf8c6;border-radius:8px;padding:12px;font-size:13px;line-height:1.7;white-space:pre-wrap;max-height:240px;overflow-y:auto">'+esc(waMsg.replace(/\\n/g,'\n'))+'</div>' +
+      '<button class="btn btn-p" style="background:#25d366;border-color:#25d366;width:100%;margin-top:10px" onclick="copyOccWA()"><i class="ti ti-copy"></i>Copy Message</button>' +
+      '<div id="occ-copy-done" style="display:none;color:#25d366;font-size:12px;text-align:center;margin-top:4px;font-weight:600"><i class="ti ti-check"></i> Copied!</div>' +
+    '</div>' +
+    '<div class="mf"><button class="btn btn-s" onclick="closeMo(\'mo-occ-popup\')">Close</button></div>' +
+  '</div>';
+  openMo('mo-occ-popup');
+}
+function copyOccWA(){
+  var el=document.getElementById('occ-wa-prev'); if(!el) return;
+  navigator.clipboard.writeText(el.textContent).catch(function(){
+    var ta=document.createElement('textarea');ta.value=el.textContent;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+  });
+  var done=document.getElementById('occ-copy-done');
+  if(done){done.style.display='block';setTimeout(function(){done.style.display='none';},2500);}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// #5 — COMMUNITY PAGE (Prayer / Suggestions / Testimonials)
+// ═══════════════════════════════════════════════════════════════
+async function renderCommunity() {
+  var page=document.getElementById('page-community');
+  page.innerHTML='<div style="display:flex;align-items:center;justify-content:center;padding:60px"><div class="spinner"></div></div>';
+  var [prayers,suggestions,testimonials]=await Promise.all([
+    safeGet('prayer_requests'),safeGet('suggestions'),safeGet('testimonials')
+  ]);
+
+  function statusBadge(s){
+    var map={pending:'#fef3c7|#92400e',reviewed:'#eff6ff|#1e40af',approved:'#f0fdf4|#166534',featured:'#faf5ff|#7c3aed',actioned:'#f0fdf4|#166534'};
+    var c=(map[s]||map.pending).split('|');
+    return '<span style="background:'+c[0]+';color:'+c[1]+';font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:capitalize">'+esc(s||'pending')+'</span>';
+  }
+  function statusSel(table,id,cur,opts){
+    return '<select onchange="updateCommStatus(\''+table+'\',\''+id+'\',this.value)" style="font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-family:inherit">'+
+      opts.map(function(o){return '<option'+(o.v===cur?' selected':'')+' value="'+o.v+'">'+o.l+'</option>';}).join('')+'</select>';
+  }
+
+  var prayerRows=prayers.map(function(p){
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--g100)">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
+        '<div style="font-weight:600;font-size:13px">'+esc(p.submitted_by||'Anonymous')+'</div>' +
+        '<div style="display:flex;align-items:center;gap:6px">'+statusBadge(p.status)+
+          statusSel('prayer_requests',p.id,p.status,[{v:'pending',l:'Pending'},{v:'reviewed',l:'Reviewed'},{v:'approved',l:'Prayed For'}])+
+          '<span style="font-size:10px;color:var(--g400)">'+fmtDate((p.created_at||'').split('T')[0])+'</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:13px;color:var(--g600);line-height:1.5">'+esc(p.request||'')+'</div>' +
+      (p.is_private?'<div style="font-size:10px;color:var(--g400);margin-top:2px"><i class="ti ti-lock"></i> Private</div>':'') +
+    '</div>';
+  }).join('')||'<div style="color:var(--g300);font-size:13px;padding:20px;text-align:center">No prayer requests yet</div>';
+
+  var suggRows=suggestions.map(function(s){
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--g100)">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
+        '<div style="font-weight:600;font-size:13px">'+esc(s.submitted_by||'Anonymous')+'</div>' +
+        '<div style="display:flex;align-items:center;gap:6px">'+statusBadge(s.status)+
+          statusSel('suggestions',s.id,s.status,[{v:'pending',l:'Pending'},{v:'reviewed',l:'Reviewed'},{v:'actioned',l:'Actioned'}])+
+          '<span style="font-size:10px;color:var(--g400)">'+fmtDate((s.created_at||'').split('T')[0])+'</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:13px;color:var(--g600);line-height:1.5">'+esc(s.suggestion||'')+'</div>' +
+      (s.category?'<div style="font-size:10px;color:var(--g400);margin-top:2px">Category: '+esc(s.category)+'</div>':'') +
+    '</div>';
+  }).join('')||'<div style="color:var(--g300);font-size:13px;padding:20px;text-align:center">No suggestions yet</div>';
+
+  var testRows=testimonials.map(function(t){
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--g100)">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
+        '<div style="font-weight:600;font-size:13px">'+esc(t.submitted_by||'Anonymous')+'</div>' +
+        '<div style="display:flex;align-items:center;gap:6px">'+statusBadge(t.status)+
+          statusSel('testimonials',t.id,t.status,[{v:'pending',l:'Pending'},{v:'approved',l:'Approved'},{v:'featured',l:'Featured'}])+
+          '<span style="font-size:10px;color:var(--g400)">'+fmtDate((t.created_at||'').split('T')[0])+'</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:13px;color:var(--g600);line-height:1.5;margin-bottom:8px">'+esc(t.testimonial||'')+'</div>' +
+      (t.image1||t.image2?'<div style="display:flex;gap:8px;margin-top:6px">' +
+        (t.image1?'<img src="'+esc(t.image1)+'" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">':'') +
+        (t.image2?'<img src="'+esc(t.image2)+'" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">':'') +
+      '</div>':'') +
+    '</div>';
+  }).join('')||'<div style="color:var(--g300);font-size:13px;padding:20px;text-align:center">No testimonials yet</div>';
+
+  var pendP=prayers.filter(function(p){return p.status==='pending';}).length;
+  var pendS=suggestions.filter(function(s){return s.status==='pending';}).length;
+  var pendT=testimonials.filter(function(t){return t.status==='pending';}).length;
+
+  page.innerHTML=
+    '<div class="ph"><div><div class="pt">Community</div><div class="ps">Prayer requests, suggestions &amp; testimonials from members and leaders</div></div></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">' +
+      commCol('🙏 Prayer Requests',pendP,prayerRows) +
+      commCol('💡 Suggestions',pendS,suggRows) +
+      commCol('✨ Testimonials',pendT,testRows) +
+    '</div>';
+}
+
+function commCol(title, pending, rows) {
+  return '<div class="card">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+      '<div style="font-size:14px;font-weight:700">'+title+'</div>' +
+      (pending?'<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px">'+pending+' new</span>':'') +
+    '</div>' +
+    '<div style="max-height:520px;overflow-y:auto">'+rows+'</div>' +
+  '</div>';
+}
+
+async function safeGet(table) {
+  try {
+    var res = await db.from(table).select('*').eq('church_id',SESSION?.churchId).order('created_at',{ascending:false}).limit(50);
+    return res.data||[];
+  } catch(e){ return []; }
+}
+
+async function updateCommStatus(table,id,status) {
+  setSyncStatus('syncing');
+  await Cloud.update(table,id,{status});
+  toast('Status updated');
+}
+
+// ── Hook: load WA settings in settings page ──
+(function(){
+  var _orig=window.renderSettings;
+  if(!_orig) return;
+  window.renderSettings=async function(){
+    await _orig();
+    loadWASettingsUI();
+  };
 })();
 
 </script>
