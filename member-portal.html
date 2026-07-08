@@ -405,7 +405,7 @@ async function submitInfoUpdate(){
   var hasChange=Object.values(updates).some(function(v){return v;});
   if(!hasChange){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>No changes to submit.</div>';return;}
   try{
-    await db.from('member_update_requests').insert({church_id:_church.id,member_id:_member.id,member_name:_member.name_en||_member.name_zh||'',requested_updates:JSON.stringify(updates),status:'pending',submitted_at:new Date().toISOString()});
+    var _ins_memberupdaterequests=await db.from('member_update_requests').insert({church_id:_church.id,member_id:_member.id,member_name:_member.name_en||_member.name_zh||'',requested_updates:JSON.stringify(updates),status:'pending',submitted_at:new Date().toISOString()});
     msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Submitted! Admin will review shortly.</div>';
   }catch(e){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Submit failed. Try again.</div>';}
   window.scrollTo({top:0,behavior:'smooth'});
@@ -438,7 +438,7 @@ async function rsvp(eventId,status){
   try{
     var existing=await db.from('event_rsvps').select('id').eq('church_id',_church.id).eq('event_id',eventId).eq('member_id',_member.id).single();
     if(existing.data){await db.from('event_rsvps').update({status,updated_at:new Date().toISOString()}).eq('id',existing.data.id);}
-    else{await db.from('event_rsvps').insert({church_id:_church.id,event_id:eventId,member_id:_member.id,member_name:_member.name_en||'',status,created_at:new Date().toISOString()});}
+    else{var _ins_eventrsvps=await db.from('event_rsvps').insert({church_id:_church.id,event_id:eventId,member_id:_member.id,member_name:_member.name_en||'',status,created_at:new Date().toISOString()});}
   }catch(e){console.error('RSVP error',e);}
 }
 function switchCommTab(tab){
@@ -453,7 +453,7 @@ async function submitPrayer(){
   var msg=document.getElementById('prayer-msg');
   if(!req){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>Please enter your prayer request.</div>';return;}
   try{
-    await db.from('prayer_requests').insert({church_id:_church.id,submitted_by:_member.name_en||_member.name_zh||'Member',request:req,is_private:document.getElementById('pr-private').checked,status:'pending',created_at:new Date().toISOString()});
+    var _ins_prayerrequests=await db.from('prayer_requests').insert({church_id:_church.id,submitted_by:_member.name_en||_member.name_zh||'Member',request:req,is_private:document.getElementById('pr-private').checked,status:'pending',created_at:new Date().toISOString()});
     msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Prayer request submitted!</div>';
     document.getElementById('pr-request').value='';document.getElementById('pr-private').checked=false;
   }catch(e){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Submit failed.</div>';}
@@ -463,7 +463,7 @@ async function submitSuggestion(){
   var msg=document.getElementById('sugg-msg');
   if(!sug){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>Please enter your suggestion.</div>';return;}
   try{
-    await db.from('suggestions').insert({church_id:_church.id,submitted_by:_member.name_en||_member.name_zh||'Member',suggestion:sug,category:document.getElementById('sg-cat').value||'General',status:'pending',created_at:new Date().toISOString()});
+    var _ins_suggestions=await db.from('suggestions').insert({church_id:_church.id,submitted_by:_member.name_en||_member.name_zh||'Member',suggestion:sug,category:document.getElementById('sg-cat').value||'General',status:'pending',created_at:new Date().toISOString()});
     msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Suggestion submitted!</div>';
     document.getElementById('sg-suggestion').value='';
   }catch(e){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-wifi-off"></i>Submit failed.</div>';}
@@ -473,7 +473,7 @@ async function submitTestimonial(){
   var msg=document.getElementById('test-msg');
   if(!ts){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>Please share your testimony.</div>';return;}
   try{
-    await db.from('testimonials').insert({church_id:_church.id,submitted_by:_member.name_en||_member.name_zh||'Member',testimonial:ts,image1:document.getElementById('ts-img1-data').value||null,image2:document.getElementById('ts-img2-data').value||null,status:'pending',created_at:new Date().toISOString()});
+    var _ins_testimonials=await db.from('testimonials').insert({church_id:_church.id,submitted_by:_member.name_en||_member.name_zh||'Member',testimonial:ts,image1:document.getElementById('ts-img1-data').value||null,image2:document.getElementById('ts-img2-data').value||null,status:'pending',created_at:new Date().toISOString()});
     msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Testimony submitted. Praise God!</div>';
     document.getElementById('ts-testimonial').value='';
     ['ts-img1-data','ts-img2-data'].forEach(function(id){document.getElementById(id).value='';});

@@ -329,10 +329,17 @@ async function submitReport(){
     var payload={attendance:parseInt(document.getElementById('r-att')?.value)||0,offering_collected:parseFloat(document.getElementById('r-off')?.value)||0,summary,prayer_requests:document.getElementById('r-pray')?.value||'',challenges:document.getElementById('r-chal')?.value||'',next_week_plan:document.getElementById('r-next')?.value||'',image1:document.getElementById('rpt-img1-data')?.value||null,image2:document.getElementById('rpt-img2-data')?.value||null};
     if(existing&&existing.length>0){
       var rec=existing[0];var recDate=(rec.created_at||'').split('T')[0];
-      if(recDate===todayStr){await db.from('leader_reports').update(Object.assign({updated_at:new Date().toISOString()},payload)).eq('id',rec.id);msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Report updated!</div>';}
-      else{msg.innerHTML='<div class="alert alert-error"><i class="ti ti-lock"></i>Report locked. Contact admin.</div>';btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i>Submit Report';return;}
+      if(recDate===todayStr){
+        var upd=await db.from('leader_reports').update(Object.assign({updated_at:new Date().toISOString()},payload)).eq('id',rec.id);
+        if(upd.error){msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>Update failed: '+upd.error.message+'</div>';btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i>Submit Report';return;}
+        msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Report updated!</div>';
+      }else{msg.innerHTML='<div class="alert alert-error"><i class="ti ti-lock"></i>Report locked. Contact admin.</div>';btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i>Submit Report';return;}
     }else{
-      await db.from('leader_reports').insert(Object.assign({church_id:_session.churchId,group_id:_session.groupId,group_name:_session.groupName,group_type:_session.gtype,report_date:date,created_at:new Date().toISOString()},payload));
+      var ins=await db.from('leader_reports').insert(Object.assign({church_id:_session.churchId,group_id:_session.groupId,group_name:_session.groupName,group_type:_session.gtype,report_date:date,created_at:new Date().toISOString()},payload));
+      if(ins.error){
+        msg.innerHTML='<div class="alert alert-error"><i class="ti ti-alert-circle"></i>Save failed: '+ins.error.message+'<br><small>church_id: '+_session.churchId+'</small></div>';
+        btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i>Submit Report';return;
+      }
       msg.innerHTML='<div class="alert alert-success"><i class="ti ti-check"></i>Submitted! Admin can see it now.</div>';
     }
     ['r-att','r-off','r-sum','r-pray','r-chal','r-next'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
@@ -343,7 +350,9 @@ async function submitReport(){
 async function loadHistory(){
   var list=document.getElementById('history-list');list.innerHTML='<div class="spinner"></div>';
   try{
-    var{data:reports}=await db.from('leader_reports').select('*').eq('church_id',_session.churchId).eq('group_id',_session.groupId).order('report_date',{ascending:false}).limit(20);
+    var histRes=await db.from('leader_reports').select('*').eq('church_id',_session.churchId).eq('group_id',_session.groupId).order('report_date',{ascending:false}).limit(20);
+    if(histRes.error){list.innerHTML='<div class="alert alert-error">Error: '+histRes.error.message+'</div>';return;}
+    var reports=histRes.data||[];
     var today=new Date().toISOString().split('T')[0];
     if(!reports||!reports.length){list.innerHTML='<div style="text-align:center;color:var(--g400);padding:24px"><i class="ti ti-clipboard-x" style="font-size:32px;display:block;margin-bottom:8px"></i>No reports yet</div>';return;}
     list.innerHTML=reports.map(function(r){
