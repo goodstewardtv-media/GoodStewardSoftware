@@ -219,6 +219,14 @@ function showStep(id){document.querySelectorAll('.step').forEach(s=>s.classList.
 function setErr(id,msg){document.getElementById(id+'-msg').textContent=msg;document.getElementById(id).style.display='flex';}
 function updateChar(id,max,cid){var v=document.getElementById(id)?.value.length||0;var el=document.getElementById(cid);if(el)el.textContent=v;}
 window.addEventListener('DOMContentLoaded',function(){
+  // Show cached church name/logo immediately
+  try{
+    var cached=JSON.parse(localStorage.getItem('gs_last_church_l')||'null');
+    if(cached&&cached.name){
+      document.getElementById('church-name-display').textContent=cached.name;
+      if(cached.logo_url)document.getElementById('church-logo-wrap').innerHTML='<img src="'+cached.logo_url+'" alt="Logo" style="width:100%;height:100%;object-fit:cover">';
+    }
+  }catch(e){}
   var saved=null;try{saved=JSON.parse(localStorage.getItem('gs_leader_sess')||'null');}catch(e){}
   if(saved&&saved.churchId&&Date.now()<(saved.expiry||0)){_session=saved;restoreSession();}
 });
@@ -242,7 +250,9 @@ async function loadChurchByKey(){
     if(!lic.allowed){setErr('key-err',lic.message||'Invalid license key');btn.disabled=false;btn.innerHTML='<i class="ti ti-arrow-right"></i>Continue';return;}
     var{data:church}=await db.from('churches').select('*').eq('license_key',key).single();
     if(!church){setErr('key-err','Church not found. Contact your admin.');btn.disabled=false;btn.innerHTML='<i class="ti ti-arrow-right"></i>Continue';return;}
-    _church=church;loadChurchUI(church);showStep('step-login');await loadGroups();
+    _church=church;
+    try{localStorage.setItem('gs_last_church_l',JSON.stringify({name:church.name,logo_url:church.logo_url||''}));}catch(e){}
+    loadChurchUI(church);showStep('step-login');await loadGroups();
   }catch(e){setErr('key-err','Connection error. Check internet and try again.');}
   btn.disabled=false;btn.innerHTML='<i class="ti ti-arrow-right"></i>Continue';
 }

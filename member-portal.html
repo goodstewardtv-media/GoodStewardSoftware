@@ -247,6 +247,14 @@ function showStep(id){document.querySelectorAll('.step').forEach(s=>s.classList.
 function setErr(id,msg){document.getElementById(id+'-msg').textContent=msg;document.getElementById(id).style.display='flex';}
 function updateChar(id,max,cid){var v=document.getElementById(id)?.value.length||0;var el=document.getElementById(cid);if(el)el.textContent=v;}
 window.addEventListener('DOMContentLoaded',function(){
+  // Load cached church data for instant logo/name display
+  try{
+    var cached=JSON.parse(localStorage.getItem('gs_last_church')||'null');
+    if(cached&&cached.name){
+      document.getElementById('church-name-display').textContent=cached.name;
+      if(cached.logo_url)document.getElementById('church-logo-wrap').innerHTML='<img src="'+cached.logo_url+'" alt="Logo" style="width:100%;height:100%;object-fit:cover">';
+    }
+  }catch(e){}
   var saved=null;try{saved=JSON.parse(localStorage.getItem('gs_member_sess')||'null');}catch(e){}
   if(saved&&saved.memberId&&Date.now()<(saved.expiry||0)){restoreMemberSession(saved);}
 });
@@ -259,7 +267,9 @@ async function restoreMemberSession(saved){
     ]);
     if(!churchRes.data||!memberRes.data){localStorage.removeItem('gs_member_sess');return;}
     _church=churchRes.data;_member=memberRes.data;
-    _allMembers=membersRes.data||[];
+    _allMembers=(membersRes.data||[]).sort(function(a,b){return(a.name_en||'').localeCompare(b.name_en||'');});
+    // Update cache
+    try{localStorage.setItem('gs_last_church',JSON.stringify({id:_church.id,name:_church.name,logo_url:_church.logo_url||'',member_pin_method:_church.member_pin_method||'auto'}));}catch(e){}
     loadChurchUI(_church);loadMemberHero(_member);loadInfoForm(_member);
     showStep('step-app');document.getElementById('bottom-nav').classList.add('visible');
     document.getElementById('logout-btn').style.display='flex';
@@ -273,9 +283,15 @@ async function findChurch(){
   try{
     var{data:church}=await db.from('churches').select('*').eq('license_key',key).single();
     if(!church){setErr('key-err','Church not found. Check the key.');btn.disabled=false;btn.innerHTML='<i class="ti ti-search"></i>Find Church';return;}
-    _church=church;loadChurchUI(church);
-    var{data:members}=await db.from('members').select('id,name_en,name_zh,ic_number,member_pin,phone,date_of_birth,dob,photo').eq('church_id',church.id).order('name_en');
-    _allMembers=members||[];
+    _church=church;
+    // Cache church data for instant display on next visit
+    try{localStorage.setItem('gs_last_church',JSON.stringify({id:church.id,name:church.name,logo_url:church.logo_url||'',license_key:key,member_pin_method:church.member_pin_method||'auto'}));}catch(e){}
+    loadChurchUI(church);
+    // Load members with error handling
+    var membersRes=await db.from('members').select('id,name_en,name_zh,ic_number,member_pin,phone,date_of_birth,dob,photo').eq('church_id',church.id);
+    if(membersRes.error){console.error('Members load error:',membersRes.error);}
+    _allMembers=(membersRes.data||[]).sort(function(a,b){return(a.name_en||'').localeCompare(b.name_en||'');});
+    console.log('Members loaded:',_allMembers.length);
     showStep('step-login');
     var hintEl=document.getElementById('pin-hint-text');
     if(hintEl){var hints={ic:'last 4 digits of IC',dob:'birthday DDMM (e.g. 15 Mar = 1503)',phone:'last 4 of phone',custom:'PIN set by admin',auto:'last 4 of IC, or DDMM birthday, or last 4 of phone'};hintEl.textContent='('+((hints[church.member_pin_method]||hints.auto))+')';}
@@ -295,9 +311,26 @@ function loadMemberHero(m){
 function searchMember(q){
   var res=document.getElementById('member-results');
   if(!q||q.length<1){res.style.display='none';return;}
-  if(!_allMembers||!_allMembers.length){res.style.display='none';return;}
-  var matches=_allMembers.filter(function(m){return(m.name_en||'').toLowerCase().includes(q.toLowerCase())||(m.name_zh||'').includes(q);}).slice(0,8);
-  if(!matches.length){res.style.display='none';return;}
+  if(!_allMembers||!_allMembers.length){
+    res.style.display='block';
+    res.innerHTML='<div style="padding:12px;font-size:13px;color:#92400e;background:#fffbeb">No members loaded. Go back and re-enter your license key.</div>';
+    return;
+  }
+  var matches=_allMembers.filter(function(m){
+    var name=(m.name_en||'').toLowerCase();
+    var nameZh=m.name_zh||'';
+    var search=q.toLowerCase();
+    // Match any part of name including partial words
+    return name.includes(search)||nameZh.includes(search)||
+      name.split(' ').some(function(w){return w.startsWith(search);});
+  }).slice(0,10);
+  if(!matches.length){
+    // Show all members as fallback
+    res.style.display='block';
+    res.innerHTML='<div style="padding:8px 12px;font-size:11px;color:var(--g400);border-bottom:1px solid var(--g100)">No match found — showing all members:</div>'+
+      _allMembers.slice(0,15).map(function(m){return memberResultRow(m);}).join('');
+    return;
+  }
   res.style.display='block';
   res.innerHTML=matches.map(function(m){
     var init=(m.name_en||'?')[0].toUpperCase();
