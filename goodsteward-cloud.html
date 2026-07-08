@@ -2930,7 +2930,9 @@ async function renderLeaderReportsAdmin(page) {
   try { 
     var lrResult = await db.from('leader_reports').select('*').eq('church_id', SESSION.churchId).order('report_date', {ascending:false}).limit(100);
     reports = lrResult.data || [];
-  } catch(e) { reports = []; }
+    console.log('Leader reports fetched:', reports.length, 'church_id:', SESSION.churchId);
+    if(lrResult.error) console.error('Leader reports error:', lrResult.error);
+  } catch(e) { console.error('Leader reports exception:', e); reports = []; }
   reports.sort(function(a,b){ return (b.report_date||'').localeCompare(a.report_date||''); });
 
   var TYPES = {'cell_groups':'Cell Group','fellowships':'Fellowship','ministries':'Ministry'};
