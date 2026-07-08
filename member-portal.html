@@ -243,7 +243,30 @@ let _church=null,_member=null,_allMembers=[],_selectedMemberId=null,_rsvps={};
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function fmtDate(d){if(!d)return'';var p=(d||'').split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;}
 function fmt(v){return'RM '+(parseFloat(v)||0).toFixed(2);}
-function showStep(id){document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showStep(id){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // If showing login step but members not loaded, reload from cache
+  if(id==='step-login' && (!_allMembers||!_allMembers.length)) {
+    loadMembersFromCache();
+  }
+}
+async function loadMembersFromCache() {
+  try {
+    var cached = JSON.parse(localStorage.getItem('gs_last_church')||'null');
+    if(!cached||!cached.id) return;
+    if(!_church) {
+      var churchRes = await db.from('churches').select('*').eq('id',cached.id).single();
+      if(churchRes.data) { _church = churchRes.data; loadChurchUI(_church); }
+    }
+    var churchId = (_church&&_church.id)||cached.id;
+    var membersRes = await db.from('members').select('id,name_en,name_zh,ic_number,member_pin,phone,date_of_birth,dob,photo').eq('church_id',churchId);
+    if(!membersRes.error && membersRes.data) {
+      _allMembers = membersRes.data.sort(function(a,b){return(a.name_en||'').localeCompare(b.name_en||'');});
+      console.log('Members loaded from cache:', _allMembers.length);
+    }
+  } catch(e) { console.error('loadMembersFromCache error:', e); }
+}
 function setErr(id,msg){document.getElementById(id+'-msg').textContent=msg;document.getElementById(id).style.display='flex';}
 function updateChar(id,max,cid){var v=document.getElementById(id)?.value.length||0;var el=document.getElementById(cid);if(el)el.textContent=v;}
 window.addEventListener('DOMContentLoaded',function(){
@@ -256,14 +279,27 @@ window.addEventListener('DOMContentLoaded',function(){
     }
   }catch(e){}
   var saved=null;try{saved=JSON.parse(localStorage.getItem('gs_member_sess')||'null');}catch(e){}
-  if(saved&&saved.memberId&&Date.now()<(saved.expiry||0)){restoreMemberSession(saved);}
+  if(saved&&saved.memberId&&Date.now()<(saved.expiry||0)){
+    restoreMemberSession(saved);
+  } else {
+    // If church was previously found, skip key step and go straight to login
+    try {
+      var cachedChurch=JSON.parse(localStorage.getItem('gs_last_church')||'null');
+      if(cachedChurch&&cachedChurch.id&&cachedChurch.license_key) {
+        // Auto-populate license key and go to login
+        var licInp=document.getElementById('inp-lic');
+        if(licInp) licInp.value=cachedChurch.license_key;
+        showStep('step-login'); // This triggers loadMembersFromCache
+      }
+    } catch(e){}
+  }
 });
 async function restoreMemberSession(saved){
   try{
     var[churchRes,memberRes,membersRes]=await Promise.all([
       db.from('churches').select('*').eq('id',saved.churchId).single(),
       db.from('members').select('*').eq('id',saved.memberId).single(),
-      db.from('members').select('id,name_en,name_zh,ic_number,member_pin,phone,date_of_birth,dob,photo').eq('church_id',saved.churchId).order('name_en')
+      db.from('members').select('id,name_en,name_zh,ic_number,member_pin,phone,date_of_birth,dob,photo').eq('church_id',saved.churchId)
     ]);
     if(!churchRes.data||!memberRes.data){localStorage.removeItem('gs_member_sess');return;}
     _church=churchRes.data;_member=memberRes.data;
