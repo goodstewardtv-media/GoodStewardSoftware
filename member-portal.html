@@ -273,7 +273,7 @@ async function loadMembersFromCache() {
     var churchId = _church.id;
     console.log('Loading members for church:', churchId);
     var membersRes = await db.from('members')
-      .select('id,name_en,name_zh,ic_number,member_pin,phone,dob,photo')
+      .select('*')
       .eq('church_id', churchId);
     console.log('Members query result:', membersRes.data ? membersRes.data.length : 0, 'error:', membersRes.error?.message);
     if(membersRes.error) {
@@ -321,7 +321,7 @@ async function restoreMemberSession(saved){
     var[churchRes,memberRes,membersRes]=await Promise.all([
       db.from('churches').select('*').eq('id',saved.churchId).single(),
       db.from('members').select('*').eq('id',saved.memberId).single(),
-      db.from('members').select('id,name_en,name_zh,ic_number,member_pin,phone,dob,photo').eq('church_id',saved.churchId)
+      db.from('members').select('*').eq('church_id',saved.churchId)
     ]);
     if(!churchRes.data||!memberRes.data){localStorage.removeItem('gs_member_sess');return;}
     _church=churchRes.data;_member=memberRes.data;
@@ -346,7 +346,7 @@ async function findChurch(){
     try{localStorage.setItem('gs_last_lic',key);localStorage.setItem('gs_last_church',JSON.stringify({id:church.id,name:church.name,logo_url:church.logo_url||'',license_key:key,member_pin_method:church.member_pin_method||'auto'}));}catch(e){}
     loadChurchUI(church);
     // Load members with error handling
-    var membersRes=await db.from('members').select('id,name_en,name_zh,ic_number,member_pin,phone,dob,photo').eq('church_id',church.id);
+    var membersRes=await db.from('members').select('*').eq('church_id',church.id);
     if(membersRes.error){console.error('Members load error:',membersRes.error);}
     _allMembers=(membersRes.data||[]).sort(function(a,b){return(a.name_en||'').localeCompare(b.name_en||'');});
     console.log('Members loaded:',_allMembers.length);
