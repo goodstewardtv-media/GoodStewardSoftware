@@ -126,8 +126,10 @@ body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--g900);min-
     <div class="card">
       <div class="card-title"><i class="ti ti-login" style="color:var(--gold)"></i>Member Login</div>
       <div id="login-err" class="alert alert-error" style="display:none"><i class="ti ti-alert-circle"></i><span id="login-err-msg"></span></div>
-      <div class="field"><label>Search Your Name</label>
+      <div class="field">
+        <label>Search Your Name <span id="member-count-badge" style="font-size:10px;font-weight:600;background:var(--g100);color:var(--g400);padding:2px 8px;border-radius:10px;margin-left:4px"></span></label>
         <input type="text" id="inp-name-search" placeholder="Type your name..." autocomplete="off" oninput="searchMember(this.value)">
+        <div style="margin-top:6px;font-size:12px;color:var(--g400)">Or <a href="#" onclick="showAllMembers();return false;" style="color:var(--navy);font-weight:600">tap here to browse all members</a></div>
       </div>
       <div id="member-results" style="display:none;border:1.5px solid var(--navy);border-radius:12px;margin-bottom:12px;overflow:hidden;max-height:240px;overflow-y:auto;box-shadow:0 4px 16px rgba(15,36,68,.12)"></div>
       <div id="selected-member-display" style="display:none;background:var(--g50);border:1.5px solid var(--g200);border-radius:12px;padding:12px;margin-bottom:12px;display:none;align-items:center;gap:10px"></div>
@@ -283,6 +285,8 @@ async function loadMembersFromCache() {
     }
     _allMembers = (membersRes.data||[]).sort(function(a,b){return(a.name_en||'').localeCompare(b.name_en||'');});
     console.log('Members loaded:', _allMembers.length, 'members');
+    var badge = document.getElementById('member-count-badge');
+    if(badge) badge.textContent = _allMembers.length + ' members';
   } catch(e) { console.error('loadMembersFromCache exception:', e); }
 }
 function setErr(id,msg){document.getElementById(id+'-msg').textContent=msg;document.getElementById(id).style.display='flex';}
@@ -346,6 +350,7 @@ async function findChurch(){
     if(membersRes.error){console.error('Members load error:',membersRes.error);}
     _allMembers=(membersRes.data||[]).sort(function(a,b){return(a.name_en||'').localeCompare(b.name_en||'');});
     console.log('Members loaded:',_allMembers.length);
+    setTimeout(function(){ var badge=document.getElementById('member-count-badge'); if(badge) badge.textContent=_allMembers.length+' members'; }, 100);
     showStep('step-login');
     var hintEl=document.getElementById('pin-hint-text');
     if(hintEl){var hints={ic:'last 4 digits of IC',dob:'birthday DDMM (e.g. 15 Mar = 1503)',phone:'last 4 of phone',custom:'PIN set by admin',auto:'last 4 of IC, or DDMM birthday, or last 4 of phone'};hintEl.textContent='('+((hints[church.member_pin_method]||hints.auto))+')';}
@@ -361,6 +366,29 @@ function loadMemberHero(m){
   var init=(m.name_en||m.name_zh||'M').split(' ').map(function(w){return w[0];}).join('').substr(0,2).toUpperCase();
   area.innerHTML='<div class="member-avatar-wrap">'+(m.photo?'<img src="'+esc(m.photo)+'" alt="">':init)+'</div>' +
     '<div class="member-name-hero">'+esc(m.name_en||m.name_zh||'')+'</div>';
+}
+function showAllMembers(){
+  if(!_allMembers||!_allMembers.length){
+    // Try to reload
+    loadMembersFromCache();
+    setTimeout(function(){
+      var res=document.getElementById('member-results');
+      if(!_allMembers||!_allMembers.length){
+        if(res){res.style.display='block';res.innerHTML='<div style="padding:12px;color:#991b1b;font-size:13px">Still no members. Please go back and re-enter your license key.</div>';}
+        return;
+      }
+      showAllMembersList();
+    },2000);
+    return;
+  }
+  showAllMembersList();
+}
+function showAllMembersList(){
+  var res=document.getElementById('member-results');
+  if(!res) return;
+  res.style.display='block';
+  res.innerHTML='<div style="padding:8px 12px;font-size:11px;color:var(--g400);border-bottom:1px solid var(--g100);font-weight:600">'+_allMembers.length+' members — tap your name</div>'+
+    _allMembers.map(function(m){return memberResultRow(m);}).join('');
 }
 function searchMember(q){
   var res=document.getElementById('member-results');
