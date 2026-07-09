@@ -254,18 +254,36 @@ function showStep(id){
 async function loadMembersFromCache() {
   try {
     var cached = JSON.parse(localStorage.getItem('gs_last_church')||'null');
-    if(!cached||!cached.id) return;
+    if(!cached||!cached.id) {
+      console.log('No cached church found');
+      return;
+    }
+    // Load church if not already loaded
     if(!_church) {
       var churchRes = await db.from('churches').select('*').eq('id',cached.id).single();
-      if(churchRes.data) { _church = churchRes.data; loadChurchUI(_church); }
+      if(churchRes.error) {
+        console.error('Church load error:', churchRes.error.message);
+        return;
+      }
+      _church = churchRes.data;
+      loadChurchUI(_church);
     }
-    var churchId = (_church&&_church.id)||cached.id;
-    var membersRes = await db.from('members').select('id,name_en,name_zh,ic_number,member_pin,phone,date_of_birth,dob,photo').eq('church_id',churchId);
-    if(!membersRes.error && membersRes.data) {
-      _allMembers = membersRes.data.sort(function(a,b){return(a.name_en||'').localeCompare(b.name_en||'');});
-      console.log('Members loaded from cache:', _allMembers.length);
+    var churchId = _church.id;
+    console.log('Loading members for church:', churchId);
+    var membersRes = await db.from('members')
+      .select('id,name_en,name_zh,ic_number,member_pin,phone,date_of_birth,dob,photo')
+      .eq('church_id', churchId);
+    console.log('Members query result:', membersRes.data ? membersRes.data.length : 0, 'error:', membersRes.error?.message);
+    if(membersRes.error) {
+      console.error('Members load error:', membersRes.error.message);
+      // Show error to user
+      var res = document.getElementById('member-results');
+      if(res) { res.style.display='block'; res.innerHTML='<div style="padding:10px;color:#991b1b;font-size:12px">Error loading members: '+membersRes.error.message+'</div>'; }
+      return;
     }
-  } catch(e) { console.error('loadMembersFromCache error:', e); }
+    _allMembers = (membersRes.data||[]).sort(function(a,b){return(a.name_en||'').localeCompare(b.name_en||'');});
+    console.log('Members loaded:', _allMembers.length, 'members');
+  } catch(e) { console.error('loadMembersFromCache exception:', e); }
 }
 function setErr(id,msg){document.getElementById(id+'-msg').textContent=msg;document.getElementById(id).style.display='flex';}
 function updateChar(id,max,cid){var v=document.getElementById(id)?.value.length||0;var el=document.getElementById(cid);if(el)el.textContent=v;}
@@ -285,7 +303,7 @@ window.addEventListener('DOMContentLoaded',function(){
     // If church was previously found, skip key step and go straight to login
     try {
       var cachedChurch=JSON.parse(localStorage.getItem('gs_last_church')||'null');
-      if(cachedChurch&&cachedChurch.id&&cachedChurch.license_key) {
+      if(cachedChurch&&cachedChurch.id) {
         // Auto-populate license key and go to login
         var licInp=document.getElementById('inp-lic');
         if(licInp) licInp.value=cachedChurch.license_key;
@@ -305,7 +323,7 @@ async function restoreMemberSession(saved){
     _church=churchRes.data;_member=memberRes.data;
     _allMembers=(membersRes.data||[]).sort(function(a,b){return(a.name_en||'').localeCompare(b.name_en||'');});
     // Update cache
-    try{localStorage.setItem('gs_last_church',JSON.stringify({id:_church.id,name:_church.name,logo_url:_church.logo_url||'',member_pin_method:_church.member_pin_method||'auto'}));}catch(e){}
+    try{var _lk=localStorage.getItem('gs_last_lic')||'';localStorage.setItem('gs_last_church',JSON.stringify({id:_church.id,name:_church.name,logo_url:_church.logo_url||'',license_key:_lk,member_pin_method:_church.member_pin_method||'auto'}));}catch(e){}
     loadChurchUI(_church);loadMemberHero(_member);loadInfoForm(_member);
     showStep('step-app');document.getElementById('bottom-nav').classList.add('visible');
     document.getElementById('logout-btn').style.display='flex';
@@ -321,7 +339,7 @@ async function findChurch(){
     if(!church){setErr('key-err','Church not found. Check the key.');btn.disabled=false;btn.innerHTML='<i class="ti ti-search"></i>Find Church';return;}
     _church=church;
     // Cache church data for instant display on next visit
-    try{localStorage.setItem('gs_last_church',JSON.stringify({id:church.id,name:church.name,logo_url:church.logo_url||'',license_key:key,member_pin_method:church.member_pin_method||'auto'}));}catch(e){}
+    try{localStorage.setItem('gs_last_lic',key);localStorage.setItem('gs_last_church',JSON.stringify({id:church.id,name:church.name,logo_url:church.logo_url||'',license_key:key,member_pin_method:church.member_pin_method||'auto'}));}catch(e){}
     loadChurchUI(church);
     // Load members with error handling
     var membersRes=await db.from('members').select('id,name_en,name_zh,ic_number,member_pin,phone,date_of_birth,dob,photo').eq('church_id',church.id);
