@@ -103,7 +103,7 @@ body{font-family:'Inter',sans-serif;background:var(--g50);color:var(--g900);min-
     <div class="church-logo-wrap" id="church-logo-wrap"><i class="ti ti-building-church" style="font-size:44px;color:rgba(255,255,255,.7)"></i></div>
     <div class="church-name" id="church-name-display">Good Steward</div>
     <div id="member-avatar-area"></div>
-    <div class="gs-powered">Powered by Good Steward Church Management</div>
+    <div class="gs-powered" style="color:rgba(255,255,255,.55);font-size:11px;font-weight:500;letter-spacing:.3px;margin-top:10px">Powered by Good Steward Church Management</div>
   </div>
 </div>
 <div class="main">
@@ -364,7 +364,10 @@ function loadChurchUI(church){
 function loadMemberHero(m){
   var area=document.getElementById('member-avatar-area');if(!area)return;
   var init=(m.name_en||m.name_zh||'M').split(' ').map(function(w){return w[0];}).join('').substr(0,2).toUpperCase();
-  area.innerHTML='<div class="member-avatar-wrap">'+(m.photo?'<img src="'+esc(m.photo)+'" alt="">':init)+'</div>' +
+  var avatarContent = m.photo
+    ? '<img src="'+esc(m.photo)+'" alt="" style="width:100%;height:100%;object-fit:cover">'
+    : '<span style="font-size:18px;font-weight:800;color:#fff">'+init+'</span>';
+  area.innerHTML='<div class="member-avatar-wrap">'+avatarContent+'</div>' +
     '<div class="member-name-hero">'+esc(m.name_en||m.name_zh||'')+'</div>';
 }
 function showAllMembers(){

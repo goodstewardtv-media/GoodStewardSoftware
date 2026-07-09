@@ -1226,7 +1226,15 @@ async function renderDonations() {
 <select id="d-type"></select>
             </div>
             <div class="frow"><label>Amount (RM) *</label><input type="number" id="d-amount" placeholder="0.00" step="0.01"></div>
-            <div class="frow"><label>Donor Name</label><input type="text" id="d-donor" placeholder="Anonymous"></div>
+            <div class="frow" style="position:relative">
+              <label>Name <span style="font-size:10px;color:var(--g400)">(type to search members or leave Anonymous)</span></label>
+              <input type="text" id="d-donor" placeholder="Anonymous or member name..." autocomplete="off" oninput="dynMemberSearch(this,'d-donor-res')">
+              <div id="d-donor-res" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:50;max-height:180px;overflow-y:auto;display:none"></div>
+              <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+                <button type="button" onclick="document.getElementById('d-donor').value='Anonymous'" class="btn btn-s xs"><i class="ti ti-user-off"></i>Anonymous</button>
+                <button type="button" onclick="showAllMembersForOffering()" class="btn btn-s xs"><i class="ti ti-users"></i>Browse Members</button>
+              </div>
+            </div>
             <div class="frow"><label>Payment Method</label>
               <select id="d-method"><option value="">Select</option><option>Cash</option><option>Bank Transfer</option><option>DuitNow</option><option>Cheque</option><option>Online</option></select>
             </div>
@@ -2982,6 +2990,7 @@ async function viewLeaderReport(rid) {
   body.innerHTML = `
     <div class="fg">
       <div class="frow"><label>Group</label><div style="padding:8px;font-weight:600">${esc(r.group_name||'')}</div></div>
+      <div class="frow"><label>Submitted By</label><div style="padding:8px;font-weight:600;color:var(--primary)">${esc(r.submitted_by||r.group_name||'—')}</div></div>
       <div class="frow"><label>Date</label><div style="padding:8px">${esc(r.report_date||'')}</div></div>
       <div class="frow"><label>Attendance</label><div style="padding:8px">${esc(r.attendance||0)}</div></div>
       <div class="frow"><label>Offering</label><div style="padding:8px">${fmt(r.offering_collected||0)}</div></div>
@@ -2989,6 +2998,7 @@ async function viewLeaderReport(rid) {
       <div class="frow full"><label>Prayer Requests</label><div style="padding:8px;white-space:pre-wrap;font-size:13px">${esc(r.prayer_requests||'—')}</div></div>
       <div class="frow full"><label>Challenges</label><div style="padding:8px;white-space:pre-wrap;font-size:13px">${esc(r.challenges||'—')}</div></div>
       <div class="frow full"><label>Next Week Plan</label><div style="padding:8px;white-space:pre-wrap;font-size:13px">${esc(r.next_week_plan||'—')}</div></div>
+      ${(r.image1||r.image2)?'<div class="frow full"><label>Photos</label><div style="padding:8px;display:flex;gap:10px">'+(r.image1?'<img src="'+r.image1+'" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">':'')+(r.image2?'<img src="'+r.image2+'" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">':'')+'</div></div>':''}
     </div>`;
   openMo('mo-report-view');
 }
@@ -4141,6 +4151,21 @@ function buildWAWelcome(memberName) {
 // ═══════════════════════════════════════════════════════════════
 // COMMUNICATIONS PAGE
 // ═══════════════════════════════════════════════════════════════
+function showAllMembersForOffering() {
+  var inp = document.getElementById('d-donor');
+  var res = document.getElementById('d-donor-res');
+  if(!inp || !res) return;
+  if(!_memberCache) { Cloud.get('members').then(function(m){ _memberCache=m; showAllMembersForOffering(); }); return; }
+  res.innerHTML = '<div style="padding:6px 12px;font-size:11px;color:var(--g400);border-bottom:1px solid var(--border);font-weight:600">'+_memberCache.length+' members</div>' +
+    _memberCache.map(function(m){
+      var n = (m.name_en||m.name_zh||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--g100)" ' +
+        'onmousedown="document.getElementById(\'d-donor\').value=\''+n+'\';document.getElementById(\'d-donor-res\').style.display=\'none\'">' +
+        esc(m.name_en||'')+(m.name_zh?' <span style="color:var(--g400);font-size:11px">'+esc(m.name_zh)+'</span>':'')+'</div>';
+    }).join('');
+  res.style.display = 'block';
+}
+
 // ── HOOK: load email settings UI in settings page ──
 (function(){
   var _orig = window.renderSettings;

@@ -336,7 +336,7 @@ async function submitReport(){
   var btn=document.getElementById('r-submit-btn');
   btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Submitting...';
   try{
-    var payload={attendance:parseInt(document.getElementById('r-att')?.value)||0,offering_collected:parseFloat(document.getElementById('r-off')?.value)||0,summary,prayer_requests:document.getElementById('r-pray')?.value||'',challenges:document.getElementById('r-chal')?.value||'',next_week_plan:document.getElementById('r-next')?.value||'',image1:document.getElementById('rpt-img1-data')?.value||null,image2:document.getElementById('rpt-img2-data')?.value||null};
+    var payload={attendance:parseInt(document.getElementById('r-att')?.value)||0,offering_collected:parseFloat(document.getElementById('r-off')?.value)||0,summary,prayer_requests:document.getElementById('r-pray')?.value||'',challenges:document.getElementById('r-chal')?.value||'',next_week_plan:document.getElementById('r-next')?.value||'',submitted_by:document.getElementById('r-submitter')?.value.trim()||_session.groupName||'',image1:document.getElementById('rpt-img1-data')?.value||null,image2:document.getElementById('rpt-img2-data')?.value||null};
     if(existing&&existing.length>0){
       var rec=existing[0];var recDate=(rec.created_at||'').split('T')[0];
       if(recDate===todayStr){
