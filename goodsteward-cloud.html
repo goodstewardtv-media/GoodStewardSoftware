@@ -1770,7 +1770,13 @@ function cgModal() {
     '<span class="mt" id="mo-cg-title"><i class="ti ti-sitemap"></i>Add Cell Group</span>' +
     '<button class="cx" onclick="closeMo(\'mo-cg\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
-    '<div class="frow"><label>Group Name *</label><input type="text" id="cg-name" placeholder="e.g. Love Cell Group"></div>' +
+    '<div class="frow full" style="display:flex;align-items:center;gap:14px">' +
+      '<div id="cg-photo-prev" style="width:64px;height:64px;border-radius:10px;background:var(--g100);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex-shrink:0" onclick="document.getElementById(\'cg-photo-inp\').click()"><i class="ti ti-camera" style="font-size:22px;color:var(--g300)"></i></div>' +
+      '<div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Cover Photo / Logo</div>' +
+        '<button type="button" class="btn btn-s sm" onclick="document.getElementById(\'cg-photo-inp\').click()"><i class="ti ti-upload"></i>Upload Photo</button>' +
+        '<input type="file" id="cg-photo-inp" accept="image/*" style="display:none" onchange="prevGroupLogo(this,\'cg-photo-prev\',\'cg-photo\')">'+
+        '<input type="hidden" id="cg-photo"></div></div>' +
+'<div class="frow"><label>Group Name *</label><input type="text" id="cg-name" placeholder="e.g. Love Cell Group"></div>' +
     '<div class="frow" style="position:relative"><label>Leader <span style="font-size:10px;color:var(--g400)">(type or <a href="#" onclick="showAllMembersFor(event,\'cg-leader\')" style="color:var(--primary)">show all</a>)</span></label><input type="text" id="cg-leader" autocomplete="off" placeholder="Type name..." oninput="dynMemberSearch(this,\'cg-leader-results\')"><div id="cg-leader-results" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:50;max-height:160px;overflow-y:auto;display:none"></div></div>' +
     '<div class="frow" style="position:relative"><label>Co-Leader <span style="font-size:10px;color:var(--g400)">(type or <a href="#" onclick="showAllMembersFor(event,\'cg-co-leader\')" style="color:var(--primary)">show all</a>)</span></label><input type="text" id="cg-co-leader" autocomplete="off" placeholder="Type name..." oninput="dynMemberSearch(this,\'cg-co-leader-results\')"><div id="cg-co-leader-results" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:50;max-height:160px;overflow-y:auto;display:none"></div></div>' +
     '<div class="frow"><label>Zone/Area</label><input type="text" id="cg-zone"></div>' +
@@ -1850,7 +1856,13 @@ function flModal() {
     '<span class="mt" id="mo-fl-title"><i class="ti ti-friends"></i>Add Fellowship</span>' +
     '<button class="cx" onclick="closeMo(\'mo-fl\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
-    '<div class="frow"><label>Fellowship Name *</label><input type="text" id="fl-name" placeholder="e.g. Youth Fellowship"></div>' +
+    '<div class="frow full" style="display:flex;align-items:center;gap:14px">' +
+      '<div id="fl-photo-prev" style="width:64px;height:64px;border-radius:10px;background:var(--g100);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex-shrink:0" onclick="document.getElementById(\'fl-photo-inp\').click()"><i class="ti ti-camera" style="font-size:22px;color:var(--g300)"></i></div>' +
+      '<div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Cover Photo / Logo</div>' +
+        '<button type="button" class="btn btn-s sm" onclick="document.getElementById(\'fl-photo-inp\').click()"><i class="ti ti-upload"></i>Upload Photo</button>' +
+        '<input type="file" id="fl-photo-inp" accept="image/*" style="display:none" onchange="prevGroupLogo(this,\'fl-photo-prev\',\'fl-photo\')">'+
+        '<input type="hidden" id="fl-photo"></div></div>' +
+'<div class="frow"><label>Fellowship Name *</label><input type="text" id="fl-name" placeholder="e.g. Youth Fellowship"></div>' +
     '<div class="frow"><label>Chinese Name</label><input type="text" id="fl-name-zh"></div>' +
     '<div class="frow"><label>Type</label><select id="fl-type"><option>Youth</option><option>Women</option><option>Men</option><option>Senior</option><option>Children</option><option>Young Adult</option><option>Mixed</option></select></div>' +
     '<div class="frow"><label>Meeting Day</label><select id="fl-day"><option value="">Select</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select></div>' +
@@ -1927,7 +1939,13 @@ function minModal() {
     '<span class="mt" id="mo-min-title"><i class="ti ti-crown"></i>Add Ministry</span>' +
     '<button class="cx" onclick="closeMo(\'mo-min\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
-    '<div class="frow"><label>Ministry Name *</label><input type="text" id="mn-name" placeholder="e.g. Worship Ministry"></div>' +
+    '<div class="frow full" style="display:flex;align-items:center;gap:14px">' +
+      '<div id="mn-photo-prev" style="width:64px;height:64px;border-radius:10px;background:var(--g100);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex-shrink:0" onclick="document.getElementById(\'mn-photo-inp\').click()"><i class="ti ti-camera" style="font-size:22px;color:var(--g300)"></i></div>' +
+      '<div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Cover Photo / Logo</div>' +
+        '<button type="button" class="btn btn-s sm" onclick="document.getElementById(\'mn-photo-inp\').click()"><i class="ti ti-upload"></i>Upload Photo</button>' +
+        '<input type="file" id="mn-photo-inp" accept="image/*" style="display:none" onchange="prevGroupLogo(this,\'mn-photo-prev\',\'mn-photo\')">'+
+        '<input type="hidden" id="mn-photo"></div></div>' +
+'<div class="frow"><label>Ministry Name *</label><input type="text" id="mn-name" placeholder="e.g. Worship Ministry"></div>' +
     '<div class="frow"><label>Chinese Name</label><input type="text" id="mn-name-zh"></div>' +
     '<div class="frow" style="position:relative"><label>Ministry Leader <span style="font-size:10px;color:var(--g400)">(type or <a href="#" onclick="showAllMembersFor(event,\'mn-leader\')" style="color:var(--primary)">show all</a>)</span></label><input type="text" id="mn-leader" autocomplete="off" placeholder="Type name..." oninput="dynMemberSearch(this,\'mn-leader-results\')"><div id="mn-leader-results" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:50;max-height:160px;overflow-y:auto;display:none"></div></div>' +
     '<div class="frow"><label>Monthly Budget (RM)</label><input type="number" id="mn-budget" step="0.01" placeholder="0.00"></div>' +
@@ -1939,9 +1957,10 @@ function minModal() {
     '</div></div>';
 }
 function openAddMin() {
-  ['mn-id','mn-name','mn-name-zh','mn-leader','mn-desc','mn-logo'].forEach(id=>sv(id,''));
+  ['mn-id','mn-name','mn-name-zh','mn-leader','mn-desc','mn-logo','mn-photo'].forEach(id=>sv(id,''));
   sv('mn-budget','0'); sv('mn-yearly-budget','0');
   var mnPrev=document.getElementById('mn-logo-prev'); if(mnPrev) mnPrev.innerHTML='<i class="ti ti-users" style="font-size:24px;color:var(--g300)"></i>';
+  var mnPrev2=document.getElementById('mn-photo-prev'); if(mnPrev2) mnPrev2.innerHTML='<i class="ti ti-camera" style="font-size:22px;color:var(--g300)"></i>';
   document.getElementById('mo-min-title').innerHTML = '<i class="ti ti-crown"></i>Add Ministry';
   openMo('mo-min');
 }
@@ -1957,7 +1976,7 @@ async function saveMin() {
   const name = v('mn-name').trim();
   if(!name){toast('Ministry name required','x');return;}
   setSyncStatus('syncing');
-  const row = {name, name_zh:v('mn-name-zh'), leader:v('mn-leader'), monthly_budget:parseFloat(v('mn-budget'))||0, yearly_budget:parseFloat(v('mn-yearly-budget'))||0, description:v('mn-desc'), logo_url:v('mn-logo')||null};
+  const row = {name, name_zh:v('mn-name-zh'), leader:v('mn-leader'), monthly_budget:parseFloat(v('mn-budget'))||0, yearly_budget:parseFloat(v('mn-yearly-budget'))||0, description:v('mn-desc'), logo_url:v('mn-photo')||v('mn-logo')||null};
   const id = v('mn-id');
   if(id){await Cloud.update('ministries',id,row);toast('Ministry updated');}
   else{await Cloud.insert('ministries',row);toast('Ministry added');}
@@ -2025,7 +2044,8 @@ function svcModal() {
 }
 function openAddSvc() {
   ['sv-id','sv-time','sv-speaker','sv-theme','sv-scripture','sv-worship','sv-order','sv-notes'].forEach(id=>sv(id,''));
-  sv('sv-date',new Date().toISOString().split('T')[0]); sv('sv-type','Sunday Service');
+  sv('sv-date',new Date().toISOString().split('T')[0]); sv('sv-type','Sunday Service'); sv('sv-photo','');
+  var svPrev=document.getElementById('sv-photo-prev'); if(svPrev) svPrev.innerHTML='<i class="ti ti-camera" style="font-size:22px;color:var(--g300)"></i>';
   sv('sv-offering','0'); sv('sv-est-att','0'); sv('sv-att','0');
   document.getElementById('mo-svc-title').innerHTML = '<i class="ti ti-microphone"></i>Add Service';
   openMo('mo-svc');
@@ -2105,7 +2125,13 @@ function eventModal() {
     '<span class="mt" id="mo-ev-title"><i class="ti ti-calendar-event"></i>Add Event</span>' +
     '<button class="cx" onclick="closeMo(\'mo-ev\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
-    '<div class="frow full"><label>Event Name *</label><input type="text" id="ev-name" placeholder="e.g. Christmas Celebration 2025"></div>' +
+    '<div class="frow full" style="display:flex;align-items:center;gap:14px">' +
+      '<div id="ev-photo-prev" style="width:64px;height:64px;border-radius:10px;background:var(--g100);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex-shrink:0" onclick="document.getElementById(\'ev-photo-inp\').click()"><i class="ti ti-camera" style="font-size:22px;color:var(--g300)"></i></div>' +
+      '<div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Cover Photo / Logo</div>' +
+        '<button type="button" class="btn btn-s sm" onclick="document.getElementById(\'ev-photo-inp\').click()"><i class="ti ti-upload"></i>Upload Photo</button>' +
+        '<input type="file" id="ev-photo-inp" accept="image/*" style="display:none" onchange="prevGroupLogo(this,\'ev-photo-prev\',\'ev-photo\')">'+
+        '<input type="hidden" id="ev-photo"></div></div>' +
+'<div class="frow full"><label>Event Name *</label><input type="text" id="ev-name" placeholder="e.g. Christmas Celebration 2025"></div>' +
     '<div class="frow"><label>Event Date *</label><input type="date" id="ev-date"></div>' +
     '<div class="frow"><label>Start Time</label><input type="time" id="ev-time"></div>' +
     '<div class="frow"><label>End Date</label><input type="date" id="ev-end-date"></div>' +
