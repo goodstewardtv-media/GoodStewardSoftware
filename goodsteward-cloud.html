@@ -1636,7 +1636,7 @@ async function renderStaff() {
     '<div class="card"><div class="tw"><table class="dt"><thead><tr>' +
     '<th>Name</th><th>Post/Title</th><th>Type</th><th>Phone</th><th>Compensation</th><th>Actions</th>' +
     '</tr></thead><tbody id="staff-tbody">' + buildStaffRows(staff) + '</tbody></table></div></div>' +
-    staffModal();
+    staffModal2();
 }
 function buildStaffRows(staff) {
   if(!staff.length) return '<tr><td colspan="6"><div class="es"><i class="ti ti-id-badge-2"></i><p>No staff records yet.</p></div></td></tr>';
@@ -2025,6 +2025,12 @@ function svcModal() {
     '<span class="mt" id="mo-svc-title"><i class="ti ti-microphone"></i>Add Service</span>' +
     '<button class="cx" onclick="closeMo(\'mo-svc\')"><i class="ti ti-x"></i></button></div>' +
     '<div class="mb"><div class="fg">' +
+    '<div class="frow full" style="display:flex;align-items:center;gap:14px">' +
+      '<div id="sv-photo-prev" style="width:64px;height:64px;border-radius:10px;background:var(--g100);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex-shrink:0" onclick="document.getElementById(\'sv-photo-inp\').click()"><i class="ti ti-camera" style="font-size:22px;color:var(--g300)"></i></div>' +
+      '<div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Service Cover Photo</div>' +
+        '<button type="button" class="btn btn-s sm" onclick="document.getElementById(\'sv-photo-inp\').click()"><i class="ti ti-upload"></i>Upload Photo</button>' +
+        '<input type="file" id="sv-photo-inp" accept="image/*" style="display:none" onchange="prevGroupLogo(this,\'sv-photo-prev\',\'sv-photo\')">'+
+        '<input type="hidden" id="sv-photo"></div></div>' +
     '<div class="frow"><label>Service Date *</label><input type="date" id="sv-date" value="'+new Date().toISOString().split("T")[0]+'"></div>' +
     '<div class="frow"><label>Service Time</label><input type="time" id="sv-time"></div>' +
     '<div class="frow"><label>Type</label><select id="sv-type"><option>Sunday Service</option><option>Prayer Meeting</option><option>Special Service</option><option>Youth Service</option></select></div>' +
