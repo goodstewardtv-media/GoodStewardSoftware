@@ -5170,8 +5170,8 @@ function copyOccWA(){
 async function renderCommunity() {
   var page=document.getElementById('page-community');
   page.innerHTML='<div style="display:flex;align-items:center;justify-content:center;padding:60px"><div class="spinner"></div></div>';
-  var [prayers,suggestions,testimonials]=await Promise.all([
-    safeGet('prayer_requests'),safeGet('suggestions'),safeGet('testimonials')
+  var [prayers,suggestions,testimonials,updateReqs]=await Promise.all([
+    safeGet('prayer_requests'),safeGet('suggestions'),safeGet('testimonials'),safeGet('member_update_requests')
   ]);
 
   function statusBadge(s){
@@ -5229,17 +5229,66 @@ async function renderCommunity() {
     '</div>';
   }).join('')||'<div style="color:var(--g300);font-size:13px;padding:20px;text-align:center">No testimonials yet</div>';
 
+  var UPD_FIELD_LABELS={phone:'Phone',email:'Email',address:'Address',emergency_contact:'Emergency Contact',occupation:'Occupation'};
+  var updateReqRows=updateReqs.map(function(u){
+    var fields={};
+    try{ fields=JSON.parse(u.requested_updates||'{}'); }catch(e){ fields={}; }
+    var changeLines=Object.keys(fields).filter(function(k){return fields[k];}).map(function(k){
+      return '<div style="font-size:12px;color:var(--g600);padding:2px 0"><span style="font-weight:600">'+esc(UPD_FIELD_LABELS[k]||k)+':</span> '+esc(fields[k])+'</div>';
+    }).join('')||'<div style="font-size:12px;color:var(--g300)">No fields submitted</div>';
+    var isPending=(u.status||'pending')==='pending';
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--g100)">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
+        '<div style="font-weight:600;font-size:13px">'+esc(u.member_name||'Member')+'</div>' +
+        '<div style="display:flex;align-items:center;gap:6px">'+statusBadge(u.status)+
+          '<span style="font-size:10px;color:var(--g400)">'+fmtDate((u.submitted_at||u.created_at||'').split('T')[0])+'</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin:6px 0 8px">'+changeLines+'</div>' +
+      (isPending?'<div style="display:flex;gap:6px">' +
+        '<button class="btn btn-gold xs" data-id="'+u.id+'" onclick="approveUpdateRequest(this.dataset.id)"><i class="ti ti-check"></i>Approve</button>' +
+        '<button class="btn btn-x xs" data-id="'+u.id+'" onclick="rejectUpdateRequest(this.dataset.id)"><i class="ti ti-x"></i>Reject</button>' +
+      '</div>':'') +
+    '</div>';
+  }).join('')||'<div style="color:var(--g300);font-size:13px;padding:20px;text-align:center">No update requests yet</div>';
+
   var pendP=prayers.filter(function(p){return p.status==='pending';}).length;
   var pendS=suggestions.filter(function(s){return s.status==='pending';}).length;
   var pendT=testimonials.filter(function(t){return t.status==='pending';}).length;
+  var pendU=updateReqs.filter(function(u){return (u.status||'pending')==='pending';}).length;
 
   page.innerHTML=
-    '<div class="ph"><div><div class="pt">Community</div><div class="ps">Prayer requests, suggestions &amp; testimonials from members and leaders</div></div></div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">' +
+    '<div class="ph"><div><div class="pt">Community</div><div class="ps">Prayer requests, suggestions, testimonials &amp; member update requests</div></div></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">' +
+      commCol('📝 Member Update Requests',pendU,updateReqRows) +
       commCol('🙏 Prayer Requests',pendP,prayerRows) +
       commCol('💡 Suggestions',pendS,suggRows) +
       commCol('✨ Testimonials',pendT,testRows) +
     '</div>';
+}
+
+async function approveUpdateRequest(id){
+  var req=await Cloud.getOne('member_update_requests',id);
+  if(!req){toast('Request not found','x');return;}
+  var fields={};
+  try{ fields=JSON.parse(req.requested_updates||'{}'); }catch(e){ fields={}; }
+  var updates={};
+  Object.keys(fields).forEach(function(k){ if(fields[k]) updates[k]=fields[k]; });
+  setSyncStatus('syncing');
+  if(Object.keys(updates).length){
+    var memberUpdated=await Cloud.update('members',req.member_id,updates);
+    if(!memberUpdated){ toast('Failed to update member record','x'); return; }
+  }
+  await Cloud.update('member_update_requests',id,{status:'approved',reviewed_at:new Date().toISOString()});
+  toast('Update approved & member record updated');
+  renderCommunity();
+}
+
+async function rejectUpdateRequest(id){
+  setSyncStatus('syncing');
+  await Cloud.update('member_update_requests',id,{status:'rejected',reviewed_at:new Date().toISOString()});
+  toast('Update request rejected');
+  renderCommunity();
 }
 
 function commCol(title, pending, rows) {
