@@ -307,7 +307,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
         <div class="ni" onclick="go('notices')"><i class="ti ti-speakerphone"></i>Admin Notes</div>
         <div class="ni" onclick="go('comms')"><i class="ti ti-message-bolt"></i>Communications</div>
         <div class="ni" onclick="go('occasions')" id="nav-occasions"><i class="ti ti-confetti"></i>Special Occasions</div>
-        <div class="ni" onclick="go('community')"><i class="ti ti-heart-handshake"></i>Community</div>
+        <div class="ni" onclick="go('community')" id="nav-community"><i class="ti ti-heart-handshake"></i>Community</div>
         <div class="ni" onclick="go('settings')"><i class="ti ti-settings"></i>Settings</div>
       </nav>
       <div id="sb-foot">Good Steward Cloud &copy; 2024</div>
@@ -320,6 +320,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
           <div id="tb-title">Dashboard</div>
         </div>
         <div id="tb-right">
+          <button id="lang-toggle-btn" onclick="toggleLang()" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border,#e2e8f0);border-radius:8px;background:#fff;font-size:12px;font-weight:700;color:var(--navy,#0f2444);cursor:pointer;font-family:inherit;margin-right:10px"><i class="ti ti-language" style="font-size:15px"></i>中文</button>
           <div class="sync-indicator" id="sync-indicator">
             <i class="ti ti-cloud-check" style="font-size:15px"></i>
             <span id="sync-text">Synced</span>
@@ -573,6 +574,219 @@ async function go(page) {
     showLoading();
     try { await pageRenderers[page](); } finally { hideLoading(); }
   }
+  if(LANG==='zh') applyLanguage(true, document.body);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LANGUAGE TOGGLE — EN / 中文
+// ═══════════════════════════════════════════════════════════════
+let LANG = 'en';
+try { LANG = localStorage.getItem('gs_lang') || 'en'; } catch(e){}
+
+const ZH_PATTERNS = [
+  [/(\d+) records · Total: /g, '$1 项记录 · 总计：'],
+  [/(\d+) registered members/g, '$1 位注册会友'],
+  [/(\d+) reports submitted/g, '$1 份报告已提交'],
+  [/(\d+) events\b/g, '$1 场活动'],
+  [/(\d+) fellowships\b/g, '$1 个团契'],
+  [/(\d+) groups\b/g, '$1 个小组'],
+  [/(\d+) ministry departments/g, '$1 个事工部门'],
+  [/(\d+) staff records/g, '$1 条同工记录'],
+  [/(\d+) service records/g, '$1 条聚会记录'],
+  [/(\d+) records\b/g, '$1 项记录'],
+  [/(\d+) new\b/g, '$1 项新'],
+  [/(\d+) days? away/g, '$1 天后'],
+  [/Welcome back, /g, '欢迎回来，'],
+  [/\. Here is your church at a glance\./g, '。以下是您教会的概况。'],
+];
+
+const ZH_DICT = {
+  // Nav sections
+  "Overview":"概览","People":"人员","Groups":"小组","Worship":"敬拜","Finance":"财务","Reports":"报告","System":"系统",
+  // Nav / page titles
+  "Dashboard":"仪表板","Members":"会友","Pastoral & Staff":"牧者与同工","Cell Groups":"细胞小组","Fellowships":"团契",
+  "Ministries":"事工","Services":"崇拜聚会","Events":"活动","Offerings":"奉献","Church Fund":"教会基金","Fund Summary":"基金总览",
+  "Leader Reports":"组长报告","Audit Log":"审计日志","Admin Notes":"管理备注","Communications":"通讯",
+  "Special Occasions":"特别节日","Community":"社区","Settings":"设置","Church Settings":"教会设置",
+  "Good Steward Cloud © 2024":"Good Steward Cloud © 2024",
+  // Buttons
+  "Add":"添加","Add Admin":"添加管理员","Add Admin Account":"添加管理员账号","Add Admin Note":"添加管理备注",
+  "Add Cell Group":"添加细胞小组","Add Event":"添加活动","Add Fellowship":"添加团契","Add Member":"添加会友",
+  "Add Ministry":"添加事工","Add Note":"添加备注","Add Service":"添加聚会","Add Staff":"添加同工",
+  "Add Transaction":"添加交易记录","Add Type":"添加类型","Anonymous":"匿名","Approve":"批准","Back":"返回",
+  "Browse Members":"浏览会友","Change Password":"更改密码","Clear":"清除","Close":"关闭","Contact support":"联系支持",
+  "Copy":"复制","Copy Message":"复制信息","Copy WhatsApp Message":"复制WhatsApp信息","Create Admin":"创建管理员",
+  "Create Services":"创建聚会","Export CSV":"导出CSV","Fund Details":"基金详情","Funds":"基金",
+  "Group Report PINs":"小组报告PIN码","Login":"登录","Manage Communication Types":"管理通讯类型",
+  "Manage Offering Funds":"管理奉献基金","Manage PINs":"管理PIN码","More topics":"更多主题",
+  "Open Communications":"打开通讯","Preview":"预览","Record Offering":"记录奉献","Recurring":"循环",
+  "Recurring Service Setup":"循环聚会设置","Reject":"拒绝","Report Details":"报告详情","Reset Defaults":"重置为默认",
+  "Reset PW":"重置密码","Retry":"重试","Save":"保存","Save AI Settings":"保存AI设置","Save Email Settings":"保存邮件设置",
+  "Save Member":"保存会友资料","Save PIN Method":"保存PIN方式","Save Settings":"保存设置","Save Transaction":"保存交易记录",
+  "Save WhatsApp Settings":"保存WhatsApp设置","Scan Receipt with AI":"使用AI扫描收据","Send":"发送","Send Email":"发送邮件",
+  "Smart Entry":"智能录入","Smart Transaction Entry":"智能交易录入","Submit Report":"提交报告","Upload Logo":"上传标志",
+  "Upload Photo":"上传照片","View All":"查看全部","Cancel":"取消","Approved":"已批准","Reviewed":"已审阅",
+  "Pending":"待处理","Prayed For":"已代祷","Actioned":"已处理","Featured":"精选","Rejected":"已拒绝","Review":"审阅",
+  // Community page
+  "Prayer Requests":"代祷事项","Suggestions":"建议","Testimonials":"见证","Member Update Requests":"会友资料更新申请",
+  "No prayer requests yet":"暂无代祷事项","No suggestions yet":"暂无建议","No testimonials yet":"暂无见证",
+  "No update requests yet":"暂无更新申请","No fields submitted":"未提交任何字段","Member":"会友",
+  "Category":"类别","Private":"私密",
+  // Form labels
+  "AI Provider":"AI提供商","API Endpoint URL":"API端点网址","API Key":"API密钥","API Key / Token":"API密钥/令牌",
+  "API Provider":"API提供商","AV Lead":"影音负责人","Account Holder":"账户持有人","Account Number":"账户号码",
+  "Actual Attendance":"实际出席人数","Address":"地址","Amount (RM) *":"金额 (RM) *","Attendance":"出席人数",
+  "Attended":"出席","Bank Name":"银行名称","Baptised":"已受洗","Baptism Year":"受洗年份",
+  "Birthday Greetings":"生日祝福","Capacity":"容量","Challenges":"挑战","Challenges / Needs":"挑战/需要",
+  "Chinese Name":"中文名","Church Name (Chinese)":"教会名称（中文）","Church Name (English) *":"教会名称（英文）*",
+  "Compensation Type":"薪酬类型","Confirm New Password":"确认新密码","Coordinator":"协调员",
+  "Current Password":"当前密码","Date":"日期","Date *":"日期 *","Date of Birth":"出生日期","Denomination":"宗派",
+  "Description":"描述","Description *":"描述 *","DuitNow ID":"DuitNow编号","EPF Number":"公积金号码 (EPF)",
+  "Email":"电子邮件","Emergency Contact":"紧急联络人","Employment":"雇佣状态","Enable AI Scan":"启用AI扫描",
+  "Enable Email Automation":"启用邮件自动化","Enable WhatsApp API":"启用WhatsApp API","End Date":"结束日期",
+  "End Time":"结束时间","English Name *":"英文名 *","Est. Cost (RM)":"预算成本 (RM)",
+  "Estimated Attendance":"预计出席人数","Event Date *":"活动日期 *","Event Name *":"活动名称 *",
+  "Event Reminder":"活动提醒","Faith Status":"信仰状况","Fellowship Name *":"团契名称 *","From Date":"起始日期",
+  "Full Name":"全名","Fund Name":"基金名称","Funding Goal (RM)":"筹款目标 (RM)","Funding Period":"筹款期限",
+  "Funding Purpose":"筹款用途","Gathering Summary":"聚会摘要","Gender":"性别",
+  "Generate how many weeks?":"要生成多少周？","Group Name *":"小组名称 *","IC Number":"身份证号码",
+  "Location":"地点","Marital Status":"婚姻状况","Meeting Day":"聚会日","Meeting Time":"聚会时间",
+  "Membership Status":"会籍状态","Message *":"信息 *","Ministry Name *":"事工名称 *","Monthly Amount (RM)":"每月金额 (RM)",
+  "Monthly Budget (RM)":"每月预算 (RM)","Monthly Giving Statement":"每月奉献报表","Nationality":"国籍",
+  "New Password":"新密码","Next Week Plan":"下周计划","Notes":"备注","Occupation":"职业",
+  "Offering Amount (RM)":"奉献金额 (RM)","Offering Collected (RM)":"收到的奉献 (RM)","Order of Service":"崇拜程序",
+  "Part Time Hours/Week":"兼职每周工时","Password *":"密码 *","Pastor":"牧师","Pastoral Notes (Private)":"牧养备注（私密）",
+  "Payment Method":"付款方式","Phone":"电话","Phone Number ID":"电话号码ID","Photos":"照片","Post/Title":"职位/头衔",
+  "Priority":"优先级","Qualifications":"资历","ROS Number":"社团注册号 (ROS)","Reference No":"参考编号",
+  "Reg Fee (RM)":"报名费 (RM)","Registered":"已登记","Repeats Every":"重复频率","Report Date *":"报告日期 *",
+  "Role":"角色","Role in Church":"在教会中的角色","SOCSO Number":"社险号码 (SOCSO)","Scripture Reference":"经文出处",
+  "Sermon Theme":"讲道主题","Service Date *":"聚会日期 *","Service Name / Theme":"聚会名称/主题","Service Time":"聚会时间",
+  "Service Type":"聚会类型","Speaker (default)":"讲员（默认）","Speaker/Guest":"讲员/嘉宾","Speaker":"讲员",
+  "Staff Type":"同工类型","Start Date":"开始日期","Start Time":"开始时间","Submitted By":"提交人","Summary":"摘要",
+  "Title *":"标题 *","Type *":"类型 *","Type":"类型","Username *":"用户名 *","Website":"网站","Week Ending":"周结日期",
+  "Worship Lead":"敬拜带领","Worship Leader (default)":"敬拜带领人（默认）","Worship Leader":"敬拜带领人",
+  "Year Joined":"加入年份","Yearly Budget (RM)":"年度预算 (RM)","Zone/Area":"区域",
+  // Table headers (new ones only)
+  "Action":"操作","Actions":"操作","After":"之后","Amount":"金额","Before":"之前","Changed By":"更改人",
+  "Chinese":"中文名","Compensation":"薪酬","Date/Time":"日期/时间","Donor":"奉献人","Event Name":"活动名称",
+  "Faith":"信仰","Fund":"基金","Group Name":"小组名称","Group":"小组","Joined":"加入日期","Last Login":"最后登入",
+  "Leader":"组长","Meeting":"聚会","Membership":"会籍","Method":"方式","Ministry Name":"事工名称",
+  "Monthly Budget":"每月预算","Name":"姓名","Photo":"照片","Spending":"支出","Status":"状态","Table":"表格",
+  "Username":"用户名","Zone":"区域","Cell Group":"细胞小组","Ministry":"事工","Fellowship":"团契",
+  // Stat labels
+  "All Time Total":"历史总额","Net Balance":"净结余","This Month":"本月","This Month Offerings":"本月奉献",
+  "Total Expense":"总支出","Total Groups":"小组总数","Total Income":"总收入","Total Members":"会友总数",
+  "Total Offerings":"奉献总额","Total Records":"记录总数","Total Service Offerings":"聚会奉献总额","Total Services":"聚会总数",
+  "Active groups":"活跃小组","All time":"历史累计","Registered members":"已登记会友","Service records":"聚会记录",
+  "Total events":"活动总数",
+  // Empty states
+  "No admin notes yet.":"暂无管理备注。","No cell groups yet.":"暂无细胞小组。","No events yet.":"暂无活动。",
+  "No fellowships yet.":"暂无团契。","No members found.":"未找到会友。","No members yet.":"暂无会友。",
+  "No ministries yet.":"暂无事工。","No offerings recorded yet.":"暂无奉献记录。","No service records yet.":"暂无聚会记录。",
+  "No staff records yet.":"暂无同工记录。","No transactions yet.":"暂无交易记录。",
+  // Subtitles
+  "Birthdays, baptisms & celebrations":"生日、洗礼与庆祝活动","Fund overview & ministry budgets":"基金总览与事工预算",
+  "Internal announcements and reminders":"内部公告与提醒","Manage your church profile":"管理您的教会资料",
+  "Prayer requests, suggestions, testimonials & member update requests":"代祷事项、建议、见证与会友资料更新申请",
+  "Read-only record of all data changes":"所有数据更改的只读记录","Transactions & ministry spending":"交易记录与事工支出",
+  "WhatsApp & Email — side by side":"WhatsApp 与电子邮件 — 并排显示",
+  // Dropdown options
+  "Active":"活跃","Admin":"管理员","Administrative":"行政","All Funds":"所有基金","All Months":"所有月份",
+  "All Status":"所有状态","Anniversary":"周年纪念","Bank Transfer":"银行转账","Believer":"信徒","Cash":"现金",
+  "Cheque":"支票","Children":"儿童","Christmas":"圣诞节","Church Event":"教会活动","Conference":"特会",
+  "Deceased":"已故","Disabled (use Smart Entry)":"已停用（使用智能录入）","Disabled (use copy-paste templates)":"已停用（使用复制粘贴模板）",
+  "Disabled":"已停用","Divorced":"离异","Easter":"复活节","Enabled (direct send via API)":"已启用（通过API直接发送）",
+  "Enabled":"已启用","Expense":"支出","Female":"女","Friday Service":"星期五聚会","Friday":"星期五",
+  "Full Time":"全职","Guest & Visitor":"访客","Honorarium":"酬金","Inactive":"不活跃","Income":"收入",
+  "Info (Blue)":"资讯（蓝色）","Male":"男","Married":"已婚","Men":"弟兄","Mixed":"混合","Monday":"星期一",
+  "Monthly Salary":"月薪","Newcomer":"新朋友","No":"否","Online":"线上","Other":"其他","Outreach":"外展",
+  "Part Time":"兼职","Pastoral":"牧养","Prayer Meeting":"祷告会","Retreat":"退修会","Saturday":"星期六",
+  "Seeker":"慕道友","Select group type":"选择小组类型","Select":"请选择","Send on birthday":"生日当天发送",
+  "Senior":"乐龄","Single":"单身","Special Service":"特别聚会","Sunday Service":"主日崇拜","Sunday":"星期日",
+  "Super Admin":"超级管理员","Support":"支持","Thursday":"星期四","Transfer":"转会","Tuesday":"星期二",
+  "Urgent (Red)":"紧急（红色）","Volunteer":"义工","Warning (Yellow)":"警告（黄色）","Wednesday":"星期三",
+  "Widowed":"丧偶","Women":"姐妹","Yes":"是","Young Adult":"青年","Youth Event":"青少年活动",
+  "Youth Service":"青少年聚会","Youth":"青少年","— None —":"— 无 —","— Select your group —":"— 选择您的小组 —",
+  "ℹ️ Info":"ℹ️ 资讯","⚠️ Important":"⚠️ 重要","🚨 Urgent":"🚨 紧急",
+  // Misc UI
+  "Synced":"已同步","Syncing...":"同步中...","Change photo":"点击照片更换","Click photo to update":"点击照片更换",
+  "Sign Out":"登出","Welcome back":"欢迎回来","Today!":"今天！","Tomorrow":"明天","Passed":"已过",
+  "days away":"天后","Search members...":"搜索会友...","Min 8 characters":"至少8个字符",
+  "Current password":"当前密码","Confirm new password":"确认新密码","All fields required":"所有字段为必填项",
+  "Passwords do not match":"两次密码不一致","Current password incorrect":"当前密码不正确",
+  "Password changed successfully":"密码已成功更改",
+};
+
+const _dictKeys = Object.keys(ZH_DICT).sort(function(a,b){ return b.length - a.length; });
+const _dictRegex = _dictKeys.length ? new RegExp(_dictKeys.map(function(k){
+  return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+}).join('|'), 'g') : null;
+
+function translateText(str) {
+  if(!str) return str;
+  var out = str;
+  ZH_PATTERNS.forEach(function(pair){ out = out.replace(pair[0], pair[1]); });
+  if(_dictRegex) out = out.replace(_dictRegex, function(m){ return ZH_DICT[m]!==undefined ? ZH_DICT[m] : m; });
+  return out;
+}
+
+const _i18nTextOrig = new WeakMap();
+const _i18nAttrOrig = new WeakMap();
+
+function _shouldSkipEl(el) {
+  return el && (el.tagName==='SCRIPT' || el.tagName==='STYLE' || el.tagName==='NOSCRIPT');
+}
+
+function walkTextNodes(root, cb) {
+  var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: function(node) {
+      var p = node.parentElement;
+      while(p) { if(_shouldSkipEl(p)) return NodeFilter.FILTER_REJECT; p = p.parentElement; }
+      if(!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_SKIP;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  var n, nodes = [];
+  while(n = walker.nextNode()) nodes.push(n);
+  nodes.forEach(cb);
+}
+
+function applyLanguage(toZh, root) {
+  root = root || document.body;
+  walkTextNodes(root, function(node){
+    var store = _i18nTextOrig.get(node);
+    if(store===undefined) { store = node.nodeValue; _i18nTextOrig.set(node, store); }
+    node.nodeValue = toZh ? translateText(store) : store;
+  });
+  var els = root.querySelectorAll('[placeholder],[title]');
+  els.forEach(function(el){
+    ['placeholder','title'].forEach(function(attr){
+      if(!el.hasAttribute(attr)) return;
+      var store = _i18nAttrOrig.get(el);
+      if(!store) { store = {}; _i18nAttrOrig.set(el, store); }
+      if(store[attr]===undefined) store[attr] = el.getAttribute(attr);
+      el.setAttribute(attr, toZh ? translateText(store[attr]) : store[attr]);
+    });
+  });
+}
+
+function updateLangBtn() {
+  var btn = document.getElementById('lang-toggle-btn');
+  if(!btn) return;
+  btn.innerHTML = LANG==='zh'
+    ? '<i class="ti ti-language" style="font-size:15px"></i>EN'
+    : '<i class="ti ti-language" style="font-size:15px"></i>中文';
+}
+
+async function toggleLang() {
+  LANG = LANG==='zh' ? 'en' : 'zh';
+  try { localStorage.setItem('gs_lang', LANG); } catch(e){}
+  updateLangBtn();
+  if(pageRenderers[currentPage]) {
+    showLoading();
+    try { await pageRenderers[currentPage](); } finally { hideLoading(); }
+  }
+  applyLanguage(LANG==='zh', document.body);
 }
 
 // ── PHOTO COMPRESSION ─────────────────────────────────────────
@@ -804,6 +1018,8 @@ async function completeLogin(church, admin) {
   setSyncStatus('synced');
   await loadChurchPhoto();
   await renderDash();
+  updateLangBtn();
+  if(LANG==='zh') applyLanguage(true, document.body);
   toast('Welcome, ' + (admin.full_name || admin.username) + '!');
 }
 
@@ -3742,6 +3958,7 @@ window.addEventListener('load', async function() {
   document.getElementById('um-username').textContent = (saved.admin && (saved.admin.fullName || saved.admin.username)) || '';
 
   try { await loadChurchPhoto(); } catch(e){}
+  updateLangBtn();
 
   // Restore last visited page, default to dash
   var lastPage = 'dash';
@@ -5131,6 +5348,49 @@ async function checkOccasionNotifications() {
     }
   } catch(e){}
 }
+
+async function checkMemberUpdateNotifications() {
+  try {
+    var reqs = await safeGet('member_update_requests');
+    var pending = reqs.filter(function(u){ return (u.status||'pending')==='pending'; });
+    var navCom=document.getElementById('nav-community');
+    var oldBadge=navCom&&navCom.querySelector('.upd-badge'); if(oldBadge) oldBadge.remove();
+    if(!pending.length) return;
+    var dashPage=document.getElementById('page-dash'); if(!dashPage) return;
+    var existing=document.getElementById('upd-notif'); if(existing) existing.remove();
+    var notif=document.createElement('div');
+    notif.id='upd-notif';
+    notif.style.cssText='background:linear-gradient(135deg,#eff6ff,#e0e7ff);border:1px solid #93c5fd;border-radius:10px;padding:12px 16px;margin:0 0 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer';
+    notif.onclick=function(){go('community');};
+    notif.innerHTML='<div style="display:flex;align-items:center;gap:10px"><div style="font-size:28px">📝</div>' +
+      '<div><div style="font-weight:700;font-size:14px;color:#1e3a8a">'+pending.length+' Member Update Request'+(pending.length>1?'s':'')+' awaiting approval</div>' +
+        '<div style="font-size:12px;color:#3730a3">'+pending.slice(0,3).map(function(u){return esc(u.member_name||'Member');}).join(' · ')+(pending.length>3?' + more':'')+'</div>' +
+      '</div></div><div style="font-size:12px;color:#1e3a8a;font-weight:600">Review &rsaquo;</div>';
+    var occNotif=document.getElementById('occ-notif');
+    var ph=dashPage.querySelector('.ph');
+    if(occNotif) dashPage.insertBefore(notif,occNotif.nextSibling);
+    else if(ph&&ph.nextSibling) dashPage.insertBefore(notif,ph.nextSibling);
+    else dashPage.appendChild(notif);
+    if(navCom&&!navCom.querySelector('.upd-badge')){
+      var badge=document.createElement('span');
+      badge.className='upd-badge';
+      badge.style.cssText='background:var(--danger);color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:6px';
+      badge.textContent=pending.length;
+      navCom.appendChild(badge);
+    }
+  } catch(e){}
+}
+
+// ── Hook: refresh dashboard notification badges (occasions & member update requests) ──
+(function(){
+  var _origDash=window.renderDash;
+  if(!_origDash) return;
+  window.renderDash=async function(){
+    await _origDash();
+    checkOccasionNotifications();
+    checkMemberUpdateNotifications();
+  };
+})();
 
 function commMothersFathers(type) {
   var church=SESSION?.churchName||'Church';
