@@ -296,7 +296,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
         <div class="ns">Worship</div>
         <div class="ni" onclick="go('services')"><i class="ti ti-microphone"></i>Services</div>
         <div class="ni" onclick="go('events')"><i class="ti ti-calendar-event"></i>Events</div>
-        <div class="ns">Finance</div>
+        <div class="ns">Offering &amp; Funds</div>
         <div class="ni" onclick="go('donations')"><i class="ti ti-heart"></i>Offerings</div>
         <div class="ni" onclick="go('accounting')"><i class="ti ti-report-money"></i>Church Fund</div>
         <div class="ni" onclick="go('finance')"><i class="ti ti-chart-pie"></i>Fund Summary</div>
@@ -602,7 +602,7 @@ const ZH_PATTERNS = [
 
 const ZH_DICT = {
   // Nav sections
-  "Overview":"概览","People":"人员","Groups":"小组","Worship":"敬拜","Finance":"财务","Reports":"报告","System":"系统",
+  "Overview":"概览","People":"人员","Groups":"小组","Worship":"敬拜","Offering & Funds":"奉献与基金","Reports":"报告","System":"系统",
   // Nav / page titles
   "Dashboard":"仪表板","Members":"会友","Pastoral & Staff":"牧者与同工","Cell Groups":"细胞小组","Fellowships":"团契",
   "Ministries":"事工","Services":"崇拜聚会","Events":"活动","Offerings":"奉献","Church Fund":"教会基金","Fund Summary":"基金总览",
@@ -2538,7 +2538,7 @@ const BOT_KB = [
   {q:['cell group','small group'],a:'Click <b>Cell Groups</b> → <b>Add Cell Group</b>. To assign a member: Edit their profile in <b>Members</b> → Select Cell Group dropdown.'},
   {q:['fellowship','youth','women','men'],a:'Click <b>Fellowships</b> → <b>Add Fellowship</b>. Assign members via their profile in <b>Members</b> module.'},
   {q:['ministry','worship ministry'],a:'Click <b>Ministries</b> → <b>Add Ministry</b>. Set budget and leader. Assign members via their profile.'},
-  {q:['service','sunday service','sermon'],a:'Click <b>Services</b> → <b>Add Service</b> → Enter date, speaker, sermon, attendance, offering. Offering auto-records to Finance.'},
+  {q:['service','sunday service','sermon'],a:'Click <b>Services</b> → <b>Add Service</b> → Enter date, speaker, sermon, attendance, offering. Offering auto-records to Fund Summary.'},
   {q:['event','church event','christmas'],a:'Click <b>Events</b> → <b>Add Event</b> → Fill name, date, location, coordinator. Track registration and attendance.'},
   {q:['staff','pastor','salary','compensation'],a:'Click <b>Pastoral & Staff</b> → <b>Add Staff</b>. Record title, compensation, EPF/SOCSO, qualifications.'},
   {q:['settings','church name','bank','ros number'],a:'Click <b>Settings</b> → Fill church profile, bank details, ROS number → <b>Save Settings</b>.'},
@@ -2549,7 +2549,7 @@ const BOT_KB = [
   {q:['two device','multiple device','another computer'],a:'Good Steward Cloud supports unlimited devices! Open the URL on any browser, enter the same license key, login — all devices share the same data in real time.'},
   {q:['sync','not showing','refresh'],a:'Data syncs in real time. If something is not showing, press F5 to refresh. Check the "Synced" indicator top right.'},
   {q:['support','help','contact','problem','error'],a:'Contact Good Steward support:<br>📧 <b>support@goodsteward.app</b><br>📱 WhatsApp: <b>+60-109-895-913</b>'},
-  {q:['about','what is','good steward','version'],a:'Good Steward is a Church Management System for Malaysian churches. Members, Offerings, Accounting, Groups, Services and more — all in one place. By Web3 Studio Tech Sdn Bhd.'},
+  {q:['about','what is','good steward','version'],a:'Good Steward is a Church Management System for churches of any size, anywhere. Members, Offerings, Groups, Services and more — all in one place. By Web3 Studio Tech Sdn Bhd.'},
   {q:['desktop','cloud','difference'],a:'<b>Desktop:</b> Installed app, works offline, data in .gs file, 1 computer.<br><b>Cloud (you are here):</b> Browser-based, any device, real-time sync, unlimited users.'},
 ];
 

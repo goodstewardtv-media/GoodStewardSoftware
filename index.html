@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Good Steward — Church Management System</title>
-<meta name="description" content="A complete church management system built for Malaysian churches. Manage members, cell groups, offerings, ministries and more.">
+<meta name="description" content="A complete church management system built for churches of any size. Manage members, cell groups, offerings, ministries and more.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
@@ -134,6 +134,7 @@
   /* ── VERSIONS ── */
   .versions { background: var(--white); }
   .versions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px; }
+  .versions-grid.single { grid-template-columns: minmax(0,460px); justify-content: center; }
   .version-card {
     border: 1.5px solid #e5e7eb; border-radius: 14px;
     overflow: hidden; transition: box-shadow .2s;
@@ -152,7 +153,6 @@
     padding: 3px 10px; border-radius: 4px; margin-bottom: 12px;
   }
   .version-badge.cloud { background: var(--gold); color: var(--navy); }
-  .version-badge.desktop { background: #334155; color: #cbd5e1; }
   .version-name { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--white); margin-bottom: 6px; }
   .version-name.dark { color: var(--navy); }
   .version-desc { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.6; }
@@ -262,9 +262,9 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-badge"><i class="ti ti-church"></i> Built for Malaysian Churches</div>
+  <div class="hero-badge"><i class="ti ti-church"></i> Built for Churches of Every Size</div>
   <h1>Manage your church with<br><span>wisdom and clarity</span></h1>
-  <p>Good Steward brings your members, cell groups, finances, and ministries into one place — so you can focus on people, not paperwork.</p>
+  <p>Good Steward brings your members, cell groups, offerings, and ministries into one place — so you can focus on people, not paperwork.</p>
   <div class="hero-btns">
     <a href="goodsteward-cloud.html" class="btn-primary"><i class="ti ti-cloud"></i> Open Cloud App</a>
     <a href="#pricing" class="btn-outline"><i class="ti ti-info-circle"></i> See Pricing</a>
@@ -275,60 +275,36 @@
 <!-- STATS -->
 <div class="stats">
   <div class="stat"><div class="stat-val">10</div><div class="stat-lbl">Modules</div></div>
-  <div class="stat"><div class="stat-val">2</div><div class="stat-lbl">Editions</div></div>
-  <div class="stat"><div class="stat-val">100%</div><div class="stat-lbl">Offline-ready Desktop</div></div>
-  <div class="stat"><div class="stat-val">MY</div><div class="stat-lbl">Made for Malaysia</div></div>
+  <div class="stat"><div class="stat-val">∞</div><div class="stat-lbl">Users &amp; Devices</div></div>
+  <div class="stat"><div class="stat-val">24/7</div><div class="stat-lbl">Cloud Access</div></div>
 </div>
 
 <!-- VERSIONS / PRICING -->
 <section class="versions" id="pricing">
   <div class="container">
-    <div class="section-eye">Editions</div>
-    <div class="section-title">One system, two editions</div>
-    <div class="section-sub">Choose the edition that fits your church's size and how your team works.</div>
-    <div class="versions-grid">
+    <div class="section-eye">Pricing</div>
+    <div class="section-title">One system, one simple plan</div>
+    <div class="section-sub">Everything your church needs, in one place — accessible from any device.</div>
+    <div class="versions-grid single">
 
       <!-- CLOUD -->
       <div class="version-card featured">
         <div class="version-head">
-          <div class="version-badge cloud">Recommended</div>
+          <div class="version-badge cloud">Cloud Edition</div>
           <div class="version-name">Cloud Edition</div>
           <div class="version-desc">Multi-user, accessible from any device. Ideal for churches with multiple admins and leaders.</div>
         </div>
         <div class="version-body">
           <div class="version-price">RM 179 <span>/ month</span></div>
           <ul class="version-features">
-            <li><i class="ti ti-check"></i>Unlimited users &amp; devices</li>
+            <li><i class="ti ti-check"></i>Multiple users &amp; devices</li>
             <li><i class="ti ti-check"></i>Real-time sync across all devices</li>
             <li><i class="ti ti-check"></i>Leader Portal for CG &amp; ministry reports</li>
             <li><i class="ti ti-check"></i>All 10 management modules</li>
-            <li><i class="ti ti-check"></i>Church Finance &amp; fund tracker</li>
-            <li><i class="ti ti-check"></i>AI receipt scanning</li>
-            <li><i class="ti ti-check"></i>Cloud backup — never lose data</li>
+            <li><i class="ti ti-check"></i>Offering &amp; Fund Tracker</li>
+            <li><i class="ti ti-check"></i>Cloud backup</li>
           </ul>
           <a href="goodsteward-cloud.html" class="version-btn primary"><i class="ti ti-login"></i> Open Cloud App</a>
-        </div>
-      </div>
-
-      <!-- DESKTOP -->
-      <div class="version-card">
-        <div class="version-head light">
-          <div class="version-badge desktop">Desktop</div>
-          <div class="version-name dark">Desktop Edition</div>
-          <div class="version-desc dark">Single-device, fully offline. No internet required after activation. Ideal for smaller churches.</div>
-        </div>
-        <div class="version-body">
-          <div class="version-price">RM 49–99 <span>/ month</span></div>
-          <ul class="version-features">
-            <li><i class="ti ti-check"></i>Works 100% offline</li>
-            <li><i class="ti ti-check"></i>Installed on your Windows PC</li>
-            <li><i class="ti ti-check"></i>All 10 management modules</li>
-            <li><i class="ti ti-check"></i>Print &amp; PDF for all reports</li>
-            <li><i class="ti ti-check"></i>Annual giving statements</li>
-            <li><i class="ti ti-check"></i>1-device license</li>
-            <li><i class="ti ti-check"></i>7-day offline grace period</li>
-          </ul>
-          <a href="mailto:support@goodsteward.app" class="version-btn secondary"><i class="ti ti-download"></i> Request Desktop Trial</a>
         </div>
       </div>
 
@@ -341,7 +317,7 @@
   <div class="container">
     <div class="section-eye">What's included</div>
     <div class="section-title">Everything your church needs</div>
-    <div class="section-sub">All modules are included in both editions — no add-ons, no hidden fees.</div>
+    <div class="section-sub">All modules are included — no add-ons, no hidden fees.</div>
     <div class="modules-grid">
       <div class="module-card"><div class="module-icon"><i class="ti ti-users"></i></div><div class="module-name">Members</div><div class="module-desc">Full member directory, status tracking, photo profiles</div></div>
       <div class="module-card"><div class="module-icon"><i class="ti ti-sitemap"></i></div><div class="module-name">Cell Groups</div><div class="module-desc">Group management, member roles, meeting schedules</div></div>
@@ -349,7 +325,7 @@
       <div class="module-card"><div class="module-icon"><i class="ti ti-crown"></i></div><div class="module-name">Ministries</div><div class="module-desc">Ministry departments, leaders, yearly budgets</div></div>
       <div class="module-card"><div class="module-icon"><i class="ti ti-id-badge-2"></i></div><div class="module-name">Pastoral Staff</div><div class="module-desc">Full-time, part-time, compensation and profiles</div></div>
       <div class="module-card"><div class="module-icon"><i class="ti ti-heart"></i></div><div class="module-name">Offerings</div><div class="module-desc">Tithe, building fund, missions — custom types</div></div>
-      <div class="module-card"><div class="module-icon"><i class="ti ti-report-money"></i></div><div class="module-name">Church Finance</div><div class="module-desc">Fund tracker, ministry budgets, CSV export</div></div>
+      <div class="module-card"><div class="module-icon"><i class="ti ti-report-money"></i></div><div class="module-name">Offering &amp; Funds</div><div class="module-desc">Fund tracker, ministry budgets, CSV export</div></div>
       <div class="module-card"><div class="module-icon"><i class="ti ti-microphone"></i></div><div class="module-name">Services</div><div class="module-desc">Attendance, offering, speaker and sermon records</div></div>
       <div class="module-card"><div class="module-icon"><i class="ti ti-calendar-event"></i></div><div class="module-name">Events</div><div class="module-desc">Church calendar and event management</div></div>
       <div class="module-card"><div class="module-icon"><i class="ti ti-clipboard-list"></i></div><div class="module-name">Leader Reports</div><div class="module-desc">Weekly reports from CG, fellowship and ministry leaders</div></div>
@@ -411,7 +387,7 @@
 <!-- FOOTER -->
 <footer>
   <div class="footer-brand">Good Steward</div>
-  <div class="footer-copy">© 2024 Good Steward · Church Management System · Malaysia</div>
+  <div class="footer-copy">© 2024 Good Steward · Church Management System</div>
   <div class="footer-links">
     <a href="mailto:support@goodsteward.app">support@goodsteward.app</a>
     <a href="https://wa.me/60109895913">WhatsApp</a>
